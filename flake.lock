@@ -36,7 +36,8 @@
       "inputs": {
         "nixpkgs": "nixpkgs",
         "transit": "transit",
-        "zig-overlay": "zig-overlay"
+        "zig-overlay": "zig-overlay",
+        "transit-baseline": "transit-baseline"
       }
     },
     "systems": {
@@ -65,17 +66,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1795106250,
-        "narHash": "sha256-uJHt8O/vxkXDI0y1g5TZnGubPQrqj5gV3t4sPttu72c=",
+        "lastModified": 1795124824,
+        "narHash": "sha256-a2SrQs6coF3WF5D28Wh7RoDzc82NTy8NTtUX24ZKu9w=",
         "owner": "spoke-sh",
         "repo": "transit",
-        "rev": "e7434306334e3692c6f3e123cba0d278fa412196",
+        "rev": "8a968ec39dcdb5cbb80287d0b033c615b137c674",
         "type": "github"
       },
       "original": {
         "owner": "spoke-sh",
         "repo": "transit",
-        "rev": "e7434306334e3692c6f3e123cba0d278fa412196",
+        "rev": "8a968ec39dcdb5cbb80287d0b033c615b137c674",
         "type": "github"
       }
     },
@@ -98,6 +99,30 @@
       "original": {
         "owner": "mitchellh",
         "repo": "zig-overlay",
+        "type": "github"
+      }
+    },
+    "transit-baseline": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "zig-overlay": [
+          "zig-overlay"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795106250,
+        "narHash": "sha256-uJHt8O/vxkXDI0y1g5TZnGubPQrqj5gV3t4sPttu72c=",
+        "owner": "spoke-sh",
+        "repo": "transit",
+        "rev": "e7434306334e3692c6f3e123cba0d278fa412196",
+        "type": "github"
+      },
+      "original": {
+        "owner": "spoke-sh",
+        "repo": "transit",
+        "rev": "e7434306334e3692c6f3e123cba0d278fa412196",
         "type": "github"
       }
     }

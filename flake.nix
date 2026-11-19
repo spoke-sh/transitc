@@ -8,6 +8,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     transit = {
+      url = "github:spoke-sh/transit/8a968ec39dcdb5cbb80287d0b033c615b137c674";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.zig-overlay.follows = "zig-overlay";
+    };
+    transit-baseline = {
       url = "github:spoke-sh/transit/e7434306334e3692c6f3e123cba0d278fa412196";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.zig-overlay.follows = "zig-overlay";
@@ -20,6 +25,7 @@
       nixpkgs,
       zig-overlay,
       transit,
+      transit-baseline,
       ...
     }:
     let
@@ -38,10 +44,11 @@
             upstream = zig-overlay.packages.${system}.master;
           };
           transitc = pkgs.callPackage ./nix/transitc.nix {
-            inherit zig;
+            inherit zig testRuntime;
             sourceRevision = self.rev or self.dirtyRev or "development";
           };
-          upstreamTransit = transit.packages.${system}.transit;
+          upstreamTransit = transit-baseline.packages.${system}.transit;
+          testRuntime = transit.packages.${system}.transit;
         in
         assert pkgs.lib.assertMsg (
           zig.version == "0.17.0-dev.2267+48abf1a34"
@@ -52,6 +59,7 @@
             zig
             transitc
             upstreamTransit
+            testRuntime
             ;
         }
       );
@@ -65,7 +73,12 @@
       devShells = forAllSystems (
         system:
         let
-          inherit (toolchains.${system}) pkgs zig upstreamTransit;
+          inherit (toolchains.${system})
+            pkgs
+            zig
+            upstreamTransit
+            testRuntime
+            ;
           common = [ pkgs.just ];
         in
         {
@@ -79,11 +92,14 @@
               pkgs.lean4
               pkgs.git
               upstreamTransit
+              testRuntime
             ];
             TRANSIT_UPSTREAM_BIN = "${upstreamTransit}/bin/transit";
-            TRANSIT_UPSTREAM_REVISION = transit.rev;
-            TRANSIT_UPSTREAM_SOURCE = "${transit}";
-            TRANSIT_SQL_GRAMMAR_DIR = "${transit}/contracts/sql";
+            TRANSIT_UPSTREAM_REVISION = transit-baseline.rev;
+            TRANSIT_UPSTREAM_SOURCE = "${transit-baseline}";
+            TRANSIT_TEST_RUNTIME = "${testRuntime}/bin/transit";
+            TRANSIT_TEST_SOURCE = "${transit}";
+            TRANSIT_SQL_GRAMMAR_DIR = "${transit-baseline}/contracts/sql";
             buildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.stdenv.cc.libc ];
           };
           docs = pkgs.mkShellNoCC {
@@ -100,6 +116,7 @@
             zig
             transitc
             upstreamTransit
+            testRuntime
             ;
         in
         {
@@ -111,7 +128,7 @@
               ''
                 python3 -B ${./tests/integration/upstream_transit.py} \
                   --transit ${upstreamTransit}/bin/transit \
-                  --expected-revision ${transit.rev} \
+                  --expected-revision ${transit-baseline.rev} \
                   --fixtures ${./tests/integration/fixtures}
                 touch "$out"
               '';
@@ -139,7 +156,7 @@
                 cd source
                 export ZIG_GLOBAL_CACHE_DIR="$TMPDIR/zig-global-cache"
                 export ZIG_LOCAL_PKG_DIR="zig-pkg"
-                export TRANSIT_SQL_GRAMMAR_DIR="${transit}/contracts/sql"
+                export TRANSIT_SQL_GRAMMAR_DIR="${transit-baseline}/contracts/sql"
                 mkdir -p "$ZIG_LOCAL_PKG_DIR"
                 cp -r ${transitc.dependencies}/. "$ZIG_LOCAL_PKG_DIR/"
                 chmod -R u+w "$ZIG_LOCAL_PKG_DIR"

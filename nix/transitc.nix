@@ -4,6 +4,7 @@
   runCommand,
   fetchurl,
   zig,
+  testRuntime,
   sourceRevision ? "development",
   sharedArchive ? fetchurl {
     name = "transit-sql-frontend.tar.gz";
@@ -47,7 +48,7 @@ stdenv.mkDerivation {
     mkdir -p "$ZIG_LOCAL_PKG_DIR"
     cp -r ${dependencies}/. "$ZIG_LOCAL_PKG_DIR/"
     chmod -R u+w "$ZIG_LOCAL_PKG_DIR"
-    zig build -Doptimize=ReleaseSafe -Dcpu=baseline -Drevision=${lib.escapeShellArg sourceRevision} -j$NIX_BUILD_CORES --prefix "$out"
+    zig build -Doptimize=ReleaseSafe -Dcpu=baseline -Drevision=${lib.escapeShellArg sourceRevision} -Dtest-runtime=${testRuntime}/bin/transit -j$NIX_BUILD_CORES --prefix "$out"
     runHook postBuild
   '';
   dontInstall = true;
@@ -69,6 +70,7 @@ stdenv.mkDerivation {
     test ! -s unsupported.stdout
     grep -F 'unsupported command' unsupported.stderr
     "$out/bin/transitc" test --help
+    "$out/bin/transitc" test -f tests/fixtures/application-tests/build.transit --format json
     runHook postInstallCheck
   '';
   passthru = { inherit dependencies sharedArchive; };

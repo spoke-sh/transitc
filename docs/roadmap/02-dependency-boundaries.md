@@ -1,6 +1,6 @@
 # 2. Dependency boundaries
 
-Status: In Progress
+Status: Completed
 
 Prerequisites: [repository bootstrap](01-repository-bootstrap.md).
 
@@ -36,9 +36,18 @@ repository dependencies.
 
 ## Extraction implementation update
 
-The compiler, workspace adapter and independent source checks are implemented.
-Shared SQL/value modules remain Transit-owned and exactly pinned; embedded hosts
-supply their canonical modules without resolving the standalone pin. See the
-[current package map](../../packages/README.md), [attribution](../../NOTICE.md) and
-public handbook. Consumer cutover and final clean qualification are still in
-progress; this milestone does not inherit prior Transit pass records.
+Shared SQL/value modules remain Transit-owned. Standalone builds consume the
+deterministic four-package archive at Transit
+`97d796fb0cf7203c869fd57ed6f45fe3935edd71`, verified by Zig content hash and
+Nix SHA256. Embedded hosts supply their canonical frontend, protocol and memory
+modules without resolving that archive or the integration-runtime flake input.
+The [package map](../../packages/README.md), checked import inventory and
+[attribution](../../NOTICE.md) record the selected owners and exclusions.
+
+Fresh-cache standalone compilation passed without Arrow or runtime packages.
+The Transit adapter's unit tests also passed with fresh compiler caches and an
+empty dependency store, proving that embedding needs no fetched dependency.
+Compiler products retain the current definition identity; executable/revision
+and input/cache digests are tested separately from semantic output. These
+executed dependency proofs close this milestone; runtime and release
+qualification belong to the following milestones.

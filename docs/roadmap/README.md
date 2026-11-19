@@ -7,7 +7,7 @@ it does not copy the runtime product backlog or inherit its completion claims.
 | Order | Milestone | Status | Prerequisites |
 | --- | --- | --- | --- |
 | 1 | [Repository bootstrap](01-repository-bootstrap.md) | Completed | None |
-| 2 | [Dependency boundaries](02-dependency-boundaries.md) | In Progress | 1 |
+| 2 | [Dependency boundaries](02-dependency-boundaries.md) | Completed | 1 |
 | 3 | [Compiler and CLI extraction](03-compiler-and-cli.md) | In Progress | 2 |
 | 4 | [Documentation and qualification](04-documentation-and-qualification.md) | In Progress | 3; documentation grows throughout |
 
@@ -18,9 +18,9 @@ inspected on 2026-11-18. The source checkout was clean.
 The upstream integration pin and proposed extraction basis were refreshed on
 2026-11-19 to
 [`e7434306334e3692c6f3e123cba0d278fa412196`](https://github.com/spoke-sh/transit/tree/e7434306334e3692c6f3e123cba0d278fa412196),
-the verified upstream `main` at that time. The compiler manifest still depends
+the verified upstream `main` at that time. At that basis the compiler manifest depended
 on `transit_fuze`, `transit_memory`, and `transit_protocol`; the toolchain pins
-and CLI build/source/migration adapters are unchanged. The source contract,
+and the CLI build/source/migration adapters were unchanged. The source contract,
 compiler, grammar and verification corpus now include:
 
 - `UUID`, `TIMESTAMPTZ` and `BINARY` source scalars, plus `ROW(...)` helper parameters.
@@ -55,23 +55,23 @@ frozen revision above as the comparison target.
 | 2 — Comparison harness (M3) | Bring over the source contract, independent grammar/corpus, verification adapters and fixture families. Establish the upstream baseline before changing compiler ownership. | Golden SQL, source maps, diagnostics and positive/negative cases cover the frozen profile, including multi-schema isolation, reference non-escalation, new scalars, helpers and migrations. |
 | 3 — Pure compiler (M3) | Move the compiler and bounded diagnostic owners into real packages with manifests, public APIs and root build/check wiring. Preserve parsing, typing, lowering, formatting, migrations and test-product compilation together initially. | Old/new semantic parity, independent SQL verification, allocation-failure cleanup and input/output/budget limits pass without filesystem, network or runtime services in the compiler. |
 | 4 — Workspace and CLI (M3) | Move source capture/resolution, locks, explicit fetch, overrides, provenance and artifact publication into `transitc-workspace`; compose them through the CLI. | Offline builds, lock/digest failures, invalid paths, human/JSON diagnostics, deterministic reuse, corruption rejection and incomplete-publication failures pass from a standalone checkout. |
-| 5 — Migration/test adapters and Transit cutover (M3) | Wire immutable migration basis/history I/O and compile-only test products; migrate Transit consumers to the agreed shared packages and retire superseded ownership together. | Migration history bytes and definition checks survive; emitted SQL executes against the pinned runtime; runtime test execution is separately qualified or explicitly unavailable. Required Transit gates pass before updating its PR. |
+| 5 — Migration/test adapters and Transit cutover (M3) | Wire immutable migration basis/history I/O and `transitc test` orchestration over a compiled-case host; migrate Transit consumers to shared packages and retire superseded ownership together. | Migration history bytes and definition checks survive; emitted SQL and application tests execute against the pinned runtime. Required Transit gates pass before updating its PR. |
 | 6 — Documentation and release qualification (M4) | Complete installation, build/dependency, diagnostic, artifact, migration, test and embedding guides with runnable examples and recorded compatibility. | Clean-checkout package builds, supported-host checks, example coverage, both handbook base paths and compiler/runtime compatibility pass with revisions and limitations recorded. |
 
-The first review decision is shared SQL ownership: `transitc-sql` may live here
+The first review decision was shared SQL ownership: `transitc-sql` could live here
 and be consumed by Transit, or be supplied by an independently pinned owner.
 The dependency proof must settle this before the compiler moves. In particular,
 moving SQL here must not leave it importing Transit-owned protocol values that
 in turn depend on it; the development/test Transit flake input also needs an
 acyclic distribution strategy if Transit starts consuming this flake.
 
-Proposed CLI mapping for slice 4: `transitc build`, `transitc build --check` and
+The reviewed CLI mapping for slice 4 was `transitc build`, `transitc build --check` and
 `transitc build --fetch`, preserving the existing entry, target, output,
-override, format and color options. These are review proposals, not commands
-implemented by the scaffold. Runtime execution stays with Transit initially;
-do not expose `transitc test` until its execution adapter is qualified. Decide
-how Transit's existing build/test commands migrate as part of the consumer
-contract, before removing their implementation.
+override, format and color options. These commands are now implemented and
+documented in the handbook. The extraction scope also includes `transitc test`:
+source resolution, compilation, orchestration and reports move here, while a
+bounded compiled-case host in Transit retains database execution. Transit's
+existing commands become adapters over these shared libraries.
 
 Parity must distinguish semantic output from tool identity. The existing CLI
 includes its executable digest and revision in provenance and input/cache
@@ -85,15 +85,17 @@ pass.
 
 The reviewed sequence is being executed. The pure frontend is supplied by Transit;
 compiler and workspace sources, tests and source contracts now live here. The CLI
-supports the reviewed build/check/fetch mapping. Transit's runtime test host remains
-outside the compiler, using embedded modules with one shared type identity.
+supports build/check/fetch and isolated application testing. Transit's runtime
+test host remains outside the compiler, using embedded modules with one shared
+type identity and a versioned process boundary for standalone `transitc test`.
 The historical review text above records the original decision points; current
 behavior is documented in the handbook and package READMEs.
 
 Standalone compiler builds use the deterministic four-package SQL frontend
 archive at Transit `97d796fb0cf7203c869fd57ed6f45fe3935edd71`, pinned by both
 Zig content hash and Nix SHA256. Fresh package/global cache compilation executes
-without Arrow or runtime dependencies. The integration host remains frozen at
-`e7434306334e3692c6f3e123cba0d278fa412196`. Transit consumes embedded source
+without Arrow or runtime dependencies. The comparison binary remains frozen at
+`e7434306334e3692c6f3e123cba0d278fa412196`; the compiled-case host is separately
+pinned at `8a968ec39dcdb5cbb80287d0b033c615b137c674`. Transit consumes embedded source
 modules without evaluating transitc's runtime integration flake, avoiding a build
 dependency cycle.
