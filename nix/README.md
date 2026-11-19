@@ -16,6 +16,12 @@ The default shell includes Zig and docs tooling. `.#docs` omits Zig and the C
 toolchain. Both support x86_64/aarch64 Linux and Darwin in the flake; local
 validation only establishes the host platform's result.
 
+`transitc.nix` builds the CLI artifact with that same toolchain. The default
+package and `transitc` package expose only the installed executable, so consumers
+can use it in `mkShellNoCC` without inheriting the compiler development shell.
+Installation checks exercise help, the bootstrap version, and rejection of an
+unsupported command; the flake's bootstrap check also checks Zig formatting.
+
 When changing Zig, update the lock, version assertion in `flake.nix`, assertion
 in `zig.nix`, and `build.zig.zon` together. Review the patch against the new
 compiler sources and execute `nix flake check`. Do not track moving `master`
