@@ -2,7 +2,7 @@ default:
     @just --list
 
 build:
-    zig build
+    zig build "-Dtest-runtime=${TRANSIT_TEST_RUNTIME:-transit}"
 
 check:
     zig fmt --check build.zig build.zig.zon apps packages examples tests/query/application_source/driver.zig
