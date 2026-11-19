@@ -72,6 +72,9 @@ pub fn runDetailed(self: *Self, init: std.process.Init, directory: std.Io.Dir, p
         self.error_len = cause.len;
         return error.TestHostExecutionFailed;
     }
+    // The extra process timeout only permits joined cleanup. It cannot renew
+    // the caller's case budget or admit a late successful assertion report.
+    deadline.check(init.io) catch return error.TestDeadline;
     return response.value.passed;
 }
 pub fn delete(_: *Self, io: std.Io, parent: std.Io.Dir, name: []const u8) !void {

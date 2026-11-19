@@ -37,6 +37,7 @@ first case, and a passed second case. Correct the expectation before continuing.
 Initialization, deadline, transport, result-limit or cleanup failures instead
 produce an incomplete report; later cases remain `not_run`. Missing output or a
 successful process exit alone cannot establish a passed suite.
+The cleanup grace period cannot make a late completion report pass its case budget.
 
 Tests use the same module graph, type checker and SQL emitter as ordinary builds.
 All cases compile before the first runtime starts. A source error in a later case

@@ -151,6 +151,7 @@ def main():
             'stderr': "print('unexpected child stderr', file=sys.stderr)",
             'nonzero': "print(json.dumps(reply)); raise SystemExit(1)",
             'killed': "os.kill(os.getpid(), signal.SIGKILL)",
+            'late-complete': "__import__('time').sleep(31)",
         }
         prelude = ('import hashlib, json, os, signal, sys\nfrom pathlib import Path\n'
                    'raw = (Path(sys.argv[2]) / "case.json").read_bytes()\nrequest = json.loads(raw)\n'
@@ -162,6 +163,8 @@ def main():
             fake = script(root / name, prelude + mutation + '\nprint(json.dumps(reply))\n')
             refused = invoke(fake)
             assert not refused['complete'] and [case['status'] for case in refused['cases']] == ['failed', 'not_run'], (name, refused)
+            if name == 'late-complete':
+                assert refused['cases'][0]['error_code'] == 'TestDeadline', refused
         absent = invoke(root / 'missing-runtime')
         assert absent['cases'][0]['error_code'] == 'TestRuntimeUnavailable', absent
         counter = root / 'counter'
@@ -174,7 +177,7 @@ def main():
         sleeping = script(root / 'timeout', 'import time\ntime.sleep(60)\n')
         timed = invoke(sleeping, timeout=45)
         assert not timed['complete'] and timed['cases'][0]['status'] == 'failed', timed
-    print('PASS compiled test host: source-free native assertions, 11 request refusals, 15 response/process refusals, missing/changed runtime, timeout and joined cleanup')
+    print('PASS compiled test host: source-free native assertions, 11 request refusals, 16 response/process refusals including late completion, missing/changed runtime, timeout and joined cleanup')
 
 
 if __name__ == '__main__':

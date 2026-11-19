@@ -42,6 +42,10 @@ cannot establish a pass. Child stderr is not a result. This binding detects
 incompatible or mismatched results; it does not prove that a malicious host
 computed honestly.
 
+The caller rejects completion reports received after its case deadline. The
+additional child-process timeout permits joined cleanup, not a renewed case
+budget. A native incomplete result retains its original failure cause.
+
 The caller joins its child before deleting case storage. It checks deletion on
 success and failure, and reports cleanup failure as incomplete. No uncertain SQL
 statement is resubmitted as new work. These are disposable test installations;
