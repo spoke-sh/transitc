@@ -2,9 +2,9 @@
 
 The bootstrap CLI reports only unsupported arguments; it has no source diagnostics
 yet. The source compiler's current diagnostic basis is
-[SourceDiagnostic.zig](https://github.com/spoke-sh/transit/blob/c1f2680d9353175e58ad503e750e7b4da76a84c5/packages/zig/transit-compiler/src/SourceDiagnostic.zig)
+[SourceDiagnostic.zig](https://github.com/spoke-sh/transit/blob/e7434306334e3692c6f3e123cba0d278fa412196/packages/zig/transit-compiler/src/SourceDiagnostic.zig)
 and the shared
-[diagnostic schema](https://github.com/spoke-sh/transit/blob/c1f2680d9353175e58ad503e750e7b4da76a84c5/contracts/diagnostic-v1.schema.json).
+[diagnostic schema](https://github.com/spoke-sh/transit/blob/e7434306334e3692c6f3e123cba0d278fa412196/contracts/diagnostic-v1.schema.json).
 
 The extraction must preserve bounded codes/messages and source byte spans, primary
 and secondary locations, and definition/call origins during expansion. A path

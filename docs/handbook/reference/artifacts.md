@@ -7,7 +7,7 @@ The existing compiler's `Product` owns SQL, statement maps, and digests separate
 from its source buffers. Its caller must release the product. The Transit CLI
 captures dependency resolution and compiler identity and publishes SQL with
 provenance. The
-[source contract](https://github.com/spoke-sh/transit/blob/c1f2680d9353175e58ad503e750e7b4da76a84c5/contracts/APPLICATION_SOURCE_V1.md)
+[source contract](https://github.com/spoke-sh/transit/blob/e7434306334e3692c6f3e123cba0d278fa412196/contracts/APPLICATION_SOURCE_V1.md)
 defines these fields and limits; extraction must preserve or explicitly migrate
 them with consumers.
 

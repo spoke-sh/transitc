@@ -1,9 +1,9 @@
 # Understanding a source build
 
 This guide describes the compiler inspected in Transit at commit
-`c1f2680d9353175e58ad503e750e7b4da76a84c5`. These stages are not implemented in
+`e7434306334e3692c6f3e123cba0d278fa412196`. These stages are not implemented in
 this transitc checkout yet. To use the existing tool, follow Transit's
-[application source build reference](https://github.com/spoke-sh/transit/blob/c1f2680d9353175e58ad503e750e7b4da76a84c5/docs/handbook/reference/cli.md#application-source-builds)
+[application source build reference](https://github.com/spoke-sh/transit/blob/e7434306334e3692c6f3e123cba0d278fa412196/docs/handbook/reference/cli.md#application-source-builds)
 with the matching Transit checkout and runtime where required.
 
 ## Capture inputs

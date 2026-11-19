@@ -49,6 +49,12 @@ Do not replace upstream execution with a mock or a successful help command.
 
 ## Upstream identity and updates
 
+The current upstream pin is
+[`e7434306334e3692c6f3e123cba0d278fa412196`](https://github.com/spoke-sh/transit/tree/e7434306334e3692c6f3e123cba0d278fa412196).
+The fixture retains its original attribution above. The
+[extraction inventory](../../docs/roadmap/README.md) records the source changes
+since that original basis; these seven tests do not cover every new language feature.
+
 `flake.nix` names the exact GitHub revision and `flake.lock` records its content
 hash. `TRANSIT_UPSTREAM_BIN` and `TRANSIT_UPSTREAM_REVISION` are exported by the
 default shell; the runner verifies the executable's reported revision before
@@ -71,3 +77,16 @@ On 2026-11-18, all seven tests passed on x86_64 Linux both through
 derivation. `just check`, the handbook check, and workflow lint also passed.
 Flake evaluation passed for all four declared systems; ARM and Darwin test
 execution was not performed.
+
+On 2026-11-19, the refreshed `e7434306334e3692c6f3e123cba0d278fa412196` pin
+passed all seven unchanged tests on x86_64 Linux through
+`nix develop --command just check test-integration` and
+`nix build .#checks.x86_64-linux.integration --no-link --print-build-logs`.
+Both runs verified the executable's exact revision; no fixture expectations
+needed updating. The bootstrap check and `nix flake check --print-build-logs`
+also passed. After `nix develop .#docs --command just docs-install`, the handbook
+passed `nix develop --option eval-cache false .#docs --command just docs-check`
+and `nix develop --option eval-cache false .#docs --command env TRANSITC_DOCS_BASE_URL=/ npm run docs:build`.
+The evaluation-cache override avoided contention with the concurrent upstream
+build; it changed no toolchain or test inputs. These results establish the small
+upstream baseline only, not extracted-compiler parity or other host platforms.

@@ -34,7 +34,7 @@ The flake pins the same Zig **0.17.0-dev.2267+48abf1a34** toolchain and Nix inpu
 as the source repository, including its Linux loader fixes. See
 [toolchain notes](nix/README.md). An optional `.envrc` supports direnv.
 The default shell also provides the upstream `transit` executable pinned to
-`c1f2680d9353175e58ad503e750e7b4da76a84c5`, plus Python for integration tests.
+`e7434306334e3692c6f3e123cba0d278fa412196`, plus Python for integration tests.
 No sibling checkout is required. The upstream package is a development/test
 dependency; it is not part of the packaged transitc executable's runtime closure.
 
