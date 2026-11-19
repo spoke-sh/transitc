@@ -37,12 +37,13 @@ pub fn runDetailed(self: *Self, init: std.process.Init, directory: std.Io.Dir, p
     const request = try Wire.capture(a, case, milliseconds);
     const bytes = try p.Json.valueAllocBounded(a, request, Wire.max_request_bytes);
     try Sources.writeFile(init.io, directory, "case.json", bytes);
+    try deadline.check(init.io);
     const result = std.process.run(a, init.io, .{
         .argv = &.{ self.executable, Wire.argument, path },
         .environ_map = init.environ_map,
         .stdout_limit = .limited(Wire.max_response_bytes),
         .stderr_limit = .limited(Wire.max_response_bytes),
-        .timeout = (std.Io.Timeout{ .duration = .{ .raw = .fromMilliseconds(milliseconds + cleanup_ms), .clock = .awake } }).toDeadline(init.io),
+        .timeout = .{ .deadline = deadline.until.addDuration(.{ .raw = .fromMilliseconds(cleanup_ms), .clock = .awake }) },
     }) catch |err| return if (err == error.FileNotFound) error.TestRuntimeUnavailable else err;
     // process.run joins or kills and joins its owned child, including timeout
     // and oversized-output paths, before case storage can be removed.

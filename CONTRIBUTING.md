@@ -18,6 +18,7 @@ just check
 just test
 just test-workspace
 just test-examples
+just test-command
 just test-grammar
 just test-types
 just test-integration

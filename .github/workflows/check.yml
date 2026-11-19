@@ -16,7 +16,7 @@ jobs:
       - name: Check compiler, source verification and upstream parity
         run: nix flake check --print-build-logs
       - run: nix develop --command just check
-      - run: nix develop --command just test-workspace test-examples test-integration
+      - run: nix develop --command just test-workspace test-examples test-integration test-command
   handbook:
     runs-on: ubuntu-latest
     steps:

@@ -19,7 +19,15 @@ contracts; rendering borrows their live storage. Compile-time work has explicit
 source/depth/work/output bounds, independent of durable runtime cardinality.
 
 Test products describe expected typed results, command counts, refusals and bounded
-workflow observations. They carry no service implementation. Transit's runner
-consumes the same compiler product types, applies isolated SQL, and verifies
-completion separately. The standalone executable intentionally exposes no runtime
-host until that integration has its own command contract and qualification.
+workflow observations. They carry no service implementation. The workspace owns
+suite compilation, execution orchestration and reports. Transit embeds this
+orchestration with its local host; `transitc test` sends compiled cases to a
+separately pinned Transit process. Both use the same native statement owners and
+assertion runner. Source is never sent to the runtime for recompilation.
+
+The [compiled-case contract](https://github.com/spoke-sh/transitc/blob/main/contracts/TEST_HOST_V1.md)
+requires both definitions, canonical SQL digests, bounded typed expectations and
+responses bound to the exact request. The caller checks terminal coverage and
+runtime identity, joins every child, and checks storage cleanup. Compiler,
+transport and native-host allocations have separate bounded lifetimes. A child
+failure or incomplete response cannot establish a passed case.

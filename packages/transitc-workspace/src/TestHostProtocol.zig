@@ -142,6 +142,7 @@ pub fn validateResponse(response: Response, request: Request, digest: [32]u8) !v
     if (response.detail.expected_reason_len > 32 or response.detail.observed_reason_len > 32) return error.InvalidTestHostResponse;
     if (response.complete != (response.error_code == null) or response.passed and (!response.complete or observed.failure != null or observed.actions != request.actions.len)) return error.InvalidTestHostResponse;
     if (response.complete and !response.passed and observed.failure == null) return error.InvalidTestHostResponse;
+    if (response.complete and (observed.actions == 0 or observed.resources.memory_peak_bytes == 0 or observed.resources.storage_reserved_bytes == 0)) return error.InvalidTestHostResponse;
     if (response.runtime.revision.len == 0 or response.runtime.revision.len > 128) return error.InvalidTestHostResponse;
 }
 
@@ -179,7 +180,7 @@ test "compiled cases roundtrip without source and reject foreign identity, corru
     actions[2].expectation.rows.schema = "00";
     try std.testing.expectError(error.EndOfStream, executable(a, invalid));
     try std.testing.expectError(error.MissingField, p.Json.parseFromSlice(Request, a, "{}"));
-    var response: Response = .{ .definition = definition, .source_definition = request.source_definition, .request_digest = @splat(1), .identity = request.identity, .sql_digest = request.sql_digest, .runtime = .{ .revision = "runtime-proof", .executable_digest = @splat(2) }, .complete = true, .passed = true, .error_code = null, .observation = .{ .actions = request.actions.len }, .detail = .{} };
+    var response: Response = .{ .definition = definition, .source_definition = request.source_definition, .request_digest = @splat(1), .identity = request.identity, .sql_digest = request.sql_digest, .runtime = .{ .revision = "runtime-proof", .executable_digest = @splat(2) }, .complete = true, .passed = true, .error_code = null, .observation = .{ .actions = request.actions.len, .resources = .{ .memory_peak_bytes = 1, .storage_reserved_bytes = 1 } }, .detail = .{} };
     try validateResponse(response, request, @splat(1));
     try std.testing.expectError(error.TestHostResponseMismatch, validateResponse(response, request, @splat(3)));
     response.observation.actions -= 1;
