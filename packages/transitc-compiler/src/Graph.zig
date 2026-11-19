@@ -366,7 +366,7 @@ fn visitPackage(self: *Self, representative: usize, visited: []u8, heights: []us
                 if (report) |r| {
                     r.setSpan(i, dependency.span.start, dependency.span.end);
                     r.setHeadline("dependency package '{s}' has not been fetched", .{dependency.name});
-                    r.addNote(null, null, "run 'transit build --fetch' to fetch pinned repository dependencies", .{});
+                    r.addNote(null, null, "run 'transitc build --fetch' to fetch pinned repository dependencies", .{});
                 }
                 return error.MissingSource;
             };

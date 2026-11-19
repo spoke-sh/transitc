@@ -11,7 +11,10 @@ SQL authority from Transit. Shared modules are consumed from the exact pin in pa
 Extraction changes package wiring, executable identity and the command name.
 SQL bytes, mappings, definition identifiers and migration formats remain current
 v1. Expected provenance differences are only `compiler_revision`,
-`compiler_digest` and `input_digest`; parity tests compare everything else.
+`compiler_digest` and `input_digest`; artifact parity compares every other field.
+Diagnostic correction commands use `transitc build` and `transitc test`.
+The dependency envelope's command spelling is an explicit parity exception;
+codes, definitions, locations and all other envelope fields remain exact.
 The workspace renderer fixes a borrowed-slice lifetime exposed by Debug builds:
 text now borrows the caller's diagnostic envelope instead of a callee stack copy.
 

@@ -2,11 +2,11 @@
 
 This contract specifies the first `.transit` compiler profile. Source compilation
 is separate from SQL execution and from the immutable [migration ledger](https://github.com/spoke-sh/transit/blob/e7434306334e3692c6f3e123cba0d278fa412196/contracts/MIGRATION_V1.md).
-The [application reference](https://github.com/spoke-sh/transit/blob/e7434306334e3692c6f3e123cba0d278fa412196/docs/handbook/reference/applications.md#application-source-builds)
+The [source workflow](../docs/handbook/guides/source-workflow.md)
 describes its supported authoring and execution workflow.
 
 The executable source parser is
-[`transit-compiler/Syntax.zig`](../packages/transitc-compiler/src/Syntax.zig).
+[`transitc-compiler/Syntax.zig`](../packages/transitc-compiler/src/Syntax.zig).
 Its independent syntax reference is
 [`TransitSource.g4`](application-source/TransitSource.g4), with a
 [finite corpus and correspondence check](application-source/README.md).
@@ -28,7 +28,7 @@ bindings, imports and repository dependencies. Modules, interfaces, functions,
 guards, procedures and types are private unless declared `PUBLIC` or `EXPORT`.
 Targets are selected in the entry file: when `--target` is omitted, `transitc build`
 selects the entry file's `EXPORT DEFAULT TARGET <name>;` declaration (or `default`
-when none is declared), and `transit test` selects the entry file's unique test
+when none is declared), and `transitc test` selects the entry file's unique test
 target or test-target alias (falling back to `tests` when absent and refusing
 ambiguous multi-test entries unless `--target` is passed). Imports use
 `IMPORT [MODULE] [alias] FROM '<path>';` (defaulting `alias` to the file stem when
@@ -638,7 +638,7 @@ record; previous successful artifacts retain their original input identity.
 ## CLI and diagnostics
 
 ```text
-transit build [-f build.transit] [--target default] [--out DIRECTORY]
+transitc build [-f build.transit] [--target default] [--out DIRECTORY]
               [--check] [--fetch] [--override NAME=DIRECTORY]
               [--format text|json] [--color auto|off|on]
 ```
@@ -759,10 +759,15 @@ operation identities govern settlement after uncertainty; writes are not
 recompiled or resubmitted with new identities. Unresolved work fails explicitly.
 
 ```text
-transit test [-f build.transit] [--target tests]
+transitc test [-f build.transit] [--target tests]
              [--override NAME=DIRECTORY] [--format text|json]
-             [--color auto|off|on]
+             [--color auto|off|on] [--runtime FILE]
 ```
+
+The compiler selects a compatible Transit host using `--runtime`, then
+`TRANSIT_TEST_RUNTIME`, then its build-time default. It sends compiled cases
+through the [compiled test-host contract](TEST_HOST_V1.md); the runtime does not
+resolve source modules.
 
 Tests share frozen build resolution and override provenance. Use the explicit
 `transitc build --fetch` operation to prepare dependencies. Tests never fetch,

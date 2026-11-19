@@ -44,10 +44,13 @@ missing/malformed JSON, incomplete reports, or a wrong revision fail the suite.
 No test is silently skipped when Transit is missing.
 
 `upstream_transit.py` remains the seven-case upstream baseline. `parity.py`
-compares transitc with that exact binary across five fixture families and four
+compares transitc with that exact binary across five fixture families and seven
 negative cases. SQL, source maps, provenance semantics and diagnostic envelopes
-must match exactly; only compiler revision, executable digest and input/cache
-identity differ. Repeated transitc builds must be byte-identical.
+must match exactly except for compiler revision, executable digest, input/cache
+identity and the dependency diagnostic's explicit `transit build --fetch` to
+`transitc build --fetch` correction. Human guidance for wrong target kinds and
+missing dependencies must name the current `transitc build` / `transitc test`
+commands. Repeated transitc builds must be byte-identical.
 
 `execute_sql.py` compiles with transitc, removes source, and executes its SQL using
 the pinned runtime's real installation fixture. It verifies complete typed rows

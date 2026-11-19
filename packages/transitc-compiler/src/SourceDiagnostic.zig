@@ -154,7 +154,7 @@ pub const Report = struct {
                 error.MissingSourceTarget, error.MissingMigrationTarget => if (context.name) |n| self.setHeadline("target '{s}' is not declared", .{n}) else self.setHeadline("selected target is not declared", .{}),
                 error.WrongSourceTargetKind => {
                     if (context.name) |n| self.setHeadline("target '{s}' has the wrong kind for this command", .{n}) else self.setHeadline("selected target has the wrong kind for this command", .{});
-                    if (self.notes[0] == null) self.addNote(null, null, "use 'CREATE TARGET' / 'CREATE MIGRATION TARGET' with 'transit build' and 'CREATE TEST TARGET' with 'transit test'", .{});
+                    if (self.notes[0] == null) self.addNote(null, null, "use 'CREATE TARGET' / 'CREATE MIGRATION TARGET' with 'transitc build' and 'CREATE TEST TARGET' with 'transitc test'", .{});
                 },
                 error.EmptyBuildTarget => self.setHeadline("build target emitted no SQL statements", .{}),
                 error.EmptyTestTarget => self.setHeadline("test target selected zero 'TEST' cases", .{}),
@@ -194,11 +194,11 @@ pub const Report = struct {
                 error.LiteralOutOfRange, error.Overflow => self.setHeadline("numeric literal is out of range for target type", .{}),
                 error.MissingSourceLock => {
                     self.setHeadline("missing 'transit.lock' for declared dependencies", .{});
-                    if (self.notes[0] == null) self.addNote(null, null, "run 'transit build --fetch' to populate verified dependencies and write transit.lock", .{});
+                    if (self.notes[0] == null) self.addNote(null, null, "run 'transitc build --fetch' to populate verified dependencies and write transit.lock", .{});
                 },
                 error.StaleSourceLock, error.SourceDigestMismatch, error.RepositoryRevisionMismatch => {
                     self.setHeadline("locked dependency state does not match declared dependencies", .{});
-                    if (self.notes[0] == null) self.addNote(null, null, "run 'transit build --fetch' to refresh transit.lock and verified packages", .{});
+                    if (self.notes[0] == null) self.addNote(null, null, "run 'transitc build --fetch' to refresh transit.lock and verified packages", .{});
                 },
                 error.InvalidSourceLock, error.InvalidSourceDigest, error.IncompatibleSourceDefinition => self.setHeadline("invalid or incompatible 'transit.lock'", .{}),
                 error.ConflictingDependency, error.DuplicateDependency => self.setHeadline("conflicting dependency declarations for the same package name", .{}),
@@ -309,7 +309,7 @@ fn rule(family: Family) Rule {
         .target => .{ .code = "application.source.target", .category = .binding, .stage = .bind, .message = "The selected target is missing, empty or has the wrong kind. Select a declared CREATE TARGET or CREATE MIGRATION TARGET for build or CREATE TEST TARGET for test with --target NAME." },
         .domain => .{ .code = "application.source.domain", .category = .binding, .stage = .bind, .message = "Source domains do not match. Pass a value of the expected domain; equal scalar representations do not make distinct domains interchangeable." },
         .type => .{ .code = "application.source.type", .category = .binding, .stage = .bind, .message = "The source operand or interface has the wrong type. Match the declared parameter, resource kind and complete column signature; source holes are typed operands." },
-        .dependency => .{ .code = "application.source.dependency", .category = .integrity, .stage = .input, .message = "The dependency, lock or verified cache is unavailable or inconsistent. Check the named dependency and exact revision; use transit build --fetch explicitly to prepare reviewed dependencies, then retry offline." },
+        .dependency => .{ .code = "application.source.dependency", .category = .integrity, .stage = .input, .message = "The dependency, lock or verified cache is unavailable or inconsistent. Check the named dependency and exact revision; use transitc build --fetch explicitly to prepare reviewed dependencies, then retry offline." },
         .capability => .{ .code = "application.source.unsupported", .category = .unsupported, .stage = .compile, .message = "This construct is outside the supported source or runtime profile. Use an admitted source form and public-data dependency; compilation cannot enable unavailable runtime facilities." },
         .limit => .{ .code = "application.source.limit", .category = .limit, .stage = .compile, .message = "A source compilation budget was exceeded. Reduce the indicated input or expansion; keep each atomic SQL statement intact and within its owning limit." },
         .io => .{ .code = "application.source.io", .category = .unavailable, .stage = .input, .message = "Cannot read the indicated build input. Check that the path exists, is a regular file and is readable; preserve the lock and verified source contents." },

@@ -1,4 +1,4 @@
-//! Zig-compiler and build-system style human diagnostics for `transit build` and `transit test`.
+//! Zig-compiler and build-system style human diagnostics for `transitc build` and `transitc test`.
 //! All caller paths, identifiers and source lines are terminal-escaped before styling.
 const std = @import("std");
 const c = @import("transit_compiler");

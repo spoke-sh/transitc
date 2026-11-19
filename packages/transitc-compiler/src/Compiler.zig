@@ -244,10 +244,10 @@ fn run(self: *Self, result: *Product, options: Options) !*Product {
             r.setSpan(target.file, definition.span.start, definition.span.end);
             if (self.test_mode) {
                 r.setHeadline("target '{s}' is a build target, expected a test target", .{target_name});
-                r.addNote(null, null, "run 'transit build --target {s}' or select a test target", .{target_name});
+                r.addNote(null, null, "run 'transitc build --target {s}' or select a test target", .{target_name});
             } else {
                 r.setHeadline("target '{s}' is a test target, expected a build or migration target", .{target_name});
-                r.addNote(null, null, "run 'transit test --target {s}' or select a build target", .{target_name});
+                r.addNote(null, null, "run 'transitc test --target {s}' or select a build target", .{target_name});
             }
         }
         return error.WrongSourceTargetKind;

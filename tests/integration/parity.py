@@ -11,8 +11,8 @@ ROOT = Path(__file__).resolve().parents[2]
 IDENTITY_FIELDS = {'compiler_revision', 'compiler_digest', 'input_digest'}
 
 
-def invoke(binary, directory, *args, expected=0):
-    result = subprocess.run([str(binary), 'build', '--format', 'json', '--color', 'off', *args],
+def invoke(binary, directory, *args, expected=0, command='build'):
+    result = subprocess.run([str(binary), command, '--format', 'json', '--color', 'off', *args],
                             cwd=directory, env={'PATH': os.defpath, 'NO_COLOR': '1'},
                             capture_output=True, text=True, timeout=120)
     assert result.returncode == expected and not result.stderr, (binary, args, result)
@@ -51,21 +51,35 @@ def compare(upstream, compiler):
         workspace = root / 'invalid'
         workspace.mkdir()
         negatives = [
-            (None, [], 'application.source.entry'),
-            ('CREATE TARGET default AS BEGIN SELECT ; END;', [], 'application.source.syntax'),
-            ('CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE t (id BIGINT); END;', ['--target', 'absent'], 'application.source.target'),
-            ("IMPORT missing FROM 'missing.transit'; CREATE TARGET default AS BEGIN END;", [], 'application.source.import'),
+            (None, [], 'application.source.entry', 'build', None),
+            ('CREATE TARGET default AS BEGIN SELECT ; END;', [], 'application.source.syntax', 'build', None),
+            ('CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE t (id BIGINT); END;', ['--target', 'absent'], 'application.source.target', 'build', None),
+            ("IMPORT missing FROM 'missing.transit'; CREATE TARGET default AS BEGIN END;", [], 'application.source.import', 'build', None),
+            ('CREATE TEST TARGET default AS BEGIN END;', [], 'application.source.target', 'build', 'transitc test --target default'),
+            ('CREATE TARGET tests AS BEGIN END;', ['--target', 'tests'], 'application.source.target', 'test', 'transitc build --target tests'),
+            ("DEPENDENCY missing FROM 'https://example.invalid/absent' REVISION '" + '0' * 40 + "'; CREATE TARGET default AS BEGIN END;", [], 'application.source.dependency', 'build', 'transitc build --fetch'),
         ]
-        for source, options, code in negatives:
+        for source, options, code, command, correction in negatives:
             if source is not None:
                 (workspace / 'build.transit').write_text(source)
-            old = invoke(upstream, workspace, *options, expected=1)
-            new = invoke(compiler, workspace, *options, expected=1)
-            assert old == new, (old, new)
+            old = invoke(upstream, workspace, *options, expected=1, command=command)
+            new = invoke(compiler, workspace, *options, expected=1, command=command)
+            expected = dict(old)
+            if code == 'application.source.dependency':
+                assert old['message'].count('transit build --fetch') == 1
+                expected['message'] = old['message'].replace('transit build --fetch', 'transitc build --fetch')
+            assert expected == new, (expected, new)
             assert old['code'] == code, old
+            if correction:
+                human = subprocess.run([str(compiler), command, '--color', 'off', *options],
+                                       cwd=workspace, env={'PATH': os.defpath, 'NO_COLOR': '1'},
+                                       capture_output=True, text=True, timeout=120)
+                assert human.returncode == 1 and not human.stdout, human
+                assert correction in human.stderr, human.stderr
+                assert 'transit build' not in human.stderr and 'transit test' not in human.stderr, human.stderr
             assert not (workspace / '.transit/build').exists()
             count += 1
-    print(f'PASS {count} upstream/transitc parity cases; only {sorted(IDENTITY_FIELDS)} differ')
+    print(f'PASS {count} upstream/transitc parity cases; only {sorted(IDENTITY_FIELDS)} and the explicit dependency-command correction differ; human build/test/fetch guidance verified')
 
 
 if __name__ == '__main__':
