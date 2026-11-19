@@ -17,7 +17,8 @@ pinned mirrors without accepting a different content hash. Darwin uses the
 locked overlay compiler directly.
 
 The default shell includes Zig, docs tooling, Python, and
-the comparison and test-host executables from their pinned flakes. Both inputs'
+the current test-host executable on PATH. The frozen comparison binary is
+available only through `TRANSIT_UPSTREAM_BIN`. Both inputs'
 nixpkgs and zig-overlay inputs follow this repository's pins. The shell exports
 `TRANSIT_UPSTREAM_BIN` as the absolute store executable and
 `TRANSIT_UPSTREAM_REVISION` as the input revision, so integration tests cannot

@@ -91,7 +91,6 @@
               pkgs.antlr4
               pkgs.lean4
               pkgs.git
-              upstreamTransit
               testRuntime
             ];
             TRANSIT_UPSTREAM_BIN = "${upstreamTransit}/bin/transit";

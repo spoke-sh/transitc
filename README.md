@@ -33,9 +33,9 @@ just test-integration
 The flake pins the same Zig **0.17.0-dev.2267+48abf1a34** toolchain and Nix inputs
 as the source repository, including its Linux loader fixes. See
 [toolchain notes](nix/README.md). An optional `.envrc` supports direnv.
-The default shell provides an exactly pinned Transit test host and a separate
-frozen comparison binary at `e7434306334e3692c6f3e123cba0d278fa412196`, plus
-Python for integration tests. No sibling checkout is required. The Nix package
+The default shell puts the current pinned Transit test host on PATH and provides
+Python for integration tests. `TRANSIT_UPSTREAM_BIN` selects the frozen comparison
+binary at `e7434306334e3692c6f3e123cba0d278fa412196`. No sibling checkout is required. The Nix package
 includes the compatible test host in its runtime closure; ordinary compilation
 does not start it. See [application testing](docs/handbook/guides/testing.md).
 
