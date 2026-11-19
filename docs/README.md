@@ -1,7 +1,7 @@
 # Documentation
 
 The [handbook](handbook/guides/introduction.md) describes this repository's current
-behavior and the compiler's source basis. The [roadmap](roadmap/README.md) owns
+behavior and the compiler contracts. The [roadmap](roadmap/README.md) owns
 planned extraction work, decisions, status, and acceptance criteria.
 
 | Location | Owner |
@@ -10,9 +10,9 @@ planned extraction work, decisions, status, and acceptance criteria.
 | `handbook/reference/` | Current CLI, language source basis, diagnostics, and artifacts |
 | `handbook/internals/` | Architecture, invariants, and implementation reasoning |
 | `roadmap/` | Numbered delivery milestones and documentation coverage gates |
-| App/package READMEs | Component scope, usage, and extraction destination |
-| `tests/integration/` | Pinned upstream compiler/runtime baseline and fixtures |
-| Future `contracts/`, `examples/` | Exact contracts and runnable user examples, added with extraction |
+| App/package READMEs | Component scope, public APIs and dependencies |
+| `tests/integration/` | Pinned upstream baseline, parity and runtime fixtures |
+| `contracts/` | Exact source contract, independent grammar and corpus |
 
 This adopts Transit's documentation ownership structure, with a smaller
 Docusaurus project in `handbook/`. It does not copy unrelated database/runtime

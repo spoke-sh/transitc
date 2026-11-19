@@ -1,0 +1,11 @@
+.{
+    .name = .transitc_workspace,
+    .version = "0.0.0-dev",
+    .fingerprint = 0xffa756df951442b2,
+    .minimum_zig_version = "0.17.0-dev.2267+48abf1a34",
+    .dependencies = .{
+        .transit_shared = .{ .url = "git+https://github.com/spoke-sh/transit.git#8bbe56e13a839e4485cfa67593f1425ee1594954", .hash = "transit-0.0.1-OBsLdRPCGgWiUe2wuiyo-YLUlj8MOJ6LxD1ZAnP-axfU", .lazy = true },
+        .transitc_compiler = .{ .path = "../transitc-compiler", .lazy = true },
+    },
+    .paths = .{ "build.zig", "build.zig.zon", "src", "README.md" },
+}

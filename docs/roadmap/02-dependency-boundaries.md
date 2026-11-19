@@ -1,6 +1,6 @@
 # 2. Dependency boundaries
 
-Status: Planned
+Status: In Progress
 
 Prerequisites: [repository bootstrap](01-repository-bootstrap.md).
 
@@ -33,3 +33,12 @@ repository dependencies.
 - A minimal compilation proof establishes the chosen closure without live services.
 - Artifact/definition identity, release versioning, and license attribution
   decisions are recorded before downstream formats or consumers change.
+
+## Extraction implementation update
+
+The compiler, workspace adapter and independent source checks are implemented.
+Shared SQL/value modules remain Transit-owned and exactly pinned; embedded hosts
+supply their canonical modules without resolving the standalone pin. See the
+[current package map](../../packages/README.md), [attribution](../../NOTICE.md) and
+public handbook. Consumer cutover and final clean qualification are still in
+progress; this milestone does not inherit prior Transit pass records.

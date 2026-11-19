@@ -41,11 +41,21 @@ Transit credentials or settings. Subprocesses have deadlines; unexpected exits,
 missing/malformed JSON, incomplete reports, or a wrong revision fail the suite.
 No test is silently skipped when Transit is missing.
 
-This is an upstream behavior baseline. transitc currently implements only
-help/version, so these are not compiler parity tests. When extraction lands,
-compile the same source with transitc, compare SQL/diagnostics and the reviewed
-provenance fields, then execute the resulting SQL with the pinned Transit runtime.
-Do not replace upstream execution with a mock or a successful help command.
+`upstream_transit.py` remains the seven-case upstream baseline. `parity.py`
+compares transitc with that exact binary across five fixture families and four
+negative cases. SQL, source maps, provenance semantics and diagnostic envelopes
+must match exactly; only compiler revision, executable digest and input/cache
+identity differ. Repeated transitc builds must be byte-identical.
+
+`execute_sql.py` compiles with transitc, removes source, and executes its SQL using
+the pinned runtime's real installation fixture. It verifies complete typed rows
+and retained restart. Runtime helpers are imported from `TRANSIT_UPSTREAM_SOURCE`,
+the frozen Nix source, not a sibling checkout. The standalone compiler does not
+acquire a service dependency from this integration fixture.
+
+`just test-workspace`, `just test-grammar` and `just test-types` cover dependency
+failures/publication, independent syntax/formatting, and bounded typed/program
+correspondence respectively. Each evidence category keeps its premises.
 
 ## Upstream identity and updates
 

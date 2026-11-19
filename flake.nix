@@ -16,6 +16,7 @@
 
   outputs =
     {
+      self,
       nixpkgs,
       zig-overlay,
       transit,
@@ -36,7 +37,10 @@
           zig = pkgs.callPackage ./nix/zig.nix {
             upstream = zig-overlay.packages.${system}.master;
           };
-          transitc = pkgs.callPackage ./nix/transitc.nix { inherit zig; };
+          transitc = pkgs.callPackage ./nix/transitc.nix {
+            inherit zig;
+            sourceRevision = self.rev or self.dirtyRev or "development";
+          };
           upstreamTransit = transit.packages.${system}.transit;
         in
         assert pkgs.lib.assertMsg (
@@ -70,11 +74,16 @@
               zig
               pkgs.nixfmt
               pkgs.nodejs_24
-              pkgs.python3
+              (pkgs.python3.withPackages (ps: [ ps.antlr4-python3-runtime ]))
+              pkgs.antlr4
+              pkgs.lean4
+              pkgs.git
               upstreamTransit
             ];
             TRANSIT_UPSTREAM_BIN = "${upstreamTransit}/bin/transit";
             TRANSIT_UPSTREAM_REVISION = transit.rev;
+            TRANSIT_UPSTREAM_SOURCE = "${transit}";
+            TRANSIT_SQL_GRAMMAR_DIR = "${transit}/contracts/sql";
             buildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.stdenv.cc.libc ];
           };
           docs = pkgs.mkShellNoCC {
@@ -106,22 +115,39 @@
                   --fixtures ${./tests/integration/fixtures}
                 touch "$out"
               '';
-          bootstrap =
-            pkgs.runCommand "transitc-bootstrap-check"
+          compiler = transitc;
+          parity = pkgs.runCommand "transitc-parity" { nativeBuildInputs = [ pkgs.python3 ]; } ''
+            cp -r ${./tests} tests
+            chmod -R u+w tests
+            python3 -B tests/integration/parity.py --transit ${upstreamTransit}/bin/transit --transitc ${transitc}/bin/transitc
+            touch "$out"
+          '';
+          source =
+            pkgs.runCommand "transitc-source-verification"
               {
                 nativeBuildInputs = [
                   zig
-                  transitc
+                  pkgs.git
+                  pkgs.antlr4
+                  pkgs.lean4
+                  (pkgs.python3.withPackages (ps: [ ps.antlr4-python3-runtime ]))
                 ];
               }
               ''
-                cp -r ${./build.zig} build.zig
-                cp -r ${./build.zig.zon} build.zig.zon
-                cp -r ${./apps} apps
+                cp -r ${self} source
+                chmod -R u+w source
+                cd source
                 export ZIG_GLOBAL_CACHE_DIR="$TMPDIR/zig-global-cache"
-                zig fmt --check build.zig build.zig.zon apps
-                transitc --help
-                transitc --version
+                export ZIG_LOCAL_PKG_DIR="zig-pkg"
+                export TRANSIT_SQL_GRAMMAR_DIR="${transit}/contracts/sql"
+                mkdir -p "$ZIG_LOCAL_PKG_DIR"
+                cp -r ${transitc.dependencies}/. "$ZIG_LOCAL_PKG_DIR/"
+                chmod -R u+w "$ZIG_LOCAL_PKG_DIR"
+                zig fmt --check build.zig build.zig.zon apps packages examples tests/query/application_source/driver.zig
+                python3 -B tests/dependencies/check.py
+                zig build source-probe -Doptimize=ReleaseSafe
+                python3 -B tests/runner/launch.py tests/query/application_source/verify.py zig-out/bin/transitc-source-probe
+                python3 -B tests/runner/launch.py tests/query/application_source/types.py zig-out/bin/transitc-source-probe
                 touch "$out"
               '';
         }

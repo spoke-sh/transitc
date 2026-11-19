@@ -7,9 +7,9 @@ it does not copy the runtime product backlog or inherit its completion claims.
 | Order | Milestone | Status | Prerequisites |
 | --- | --- | --- | --- |
 | 1 | [Repository bootstrap](01-repository-bootstrap.md) | Completed | None |
-| 2 | [Dependency boundaries](02-dependency-boundaries.md) | Planned | 1 |
-| 3 | [Compiler and CLI extraction](03-compiler-and-cli.md) | Planned | 2 |
-| 4 | [Documentation and qualification](04-documentation-and-qualification.md) | Planned | 3; documentation grows throughout |
+| 2 | [Dependency boundaries](02-dependency-boundaries.md) | In Progress | 1 |
+| 3 | [Compiler and CLI extraction](03-compiler-and-cli.md) | In Progress | 2 |
+| 4 | [Documentation and qualification](04-documentation-and-qualification.md) | In Progress | 3; documentation grows throughout |
 
 Source inventory basis: Transit commit
 [`c1f2680d9353175e58ad503e750e7b4da76a84c5`](https://github.com/spoke-sh/transit/tree/c1f2680d9353175e58ad503e750e7b4da76a84c5),
@@ -80,3 +80,12 @@ digests. Compare exact SQL, maps and diagnostics; require deterministic rebuilds
 per compiler; enumerate and test the expected identity differences. Never mask
 definition mismatches or rewrite accepted migration history to make comparisons
 pass.
+
+## Implementation status
+
+The reviewed sequence is being executed. The pure frontend is supplied by Transit;
+compiler and workspace sources, tests and source contracts now live here. The CLI
+supports the reviewed build/check/fetch mapping. Transit's runtime test host remains
+outside the compiler, using embedded modules with one shared type identity.
+The historical review text above records the original decision points; current
+behavior is documented in the handbook and package READMEs.

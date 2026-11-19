@@ -3,6 +3,9 @@
     .fingerprint = 0x7201e71f46d55e42,
     .version = "0.0.0-dev",
     .minimum_zig_version = "0.17.0-dev.2267+48abf1a34",
-    .dependencies = .{},
-    .paths = .{ "build.zig", "build.zig.zon", "apps", "packages", "LICENSE" },
+    .dependencies = .{
+        .transitc_compiler = .{ .path = "packages/transitc-compiler" },
+        .transitc_workspace = .{ .path = "packages/transitc-workspace" },
+    },
+    .paths = .{ "build.zig", "build.zig.zon", "apps", "packages", "tests", "contracts", "examples", "LICENSE", "NOTICE.md", "README.md" },
 }

@@ -1,6 +1,6 @@
 # 4. Documentation and qualification
 
-Status: Planned
+Status: In Progress
 
 Prerequisites: [compiler and CLI extraction](03-compiler-and-cli.md). Write docs
 with each earlier slice; this milestone closes coverage and release qualification.
@@ -47,3 +47,12 @@ unsupported boundary. Clean-checkout builds, the supported host matrix, public
 API consumption, and compiler/runtime compatibility pass. Examples and contracts
 have one source of truth. Release artifacts and documentation identify the same
 compiler version; no inherited Transit result is labeled as a transitc run.
+
+## Extraction implementation update
+
+The compiler, workspace adapter and independent source checks are implemented.
+Shared SQL/value modules remain Transit-owned and exactly pinned; embedded hosts
+supply their canonical modules without resolving the standalone pin. See the
+[current package map](../../packages/README.md), [attribution](../../NOTICE.md) and
+public handbook. Consumer cutover and final clean qualification are still in
+progress; this milestone does not inherit prior Transit pass records.

@@ -30,8 +30,11 @@ and its frontend assets if they are not cached.
 `transitc.nix` builds the CLI artifact with that same toolchain. The default
 package and `transitc` package expose only the installed executable, so consumers
 can use it in `mkShellNoCC` without inheriting the compiler development shell.
-Installation checks exercise help, the bootstrap version, and rejection of an
-unsupported command; the flake's bootstrap check also checks Zig formatting.
+Installation checks exercise help/version, actual source checking and rejection
+of unsupported runtime commands. Package checks run compiler/workspace tests;
+flake checks add exact upstream parity and independent grammar/type verification.
+The standalone shared frontend is pinned separately from the upstream runtime
+fixture; embedded consumers supply canonical modules without importing this flake.
 The separate `checks.<system>.integration` runs the same Python suite as
 `just test-integration` against the pinned upstream package in the Nix sandbox.
 It has no dependency on a sibling checkout, downloads, or a running Transit service.
