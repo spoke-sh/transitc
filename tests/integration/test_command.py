@@ -2,8 +2,10 @@
 import hashlib
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -35,7 +37,17 @@ def main():
 
     suite.invoke = invoke
     sys.argv = [str(source / 'tests/interfaces/cli/application_test.py'), str(compiler)]
-    suite.main()
+    # copytree preserves the Nix store's read-only directory modes. Materialize
+    # only the pinned fixtures as writable inputs before the original schedule
+    # makes its own isolated copies and deliberate permission-denial controls.
+    with tempfile.TemporaryDirectory(prefix='transitc-runtime-fixtures-') as temporary:
+        suite.ROOT = Path(temporary)
+        relative = Path('third_party/transitc/tests/fixtures')
+        fixtures = suite.ROOT / relative
+        shutil.copytree(source / relative, fixtures)
+        for path in [fixtures, *fixtures.rglob('*')]:
+            path.chmod(0o700 if path.is_dir() else 0o600)
+        suite.main()
     print('PASS transitc test: complete native application schedule, offline cases, failures, limits, cleanup and runtime identity')
 
 
