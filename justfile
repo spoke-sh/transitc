@@ -16,6 +16,9 @@ test:
 test-workspace: build
     python3 -B tests/runner/launch.py tests/workspace/build.py zig-out/bin/transitc
 
+test-examples: build
+    python3 -B tests/examples.py zig-out/bin/transitc
+
 test-grammar:
     zig build source-probe
     python3 -B tests/runner/launch.py tests/query/application_source/verify.py zig-out/bin/transitc-source-probe

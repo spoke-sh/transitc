@@ -17,6 +17,7 @@ zig build run -- --version
 just check
 just test
 just test-workspace
+just test-examples
 just test-grammar
 just test-types
 just test-integration
@@ -29,7 +30,9 @@ just docs-check
 compilation. `just test` runs compiler/workspace unit checks, including allocation
 failure coverage. The workspace suite requires Linux for seccomp failure controls.
 Grammar/type suites use the pinned ANTLR/Python/Lean tools. Integration separates
-upstream runtime smoke tests from exact compiler parity. `nix flake check` also
+upstream runtime smoke tests, exact compiler parity, and emitted SQL execution
+with retained restart. `just test-examples` checks the handbook code against
+runnable projects and inspects their published SQL/artifacts. `nix flake check` also
 builds the package and runs unit, source verification and parity checks in sandboxes.
 See the [integration guide](tests/integration/README.md) for fixtures, isolation,
 failure cases, and updating the upstream pin.

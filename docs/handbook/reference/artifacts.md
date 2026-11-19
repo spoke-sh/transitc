@@ -31,7 +31,7 @@ END;
 ```
 
 Run `transitc build --out migration-review`. Inspect `desired.sql`, `basis.json`,
-`migrations/0001.sql` and `provenance.json`. This is a proposal; no database was
+`migrations/0001-tables.sql` and `provenance.json`. This is a proposal; no database was
 contacted. To evolve it, refer to the retained `basis.json` from a later target
 and choose a new ordered migration version. Keep the basis and immutable SQL
 history available within the allowed workspace. Ambiguous/destructive changes
