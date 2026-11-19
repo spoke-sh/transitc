@@ -1,0 +1,29 @@
+/* Transit handbook palette, kept independent of its runtime site components. */
+:root {
+  --ifm-color-primary: #ad3326;
+  --ifm-color-primary-dark: #9c2e22;
+  --ifm-color-primary-darker: #932b20;
+  --ifm-color-primary-darkest: #79241b;
+  --ifm-color-primary-light: #be382a;
+  --ifm-color-primary-lighter: #c73b2c;
+  --ifm-color-primary-lightest: #d44637;
+  --ifm-background-color: #f7f4ed;
+  --ifm-background-surface-color: #f7f4ed;
+  --ifm-navbar-background-color: #f7f4ed;
+  --ifm-font-color-base: #282b29;
+  --ifm-line-height-base: 1.75;
+}
+
+[data-theme="dark"] {
+  --ifm-color-primary: #f28c78;
+  --ifm-color-primary-dark: #ef725a;
+  --ifm-color-primary-darker: #ed654b;
+  --ifm-color-primary-darkest: #e03c1f;
+  --ifm-color-primary-light: #f5a696;
+  --ifm-color-primary-lighter: #f6b3a5;
+  --ifm-color-primary-lightest: #fbdad3;
+  --ifm-background-color: #14191e;
+  --ifm-background-surface-color: #1b2329;
+  --ifm-navbar-background-color: #14191e;
+  --ifm-font-color-base: #e6e7e5;
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@transitc/handbook",
+  "version": "0.0.0-dev",
+  "private": true,
+  "scripts": {
+    "start": "docusaurus start --host 127.0.0.1 --no-open",
+    "build": "docusaurus build --out-dir dist",
+    "serve": "docusaurus serve --dir dist --host 127.0.0.1 --no-open",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.10.2",
+    "@docusaurus/preset-classic": "3.10.2",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "3.10.2",
+    "@docusaurus/plugin-content-docs": "3.10.2",
+    "@docusaurus/types": "3.10.2",
+    "@types/node": "24.0.0",
+    "@types/react": "19.3.0",
+    "typescript": "7.0.2"
+  }
+}

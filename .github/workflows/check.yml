@@ -1,0 +1,25 @@
+name: Check
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - run: nix flake check --print-build-logs
+      - run: nix develop --command just check
+  handbook:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - run: nix develop .#docs --command just docs-install
+      - run: nix develop .#docs --command just docs-check
+      - run: nix develop .#docs --command env TRANSITC_DOCS_BASE_URL=/ npm run docs:build

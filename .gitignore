@@ -1,0 +1,11 @@
+.zig-cache/
+zig-out/
+zig-pkg/
+*.o
+.direnv/
+.cache/
+node_modules/
+docs/handbook/.docusaurus/
+docs/handbook/dist/
+result
+result-*
