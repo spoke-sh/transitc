@@ -7,10 +7,20 @@
       url = "github:mitchellh/zig-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    transit = {
+      url = "github:spoke-sh/transit/c1f2680d9353175e58ad503e750e7b4da76a84c5";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.zig-overlay.follows = "zig-overlay";
+    };
   };
 
   outputs =
-    { nixpkgs, zig-overlay, ... }:
+    {
+      nixpkgs,
+      zig-overlay,
+      transit,
+      ...
+    }:
     let
       systems = [
         "x86_64-linux"
@@ -27,12 +37,18 @@
             upstream = zig-overlay.packages.${system}.master;
           };
           transitc = pkgs.callPackage ./nix/transitc.nix { inherit zig; };
+          upstreamTransit = transit.packages.${system}.transit;
         in
         assert pkgs.lib.assertMsg (
           zig.version == "0.17.0-dev.2267+48abf1a34"
         ) "Update the Zig manifest and review nix/zig.nix patches with the toolchain pin.";
         {
-          inherit pkgs zig transitc;
+          inherit
+            pkgs
+            zig
+            transitc
+            upstreamTransit
+            ;
         }
       );
     in
@@ -45,11 +61,8 @@
       devShells = forAllSystems (
         system:
         let
-          inherit (toolchains.${system}) pkgs zig;
-          common = [
-            pkgs.git
-            pkgs.just
-          ];
+          inherit (toolchains.${system}) pkgs zig upstreamTransit;
+          common = [ pkgs.just ];
         in
         {
           default = pkgs.mkShell {
@@ -57,7 +70,11 @@
               zig
               pkgs.nixfmt
               pkgs.nodejs_24
+              pkgs.python3
+              upstreamTransit
             ];
+            TRANSIT_UPSTREAM_BIN = "${upstreamTransit}/bin/transit";
+            TRANSIT_UPSTREAM_REVISION = transit.rev;
             buildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.stdenv.cc.libc ];
           };
           docs = pkgs.mkShellNoCC {
@@ -69,9 +86,26 @@
       checks = forAllSystems (
         system:
         let
-          inherit (toolchains.${system}) pkgs zig transitc;
+          inherit (toolchains.${system})
+            pkgs
+            zig
+            transitc
+            upstreamTransit
+            ;
         in
         {
+          integration =
+            pkgs.runCommand "transitc-upstream-integration"
+              {
+                nativeBuildInputs = [ pkgs.python3 ];
+              }
+              ''
+                python3 -B ${./tests/integration/upstream_transit.py} \
+                  --transit ${upstreamTransit}/bin/transit \
+                  --expected-revision ${transit.rev} \
+                  --fixtures ${./tests/integration/fixtures}
+                touch "$out"
+              '';
           bootstrap =
             pkgs.runCommand "transitc-bootstrap-check"
               {

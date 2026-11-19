@@ -9,6 +9,9 @@ check:
     zig build check
     nixfmt --check flake.nix nix/*.nix
 
+test-integration:
+    python3 -B tests/integration/upstream_transit.py
+
 docs-install:
     npm ci
 

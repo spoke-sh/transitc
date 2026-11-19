@@ -7,21 +7,27 @@ source revision. Start with the [package map](packages/README.md) and
 
 ## Local workflow
 
-Use `nix develop` at the root. The shell supplies pinned Zig, Node 24/npm, Git,
-Just, and nixfmt. No sibling checkout is required to build this scaffold.
+Use `nix develop` at the root. The shell supplies pinned Zig, upstream Transit,
+Python, Node 24/npm, Just, and nixfmt. Use Git from your host environment.
+No sibling checkout is required.
 
 ```sh
 zig build
 zig build run -- --version
 just check
+just test-integration
 nix flake check
 just docs-install
 just docs-check
 ```
 
 `just check` checks Zig/Nix formatting and compiles the CLI. `nix flake check`
-also runs help/version and checks rejection of an unavailable command. There is
-no compiler test suite here yet; add its real tests with the extraction.
+also runs help/version, checks rejection of an unavailable command, and runs the
+upstream integration suite. `just test-integration` runs that suite directly with
+the shell's pinned Transit. It checks actual compilation and isolated SQL runtime
+execution, not transitc/upstream equivalence. Add parity tests with extraction.
+See the [integration guide](tests/integration/README.md) for fixtures, isolation,
+failure cases, and updating the upstream pin.
 `just docs-install` uses `npm ci` with the root lockfile. After intentionally
 editing a JavaScript manifest, run `npm install`, then rerun the docs check.
 

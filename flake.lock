@@ -35,6 +35,7 @@
     "root": {
       "inputs": {
         "nixpkgs": "nixpkgs",
+        "transit": "transit",
         "zig-overlay": "zig-overlay"
       }
     },
@@ -51,6 +52,30 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "transit": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "zig-overlay": [
+          "zig-overlay"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795019409,
+        "narHash": "sha256-+5hWkme6TMgIFONIst32oaLblRM/bAcMCNjGMvbYuW4=",
+        "owner": "spoke-sh",
+        "repo": "transit",
+        "rev": "c1f2680d9353175e58ad503e750e7b4da76a84c5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "spoke-sh",
+        "repo": "transit",
+        "rev": "c1f2680d9353175e58ad503e750e7b4da76a84c5",
         "type": "github"
       }
     },

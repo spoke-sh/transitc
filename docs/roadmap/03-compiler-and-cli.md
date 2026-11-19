@@ -4,6 +4,14 @@ Status: Planned
 
 Prerequisites: [dependency boundaries](02-dependency-boundaries.md).
 
+## Preparation already available
+
+The default Nix shell supplies upstream Transit at the frozen source basis.
+The [integration suite](../../tests/integration/README.md) checks real compiler
+output, provenance, reproducibility, diagnostics, and isolated runtime tests.
+This baseline can be extended to compare transitc when extraction lands; no
+compiler equivalence is claimed and this milestone remains Planned.
+
 ## Move in reviewable slices
 
 1. Freeze the extraction commit and copy the pure compiler with its tests,

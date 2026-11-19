@@ -42,8 +42,13 @@ captured inputs, deterministic output ordering, source-coordinate fidelity, and
 the independent emitted-SQL verification step. Returned product ownership and
 diagnostic lifetimes must remain explicit in the public API.
 
-Current bootstrap checks prove only that the CLI builds/runs and documentation
-renders. The source repository's
+The scaffold checks establish that the CLI builds/runs and documentation renders.
+The separate
+[upstream integration suite](https://github.com/spoke-sh/transitc/blob/main/tests/integration/README.md)
+invokes the pinned Transit compiler and runtime to verify SQL output, reproducible
+artifacts, provenance, diagnostic coordinates, and passing/failing isolated tests.
+It supplies a baseline for extraction; it does not prove transitc compiler parity.
+The source repository's
 [verification account](https://github.com/spoke-sh/transit/blob/c1f2680d9353175e58ad503e750e7b4da76a84c5/tests/query/application_source/README.md)
 identifies grammar comparisons, scoped formal checks, and independent SQL tests.
 Those checks and their fixtures have not moved; their results must not be

@@ -17,21 +17,30 @@ zig build run -- --version
 The pinned Zig version is `0.17.0-dev.2267+48abf1a34`. The executable is installed
 at `zig-out/bin/transitc`. The version output is
 `transitc 0.0.0-dev (bootstrap)`. Help states that compilation, dependency
-resolution, and test execution are unavailable. No Transit runtime or sibling
-checkout is needed for these commands.
+resolution, and test execution are unavailable in transitc. The shell provides a
+separate pinned upstream `transit` executable for integration checks. No sibling
+checkout or running service is needed.
 
 ## Validate your checkout
 
 ```sh
 just check
+just test-integration
 nix flake check
 just docs-install
 just docs-check
 ```
 
-The first two commands compile and smoke-check the scaffold. The docs commands
-install the locked dependencies, typecheck the site, and build it with link
-validation. These checks do not establish source-language conformance.
+`just check` validates the scaffold. `just test-integration` exercises the pinned
+upstream compiler and local runtime, including SQL output, reproducibility,
+provenance, diagnostics, and passing/failing isolated tests. `nix flake check`
+runs packaged CLI and upstream integration checks in a sandbox. These results
+establish an upstream baseline, not transitc compiler parity.
+
+The docs commands install the locked dependencies, typecheck the site, and build
+it with link validation. The
+[integration guide](https://github.com/spoke-sh/transitc/blob/main/tests/integration/README.md)
+explains fixtures and how to update the pin.
 
 ## Read and edit the handbook
 
@@ -40,7 +49,7 @@ just docs-dev
 ```
 
 Open `http://localhost:3000/transitc/`. For documentation-only work, use
-`nix develop .#docs`; that shell contains Node/npm and Just without Zig.
+`nix develop .#docs`; that shell contains Node/npm and Just without Zig or Transit.
 The [site tooling guide](https://github.com/spoke-sh/transitc/blob/main/docs/handbook/README.md)
 explains navigation and hosting paths.
 

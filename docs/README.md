@@ -11,7 +11,8 @@ planned extraction work, decisions, status, and acceptance criteria.
 | `handbook/internals/` | Architecture, invariants, and implementation reasoning |
 | `roadmap/` | Numbered delivery milestones and documentation coverage gates |
 | App/package READMEs | Component scope, usage, and extraction destination |
-| Future `contracts/`, `tests/`, `examples/` | Exact contracts, executable evidence, and runnable examples, added with extraction |
+| `tests/integration/` | Pinned upstream compiler/runtime baseline and fixtures |
+| Future `contracts/`, `examples/` | Exact contracts and runnable user examples, added with extraction |
 
 This adopts Transit's documentation ownership structure, with a smaller
 Docusaurus project in `handbook/`. It does not copy unrelated database/runtime
