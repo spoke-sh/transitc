@@ -64,10 +64,11 @@ stdenv.mkDerivation {
     "$out/bin/transitc" --version
     "$out/bin/transitc" build -f tests/integration/fixtures/application/build.transit --check --format json
     status=0
-    "$out/bin/transitc" test >unsupported.stdout 2>unsupported.stderr || status=$?
+    "$out/bin/transitc" unknown >unsupported.stdout 2>unsupported.stderr || status=$?
     test "$status" -eq 2
     test ! -s unsupported.stdout
     grep -F 'unsupported command' unsupported.stderr
+    "$out/bin/transitc" test --help
     runHook postInstallCheck
   '';
   passthru = { inherit dependencies sharedArchive; };
