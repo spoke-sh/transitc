@@ -2,24 +2,22 @@
   lib,
   stdenv,
   runCommand,
-  fetchgit,
+  fetchurl,
   zig,
   sourceRevision ? "development",
-  sharedSource ? fetchgit {
-    name = "transitc-shared-source";
-    url = "https://github.com/spoke-sh/transit.git";
-    rev = "8bbe56e13a839e4485cfa67593f1425ee1594954";
-    hash = "sha256-U9Rp4iLV7mQEY1bG7pImMmvjO4m0lYGdNkdki2J2PHo=";
+  sharedArchive ? fetchurl {
+    name = "transit-sql-frontend.tar.gz";
+    url = "https://raw.githubusercontent.com/spoke-sh/transit/97d796fb0cf7203c869fd57ed6f45fe3935edd71/build/artifacts/transit-sql-frontend.tar.gz";
+    hash = "sha256-CwVbGS1/FwqknsVGLmdIbr0+Fxs03ojiKnYsprfB8f0=";
   },
 }:
 let
-  sharedHash = "transit-0.0.1-OBsLdRPCGgWiUe2wuiyo-YLUlj8MOJ6LxD1ZAnP-axfU";
+  sharedHash = "transit_sql_distribution-0.0.1-t9CQA04pIgCYrQZcTT_0rVrQwtY49hG5lKslNUn7GZtk";
   dependencies = runCommand "transitc-zig-dependencies" { nativeBuildInputs = [ zig ]; } ''
     export ZIG_GLOBAL_CACHE_DIR="$TMPDIR/zig-global-cache"
-    tar -czf shared.tar.gz -C ${sharedSource} .
-    test "$(zig fetch shared.tar.gz)" = ${lib.escapeShellArg sharedHash}
+    test "$(zig fetch ${sharedArchive})" = ${lib.escapeShellArg sharedHash}
     mkdir -p "$out/${sharedHash}"
-    cp -r ${sharedSource}/. "$out/${sharedHash}/"
+    tar -xf ${sharedArchive} -C "$out/${sharedHash}"
   '';
 in
 stdenv.mkDerivation {
@@ -36,6 +34,8 @@ stdenv.mkDerivation {
       ../contracts
       ../examples
       ../LICENSE
+      ../NOTICE.md
+      ../README.md
     ];
   };
   nativeBuildInputs = [ zig ];
@@ -70,7 +70,7 @@ stdenv.mkDerivation {
     grep -F 'unsupported command' unsupported.stderr
     runHook postInstallCheck
   '';
-  passthru = { inherit dependencies sharedSource; };
+  passthru = { inherit dependencies sharedArchive; };
   meta = {
     description = "Offline Transit source compiler and workspace tools";
     mainProgram = "transitc";

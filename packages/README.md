@@ -15,11 +15,12 @@ budget allocator. No second SQL type system or allocator lives here. Compiler
 `SourceDiagnostic` adds source failure families over the shared diagnostic values.
 The reserved diagnostics/SQL packages were removed because these owners suffice.
 
-Standalone manifests pin the shared source at
-`8bbe56e13a839e4485cfa67593f1425ee1594954` with its Zig content hash. The upstream
+Standalone manifests pin the generated pure source archive at
+`97d796fb0cf7203c869fd57ed6f45fe3935edd71` with its Zig content hash. The upstream
 runtime fixture remains independently frozen at `e7434306334e3692c6f3e123cba0d278fa412196`.
-The shared source's `frontend-only` profile selects only pure modules; runtime and
-Arrow dependencies are lazy and not fetched or built for this profile.
+The archive contains only the four pure packages and a small composition manifest.
+Its generator verifies exact source bytes and deterministic archive contents.
+Runtime and Arrow packages are absent from the distribution.
 
 Embedded builds select `-Dembedded=true` and supply the canonical frontend,
 protocol and memory modules. This path does not resolve the standalone shared

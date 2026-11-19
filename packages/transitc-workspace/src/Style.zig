@@ -204,9 +204,13 @@ pub fn hint(self: Self, out: *std.Io.Writer, value: []const u8) !void {
 }
 
 pub fn write(self: Self, out: *std.Io.Writer, part: anytype, value: []const u8) !void {
-    switch (part) {
+    const selected = if (comptime @TypeOf(part) == @TypeOf(.hint))
+        @as(enum { summary, category, cause, location, expected, marker, hint }, part)
+    else
+        part;
+    switch (selected) {
         .hint => try self.hint(out, value),
-        else => try self.text(out, switch (part) {
+        else => try self.text(out, switch (selected) {
             .summary => .emphasis,
             .category => .category,
             .cause, .marker => .failure,

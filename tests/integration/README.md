@@ -100,3 +100,12 @@ and `nix develop --option eval-cache false .#docs --command env TRANSITC_DOCS_BA
 The evaluation-cache override avoided contention with the concurrent upstream
 build; it changed no toolchain or test inputs. These results establish the small
 upstream baseline only, not extracted-compiler parity or other host platforms.
+
+`execute_sql.py` compiles the Table fixture with a separate declared name (the
+runtime provisions `items` itself), verifies exact emitted SQL, removes the
+source workspace, and executes the artifact on the pinned real Transit host.
+It checks completed rows and the same rows after retained restart. Runtime
+fixture helpers come from the pinned flake source, with writable proof evidence
+under this repository. Failed installations remain available for investigation.
+This is separate from compile-only parity and does not qualify every runtime
+feature or native host platform.

@@ -33,8 +33,8 @@ Extraction must preserve these additions and the current definition identity;
 the original inventory is not the full parity target. The seven upstream
 integration cases cover the existing small Table fixture, not all of these new
 features. Move their upstream positive/negative and independent verification
-coverage with the compiler. Dependency ownership remains unresolved and
-milestones 2–4 remain Planned. Freeze this exact basis when implementation starts,
+coverage with the compiler. At that review point dependency ownership was
+unresolved and milestones 2–4 were Planned. Freeze this exact basis when implementation starts,
 or explicitly review and record another update before comparing outputs.
 
 Maintain one numbered file per independently reviewable milestone. Use `Planned`,
@@ -43,10 +43,10 @@ requires the listed checks and evidence, not just a file move. Preserve complete
 milestones and update dependency links when changing sequence. Current behavior
 belongs in the [handbook](../handbook/guides/introduction.md), not only here.
 
-## Proposed implementation sequence for review
+## Reviewed implementation sequence
 
-These are reviewable slices within milestones 2–4, not additional milestones or
-completed work. Keep language changes separate from extraction and use the
+The implementation follows these slices within milestones 2–4. The acceptance
+criteria below remain the basis for qualification. Keep language changes separate from extraction and use the
 frozen revision above as the comparison target.
 
 | Slice | Deliverable | Acceptance before proceeding |
@@ -89,3 +89,11 @@ supports the reviewed build/check/fetch mapping. Transit's runtime test host rem
 outside the compiler, using embedded modules with one shared type identity.
 The historical review text above records the original decision points; current
 behavior is documented in the handbook and package READMEs.
+
+Standalone compiler builds use the deterministic four-package SQL frontend
+archive at Transit `97d796fb0cf7203c869fd57ed6f45fe3935edd71`, pinned by both
+Zig content hash and Nix SHA256. Fresh package/global cache compilation executes
+without Arrow or runtime dependencies. The integration host remains frozen at
+`e7434306334e3692c6f3e123cba0d278fa412196`. Transit consumes embedded source
+modules without evaluating transitc's runtime integration flake, avoiding a build
+dependency cycle.

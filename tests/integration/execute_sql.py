@@ -27,12 +27,16 @@ def main():
         shutil.copytree(ROOT / 'tests/integration/fixtures/application', workspace)
         for path in workspace.rglob('*'):
             path.chmod(0o700 if path.is_dir() else 0o600)
+        # The runtime installation provisions its own `items` table. Compile a
+        # separate declared identity so the proof does not replace bootstrap data.
+        entry = workspace / 'build.transit'
+        entry.write_text(entry.read_text().replace('items', 'compiled_items'))
         output = root / 'artifact'
         result = subprocess.run([str(compiler), 'build', '--out', str(output), '--format', 'json'],
                                 cwd=workspace, capture_output=True, text=True, timeout=120, check=True)
         assert json.loads(result.stdout)['ok'] is True
         sql = (output / 'application.sql').read_text()
-        assert sql == (ROOT / 'tests/integration/fixtures/expected.sql').read_text()
+        assert sql == (ROOT / 'tests/integration/fixtures/expected.sql').read_text().replace('items', 'compiled_items').replace('ITEMS', 'COMPILED_ITEMS')
         shutil.rmtree(workspace)
         fixture = Fixture(upstream, parent="/var/tmp")
         passed = False
@@ -42,11 +46,11 @@ def main():
             fixture.ready()
             outcomes = fixture.console(sql)
             rows = [records(outcome) for outcome in outcomes if 'schema' in outcome]
-            assert rows == [[{'id': '8', 'note': 'initial'}]], rows
+            assert rows == [[{'id': '8', 'value': 'initial'}]], rows
             fixture.stop()
             fixture.start()
             fixture.ready()
-            assert records(fixture.console('SELECT * FROM items;')[-1]) == rows[0]
+            assert records(fixture.console('SELECT * FROM compiled_items;')[-1]) == rows[0]
             passed = True
         finally:
             fixture.cleanup()
