@@ -7,6 +7,19 @@ This repository currently contains the development environment, a CLI scaffold,
 package boundaries, documentation, and an extraction plan. The CLI supports
 `--help` and `--version`; it does not compile Transit source yet.
 
+Consumers can use the packaged executable without installing a Zig toolchain:
+
+```sh
+nix build .#transitc
+./result/bin/transitc --version
+nix run .#transitc -- --help
+```
+
+The flake exports `packages.<system>.transitc` and `packages.<system>.default`
+for x86_64/aarch64 Linux and Darwin. Downstream flakes should pin this repository
+to an exact commit and consume that package output. Zig is a build dependency;
+it is not included in the executable's runtime closure.
+
 ## Develop
 
 ```sh
