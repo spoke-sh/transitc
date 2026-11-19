@@ -2,8 +2,8 @@
 
 | Package | Responsibility | Direct shared imports |
 | --- | --- | --- |
-| [transitc-compiler](transitc-compiler/README.md) | Source syntax, graphs, types, lowering, verified SQL, migrations and test products | `transit_sql_frontend`, `transit_protocol`, `transit_memory` |
-| [transitc-workspace](transitc-workspace/README.md) | Captured source, exact dependencies, locks, publication, test orchestration and reports | Compiler plus the same three shared modules |
+| [transitc-compiler](transitc-compiler/README.md) | Source syntax, graphs, types, lowering, verified SQL, migrations and test products | `transit_sql_frontend`, `transit_protocol`, `transit_memory`, `transit_test_protocol` |
+| [transitc-workspace](transitc-workspace/README.md) | Captured source, exact dependencies, locks, publication, test orchestration and reports | Compiler plus the same four shared modules |
 
 The CLI composes these libraries. The compiler performs no filesystem, network,
 service or runtime execution. Workspace I/O is explicit; repository access occurs
@@ -17,21 +17,18 @@ budget allocator. No second SQL type system or allocator lives here. Compiler
 The reserved diagnostics/SQL packages were removed because these owners suffice.
 
 Standalone manifests pin the generated pure source archive at
-`97d796fb0cf7203c869fd57ed6f45fe3935edd71` with its Zig content hash. The upstream
+`fdc7d123886838e5cd2be269f2000faea44ac21b` with its Zig content hash. The upstream
 runtime fixture remains independently frozen at `e7434306334e3692c6f3e123cba0d278fa412196`.
-The archive contains only the four pure packages and a small composition manifest.
+The archive contains only the five pure packages and a small composition manifest.
 Its generator verifies exact source bytes and deterministic archive contents.
 Runtime and Arrow packages are absent from the distribution.
 
-Embedded builds select `-Dembedded=true` and supply the canonical frontend,
-protocol and memory modules. This path does not resolve the standalone shared
-source dependency. Transit uses this path so compiler and runtime types have the
-same identity. Thus the selected package graph is acyclic: Transit embeds compiler
-sources; the standalone compiler selects the pure frontend distribution. Neither
-library build imports the other repository's runtime build or development flake.
-The packaged CLI separately pins a Transit executable containing an older exact
-compiler snapshot, so its test-host dependency also remains acyclic. All
-remote source choices are immutable; no sibling checkout is an input.
+Transit is upstream of transitc. Neither its runtime nor its build graph imports
+this repository. The compiler and workspace consume the same exactly pinned SQL,
+protocol, memory and neutral test-contract modules. There is no embedded mode
+that injects a compiler into Transit. The packaged CLI independently selects a
+compatible Transit executable for compiled-case execution. Remote source choices
+are immutable; no sibling checkout is an input.
 
 See [attribution](../NOTICE.md), [architecture](../docs/handbook/internals/architecture.md)
 and the [embedding guide](../docs/handbook/guides/embedding.md).

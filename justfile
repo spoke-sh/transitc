@@ -7,6 +7,8 @@ build:
 check:
     zig fmt --check build.zig build.zig.zon apps packages examples tests/query/application_source/driver.zig
     python3 -B tests/dependencies/check.py
+    python3 -B tests/runner/launch.py tests/dependencies/diagnostic_inventory.py
+    python3 -B tests/runner/launch.py tests/dependencies/diagnostic_mappings.py
     zig build check
     nixfmt --check flake.nix nix/*.nix
 
@@ -18,6 +20,9 @@ test-workspace: build
 
 test-examples: build
     python3 -B tests/examples.py zig-out/bin/transitc
+
+test-build-command: build
+    python3 -B tests/runner/launch.py tests/integration/build_command.py zig-out/bin/transitc
 
 test-command: build
     python3 -B tests/runner/launch.py tests/integration/test_host_boundary.py zig-out/bin/transitc

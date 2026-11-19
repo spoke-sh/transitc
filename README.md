@@ -64,7 +64,7 @@ tests/integration/        upstream compiler/runtime fixtures and checks
 ```
 
 The [package map](packages/README.md) records shared ownership, exact dependency
-pins and the embedded-consumer boundary. [Attribution](NOTICE.md) records the
+pins and the one-way upstream dependency boundary. [Attribution](NOTICE.md) records the
 source revision and intentional identity differences.
 
 Start with the [documentation index](docs/README.md),

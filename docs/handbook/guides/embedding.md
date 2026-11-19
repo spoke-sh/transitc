@@ -2,11 +2,10 @@
 
 Use the pinned Zig toolchain and add transitc at an exact Git revision/content
 hash to your package manifest. The root build exports `transitc_compiler` and
-`transitc_workspace`. Ordinary consumers can use the standalone shared-module
-pins. Runtime hosts use `embedded = true` and supply `transit_sql_frontend`,
-`transit_protocol` and `transit_memory` to both modules, plus the compiler import
-named `transit_compiler` to the workspace. Reuse the same module instances as
-your runtime; independently constructed protocol modules are distinct Zig types.
+`transitc_workspace`. Both consume the same pinned upstream shared modules.
+Use the compiler package's direct protocol module for diagnostic types; avoid
+constructing a second copy of shared Zig modules. This API is for applications
+that compile source. Transit remains an upstream dependency and does not embed it.
 
 The library call is:
 

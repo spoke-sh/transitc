@@ -4,8 +4,8 @@
 `c1f2680d9353175e58ad503e750e7b4da76a84c5`. Those toolchain locks are unchanged.
 The `transit-baseline` input remains frozen at
 `e7434306334e3692c6f3e123cba0d278fa412196` for comparison. The `transit` input
-pins the compiled-case test host at `8a968ec39dcdb5cbb80287d0b033c615b137c674`.
-Its source embeds an earlier compiler snapshot, keeping the package graph acyclic.
+pins the compatible compiled-case test host. Transit is upstream and does not
+import this compiler or workspace.
 `zig.nix`, `zig-dynamic-linker.patch`, and `verify-zig-download.sh` were copied
 from the original basis. The inherited derivation name `transit-zig` identifies
 the same toolchain; it is not a runtime dependency.
@@ -22,8 +22,7 @@ nixpkgs and zig-overlay inputs follow this repository's pins. The shell exports
 `TRANSIT_UPSTREAM_BIN` as the absolute store executable and
 `TRANSIT_UPSTREAM_REVISION` as the input revision, so integration tests cannot
 silently select another `transit` from PATH. `TRANSIT_TEST_RUNTIME` selects the
-compatible compiled-case host; `TRANSIT_TEST_SOURCE` supplies its runtime-owned
-application-test schedule. SQL grammar verification uses the frozen baseline.
+compatible compiled-case host; `TRANSIT_TEST_SOURCE` supplies upstream process/installation helpers. SQL grammar verification uses the frozen baseline.
 
 `.#docs` omits Transit, Python, Zig, and the C toolchain. Both shells are defined
 for x86_64/aarch64 Linux and Darwin; local validation establishes only the host
@@ -38,7 +37,7 @@ of unknown commands, plus a real isolated application suite. Package checks run
 compiler/workspace tests;
 flake checks add exact upstream parity and independent grammar/type verification.
 The standalone shared frontend is pinned separately from the upstream runtime
-fixture; embedded consumers supply canonical modules without importing this flake.
+fixture. Compiler clients consume the same pinned upstream modules.
 The separate `checks.<system>.integration` runs the seven-case baseline from
 `just test-integration` against the frozen upstream package in the Nix sandbox.
 It has no dependency on a sibling checkout, downloads, or a running Transit service.

@@ -83,19 +83,15 @@ pass.
 
 ## Implementation status
 
-The reviewed sequence is being executed. The pure frontend is supplied by Transit;
-compiler and workspace sources, tests and source contracts now live here. The CLI
-supports build/check/fetch and isolated application testing. Transit's runtime
-test host remains outside the compiler, using embedded modules with one shared
-type identity and a versioned process boundary for standalone `transitc test`.
-The historical review text above records the original decision points; current
-behavior is documented in the handbook and package READMEs.
+Compiler and workspace sources, source contracts, diagnostics, grammar/model
+proofs and build/test command schedules live here. The CLI supports
+`transitc build` and `transitc test`. Transit is the upstream owner of shared SQL,
+protocol, memory and compiled-case test types, plus native database execution.
+Transit contains no compiler snapshot or dependency on transitc.
 
-Standalone compiler builds use the deterministic four-package SQL frontend
-archive at Transit `97d796fb0cf7203c869fd57ed6f45fe3935edd71`, pinned by both
-Zig content hash and Nix SHA256. Fresh package/global cache compilation executes
-without Arrow or runtime dependencies. The comparison binary remains frozen at
-`e7434306334e3692c6f3e123cba0d278fa412196`; the compiled-case host is separately
-pinned at `8a968ec39dcdb5cbb80287d0b033c615b137c674`. Transit consumes embedded source
-modules without evaluating transitc's runtime integration flake, avoiding a build
-dependency cycle.
+Standalone manifests pin the deterministic five-package pure source archive at
+Transit `fdc7d123886838e5cd2be269f2000faea44ac21b`, with both Zig content hash and
+Nix SHA256. The comparison binary remains frozen at
+`e7434306334e3692c6f3e123cba0d278fa412196`; the compatible compiled-case host is
+selected separately by the `transit` flake input. Final validation must cover the
+one-way cutover; previous embedded-consumer results do not qualify that change.

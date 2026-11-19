@@ -46,7 +46,7 @@ their licenses and all referenced helpers; directory copying alone is insufficie
   missing/invalid sources, and incomplete artifact publication have executable
   positive and negative coverage.
 - Migration proposals preserve explicit basis/history and do not execute SQL.
-- `transitc test` executes the runtime-owned application schedule through the
+- `transitc test` executes the compiler-owned application schedule through the
   pinned host, preserving assertions, isolation, resource limits and cleanup.
   Foreign definitions, malformed or incomplete responses and process failures reject.
 - Installation, build/check workflows, errors, and artifact references explain
@@ -55,8 +55,6 @@ their licenses and all referenced helpers; directory copying alone is insufficie
 ## Extraction implementation update
 
 The compiler, workspace adapter and independent source checks are implemented.
-Shared SQL/value modules remain Transit-owned and exactly pinned; embedded hosts
-supply their canonical modules without resolving the standalone pin. See the
-[current package map](../../packages/README.md), [attribution](../../NOTICE.md) and
-public handbook. Consumer cutover and final clean qualification are still in
-progress; this milestone does not inherit prior Transit pass records.
+Shared SQL/value and compiled-case modules remain Transit-owned and exactly
+pinned. Transit no longer embeds compiler or workspace code; native runtime
+execution stays upstream behind the bounded process contract.

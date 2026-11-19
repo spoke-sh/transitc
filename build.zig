@@ -2,14 +2,12 @@ const std = @import("std");
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
-    const embedded = b.option(bool, "embedded", "Export libraries for a caller supplying shared modules") orelse false;
-    const workspace_dep = b.dependency("transitc_workspace", .{ .target = target, .optimize = optimize, .embedded = embedded });
+    const workspace_dep = b.dependency("transitc_workspace", .{ .target = target, .optimize = optimize });
     const workspace = workspace_dep.module("transitc_workspace");
-    const compiler = if (embedded) b.dependency("transitc_compiler", .{ .target = target, .optimize = optimize, .embedded = true }).module("transitc_compiler") else workspace_dep.module("transitc_compiler");
+    const compiler = workspace_dep.module("transitc_compiler");
     workspace.addImport("transit_compiler", compiler);
     b.modules.put(b.allocator, "transitc_compiler", compiler) catch @panic("out of memory");
     b.modules.put(b.allocator, "transitc_workspace", workspace) catch @panic("out of memory");
-    if (embedded) return;
     const options = b.addOptions();
     options.addOption([]const u8, "version", "0.0.0-dev");
     options.addOption([]const u8, "revision", b.option([]const u8, "revision", "Compiler Git revision for provenance") orelse "development");

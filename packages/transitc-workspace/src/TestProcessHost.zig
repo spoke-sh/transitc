@@ -2,7 +2,7 @@
 const std = @import("std");
 const p = @import("transit_protocol");
 const c = @import("transit_compiler");
-const Wire = @import("TestHostProtocol.zig");
+const Wire = @import("transit_test_protocol").Wire;
 const Sources = @import("BuildSources.zig");
 const Self = @This();
 pub const embedded = false;

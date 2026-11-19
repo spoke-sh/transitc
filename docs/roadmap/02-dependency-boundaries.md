@@ -37,17 +37,8 @@ repository dependencies.
 ## Extraction implementation update
 
 Shared SQL/value modules remain Transit-owned. Standalone builds consume the
-deterministic four-package archive at Transit
-`97d796fb0cf7203c869fd57ed6f45fe3935edd71`, verified by Zig content hash and
-Nix SHA256. Embedded hosts supply their canonical frontend, protocol and memory
-modules without resolving that archive or the integration-runtime flake input.
-The [package map](../../packages/README.md), checked import inventory and
-[attribution](../../NOTICE.md) record the selected owners and exclusions.
-
-Fresh-cache standalone compilation passed without Arrow or runtime packages.
-The Transit adapter's unit tests also passed with fresh compiler caches and an
-empty dependency store, proving that embedding needs no fetched dependency.
-Compiler products retain the current definition identity; executable/revision
-and input/cache digests are tested separately from semantic output. These
-executed dependency proofs close this milestone; runtime and release
-qualification belong to the following milestones.
+The pure archive now contains SQL frontend, protocol, spatial, memory and neutral
+test-contract packages, pinned at Transit `fdc7d123886838e5cd2be269f2000faea44ac21b`.
+The dependency direction is exclusively transitc to Transit. Compiler/workspace
+embedding into the upstream runtime has been removed. See the
+[package boundaries](../../packages/README.md) for the implemented ownership.

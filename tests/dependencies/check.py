@@ -4,7 +4,7 @@ import json
 import re
 
 ROOT = Path(__file__).resolve().parents[2]
-PURE = {'transit_sql_frontend', 'transit_protocol', 'transit_memory'}
+PURE = {'transit_sql_frontend', 'transit_protocol', 'transit_memory', 'transit_test_protocol'}
 ALLOWED = {'transitc-compiler': PURE, 'transitc-workspace': PURE | {'transit_compiler'}}
 
 def inventory():

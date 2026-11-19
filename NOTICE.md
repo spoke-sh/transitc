@@ -18,3 +18,10 @@ text now borrows the caller's diagnostic envelope instead of a callee stack copy
 Formal models retain their premises. Grammar correspondence, bounded Lean laws,
 compiler comparisons and runtime integration are separate evidence categories.
 No previous Transit run is reported as a transitc result.
+
+The complete build/test command integration drivers, source diagnostic inventory
+and semantic mapping checks were moved from the same Transit source lineage.
+Their executable owner is now transitc; upstream runtime process fixtures remain
+in Transit and are imported only by integration checks from an exact Nix pin.
+The neutral compiled-case contract and row/expectation types are Transit-owned
+and consumed from the pinned pure package distribution.

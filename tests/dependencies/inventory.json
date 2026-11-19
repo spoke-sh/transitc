@@ -3,7 +3,8 @@
     "allowed_imports": [
       "transit_memory",
       "transit_protocol",
-      "transit_sql_frontend"
+      "transit_sql_frontend",
+      "transit_test_protocol"
     ],
     "external_imports": {
       "packages/transitc-compiler/src/CatalogDiff.zig": [
@@ -40,7 +41,8 @@
       ],
       "packages/transitc-compiler/src/Test.zig": [
         "transit_protocol",
-        "transit_sql_frontend"
+        "transit_sql_frontend",
+        "transit_test_protocol"
       ],
       "packages/transitc-compiler/src/TypedOperands.zig": [
         "transit_sql_frontend"
@@ -71,7 +73,8 @@
       "transit_compiler",
       "transit_memory",
       "transit_protocol",
-      "transit_sql_frontend"
+      "transit_sql_frontend",
+      "transit_test_protocol"
     ],
     "external_imports": {
       "packages/transitc-workspace/src/Build.zig": [
@@ -103,17 +106,17 @@
       "packages/transitc-workspace/src/Test.zig": [
         "transit_compiler",
         "transit_memory",
-        "transit_protocol"
-      ],
-      "packages/transitc-workspace/src/TestHostProtocol.zig": [
-        "transit_compiler",
         "transit_protocol",
-        "transit_sql_frontend"
+        "transit_test_protocol"
       ],
       "packages/transitc-workspace/src/TestProcessHost.zig": [
         "transit_compiler",
         "transit_memory",
-        "transit_protocol"
+        "transit_protocol",
+        "transit_test_protocol"
+      ],
+      "packages/transitc-workspace/src/root.zig": [
+        "transit_test_protocol"
       ]
     }
   }

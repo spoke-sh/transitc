@@ -115,13 +115,18 @@ feature or native host platform.
 ## Standalone application tests
 
 Run `just test-command` to exercise `transitc test`. The separate `transit` input
-pins the compatible compiled-case host at
-`8a968ec39dcdb5cbb80287d0b033c615b137c674`. `test_command.py` runs that source's
-complete application-test schedule through transitc, including Table/Queue
-assertions, multi-schema programs, offline resolution, failure lifecycle,
-resource limits and cleanup. It also checks the actual runtime revision and
-executable digest in every available suite report. The runtime's installed-SQL
-oracle remains independent of the compiler CLI.
+pins a compatible compiled-case host. `application_test.py` owns the complete
+source suite here: Table/Queue assertions, multi-schema programs, offline
+resolution, failure lifecycle, resource limits and cleanup. `test_command.py`
+checks the actual runtime revision and executable digest in available reports.
+The runtime's installed SQL oracle remains independent of the compiler CLI.
+
+Run `just test-build-command` for the full extracted `application_build.py`
+schedule: dependency capture, offline publication, source diagnostics, migration
+planning/application/recovery, workspace composition, typed Queue and modular
+programs, plus emitted SQL execution against hand-written independent oracles.
+The source drivers and fixtures live here; process/installation helpers come
+from `TRANSIT_TEST_SOURCE`, the exactly pinned upstream runtime source.
 
 `test_host_boundary.py` executes captured compiled cases after deleting source,
 checks real passing and failing row assertions, and rejects foreign definitions,
