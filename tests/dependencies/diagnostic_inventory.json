@@ -1,6 +1,18 @@
 {
   "version": 1,
   "sources": {
+    "apps/transitc-cli/src/Help.zig": {
+      "errors": {},
+      "outcomes": {},
+      "error_sets": {},
+      "error_returns": {},
+      "open_error_set_uses": 0,
+      "propagation": {
+        "try": 0,
+        "catch": 0
+      },
+      "imports": []
+    },
     "apps/transitc-cli/src/main.zig": {
       "errors": {
         "InvalidInvocation": 1,
@@ -17,6 +29,7 @@
         "catch": 6
       },
       "imports": [
+        "Help.zig",
         "build_options",
         "std",
         "transitc_workspace"

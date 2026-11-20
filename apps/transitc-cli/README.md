@@ -1,7 +1,12 @@
 # transitc CLI
 
 Composes `transitc-workspace` and the pure compiler. Supports `build`, including
-`--check` and `--fetch`, and help/version. See the
-[complete CLI contract](../../docs/handbook/reference/cli.md). Runtime execution
-is absent; `test` is rejected. Source report rendering, parsing of build options,
-resolution and publication are shared library code rather than CLI copies.
+`--check` and `--fetch`, and `test` through a compatible Transit host. See the
+[complete CLI contract](../../docs/handbook/reference/cli.md). Source report
+rendering, option parsing, resolution, publication, and test orchestration belong
+to the shared libraries.
+
+`transitc --help` lists commands and global options. `transitc build --help` and
+`transitc test --help` show only that command's options. Keep help concise, with
+defaults and repeatability beside the option; explain workflows in the handbook.
+Help and version print to stdout without reading source or starting a test host.

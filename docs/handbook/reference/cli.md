@@ -1,24 +1,26 @@
 # CLI reference
 
-`transitc`, `transitc --help` and `transitc -h` print help to stdout.
+`transitc`, `transitc --help` and `transitc -h` list commands and global options.
+Use `transitc build --help` or `transitc test --help` for command-specific options.
+Help prints to stdout without reading source or starting a test host.
 `transitc --version` prints the compiler version and build revision.
 
 ```text
-transitc build [options]
-transitc test [options]
+transitc build [OPTIONS]
+transitc test [OPTIONS]
 ```
 
 | Option | Meaning |
 | --- | --- |
 | `-f FILE` | Entry file; default `build.transit` |
 | `--target NAME` | Select a declared target; otherwise use the entry's declared default or `default` |
-| `--out DIRECTORY` | Publish to a new explicit directory |
-| `--check` | Validate without artifact publication |
-| `--fetch` | Fetch exact dependency revisions, verify content and publish `transit.lock` |
+| `--out DIRECTORY` | Publish to a new explicit directory; build only |
+| `--check` | Validate without artifact publication; build only |
+| `--fetch` | Fetch exact dependency revisions, verify content and publish `transit.lock`; build only |
 | `--override NAME=DIR` | Explicit local dependency override; repeat for different names |
 | `--format text\|json` | Human or machine output; default text |
 | `--color auto\|off\|on` | Human color; default auto |
-| `--help` | Display help |
+| `--help` | Show help for the selected command |
 | `--runtime FILE` | Select a compatible Transit test host; test only |
 
 Fetch cannot combine with check, output or overrides. Check cannot combine with

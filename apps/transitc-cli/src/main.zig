@@ -1,35 +1,11 @@
 const std = @import("std");
 const workspace = @import("transitc_workspace");
 const version = @import("build_options");
-const help =
-    \\transitc — the Transit language compiler
-    \\
-    \\Usage: transitc build [options]
-    \\       transitc test [options]
-    \\       transitc --help | --version
-    \\
-    \\Build verified SQL artifacts or run application tests in isolated databases.
-    \\
-    \\Options:
-    \\  -f FILE                 Build entry (default: build.transit)
-    \\  --target NAME           Select a declared target
-    \\  --out DIRECTORY         Publish to a new explicit directory (build only)
-    \\  --check                 Check without publishing artifacts (build only)
-    \\  --fetch                 Fetch dependencies and publish transit.lock (build only)
-    \\  --override NAME=DIR     Explicit local dependency override
-    \\  --format text|json      Diagnostic and result format (default: text)
-    \\  --color auto|off|on     Human diagnostic color (default: auto)
-    \\  --help                  Show this help
-    \\  --runtime FILE          Transit test host executable (test only)
-    \\
-    \\Ordinary builds resolve dependencies offline. Only --fetch accesses repositories.
-    \\Tests compile the complete suite, then run isolated cases through the Transit host.
-    \\Tests select 'tests' or the entry's unique test target unless --target is supplied.
-    \\
-;
+const help = @import("Help.zig");
+
 pub fn main(init: std.process.Init) !void {
     const args = try init.minimal.args.toSlice(init.arena.allocator());
-    if (args.len == 1 or (args.len == 2 and (std.mem.eql(u8, args[1], "--help") or std.mem.eql(u8, args[1], "-h")))) return std.Io.File.stdout().writeStreamingAll(init.io, help);
+    if (args.len == 1 or (args.len == 2 and (std.mem.eql(u8, args[1], "--help") or std.mem.eql(u8, args[1], "-h")))) return std.Io.File.stdout().writeStreamingAll(init.io, help.root);
     if (args.len == 2 and std.mem.eql(u8, args[1], "--version")) return std.Io.File.stdout().writeStreamingAll(init.io, "transitc " ++ version.version ++ " (" ++ version.revision ++ ")\n");
     var diagnostic: workspace.Diagnostic = .{};
     const testing = args.len >= 2 and std.mem.eql(u8, args[1], "test");
@@ -38,7 +14,7 @@ pub fn main(init: std.process.Init) !void {
         std.process.exit(2);
     }
     const options = workspace.Options.parseCommand(args[2..], &diagnostic, testing, "transitc") catch |err| return fail(init.io, &diagnostic, err);
-    if (options.help) return std.Io.File.stdout().writeStreamingAll(init.io, help);
+    if (options.help) return std.Io.File.stdout().writeStreamingAll(init.io, if (testing) help.test_command else help.build);
     if (testing) {
         var host: workspace.TestProcessHost = .{ .executable = options.runtime orelse init.environ_map.get("TRANSIT_TEST_RUNTIME") orelse version.test_runtime };
         workspace.Test.run(init, options, &diagnostic, version.revision, &host) catch |err| return fail(init.io, &diagnostic, err);
