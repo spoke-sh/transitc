@@ -1,9 +1,14 @@
 # transitc
 
+[![CI](https://github.com/spoke-sh/transitc/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/spoke-sh/transitc/actions/workflows/ci.yml)
+
 The offline Transit language compiler. It composes typed `.transit` modules,
 verifies emitted SQL, resolves exact dependencies and publishes SQL/provenance or
 migration proposals. `transitc test` compiles and runs isolated application suites
 using a compatible [Transit](https://github.com/spoke-sh/transit) database host.
+
+Read the [handbook](https://spoke-sh.github.io/transitc/) for user guides,
+CLI reference, and compiler internals.
 
 Consumers can use the packaged executable without installing a Zig toolchain:
 

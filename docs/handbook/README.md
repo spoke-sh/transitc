@@ -43,17 +43,42 @@ are future documentation work; the bootstrap supplies navigation only.
 ## Hosting configuration
 
 `TRANSITC_DOCS_URL` defaults to `https://spoke-sh.github.io` and
-`TRANSITC_DOCS_BASE_URL` to `/transitc/`. These are build settings, not a claim
-that a website has been published. To validate a root deployment:
+`TRANSITC_DOCS_BASE_URL` to `/transitc/`, the GitHub Pages publication path.
+To validate a root deployment:
 
 ```sh
-TRANSITC_DOCS_BASE_URL=/ npm run docs:build
+TRANSITC_DOCS_BASE_URL=/ just docs::build
 ```
 
-Both builds reject broken page links, Markdown links/images, and anchors. CI
-runs both path configurations. No deployment workflow is configured. Before
-publishing, inspect navigation, code blocks, mobile layout, and light/dark themes
-at the chosen path. Docusaurus's
+Both builds reject broken page links, Markdown links/images, and anchors.
+[CI](../../.github/workflows/ci.yml) runs both path configurations. Inspect
+navigation, code blocks, mobile layout, and light/dark themes when changing the
+site. Docusaurus's
 [docs plugin options](https://docusaurus.io/docs/api/plugins/@docusaurus/plugin-content-docs)
 and [site configuration](https://docusaurus.io/docs/api/docusaurus-config) describe
 the underlying routing controls.
+
+## GitHub Pages publication
+
+[Publish handbook](../../.github/workflows/handbook.yml) follows Transit's
+publication workflow. It builds pull requests, every push to `main`, and manual
+runs using the pinned Nix docs shell, `just docs::install`, and `just docs::check`.
+Only `docs/handbook/dist/` is uploaded as the `github-pages` artifact, retained for
+14 days. Local build and preview commands do not deploy.
+
+Only the current `main` revision can deploy. Deployments use the `github-pages`
+environment and run one at a time; superseded builds and old reruns are skipped
+after checking the latest `main` commit. The deploy job alone receives
+`pages: write` and `id-token: write`. Pull requests build with read-only repository
+permissions. Failed builds leave the previous site in place.
+
+In repository **Settings → Pages → Build and deployment**, set **Source** to
+**GitHub Actions**, and restrict the `github-pages` environment to the `main`
+branch. The publication URL is [the handbook](https://spoke-sh.github.io/transitc/).
+The workflow records the deployed commit and URL and checks the public homepage,
+getting-started guide, CLI reference, and architecture page over HTTPS.
+
+To republish current `main`, select **Actions → Publish handbook → Run workflow**
+with branch `main`, or run `gh workflow run handbook.yml --ref main`. To roll back,
+revert the content change and push the new revision to `main`; rerunning an older
+commit will not replace the current site.

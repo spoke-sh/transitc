@@ -63,7 +63,9 @@ repository-only material. Never describe a reserved package or proposed command
 as implemented. User guides land with the capability they explain.
 
 The [handbook tooling guide](docs/handbook/README.md) covers previewing and
-hosting paths. CI validates both `/transitc/` and `/`; it does not publish a site.
+hosting paths. [CI](.github/workflows/ci.yml) validates both `/transitc/` and `/`.
+The separate [handbook workflow](.github/workflows/handbook.yml) builds pull requests
+and publishes the current `main` revision to GitHub Pages.
 
 ## Extracting code
 
