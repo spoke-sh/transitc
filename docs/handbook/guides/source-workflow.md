@@ -1,43 +1,50 @@
-# Understanding a source build
+# Modules and dependencies
 
-This guide describes the compiler inspected in Transit at commit
-`c1f2680d9353175e58ad503e750e7b4da76a84c5`. These stages are not implemented in
-this transitc checkout yet. To use the existing tool, follow Transit's
-[application source build reference](https://github.com/spoke-sh/transit/blob/c1f2680d9353175e58ad503e750e7b4da76a84c5/docs/handbook/reference/cli.md#application-source-builds)
-with the matching Transit checkout and runtime where required.
+A build entry is source in the same language as its modules. For example,
+`rows.transit` can export a typed module:
 
-## Capture inputs
+```sql
+CREATE PUBLIC MODULE Rows(name IDENTIFIER, initial BIGINT) AS BEGIN
+  CREATE PUBLIC TABLE $name (id BIGINT);
+  INSERT INTO $name VALUES ($initial);
+END;
+```
 
-The tool selects a build entry and target, captures immutable `.transit` source
-buffers, and verifies dependency revisions and digests. Normal builds use the
-frozen local dependency state; fetching is an explicit operation. A dependency
-override changes the recorded input provenance. Source path, encoding, count,
-and aggregate byte limits are checked before compilation.
+Use it from `build.transit`:
 
-## Compile and inspect
+```sql
+IMPORT rows FROM 'rows.transit';
+CREATE TARGET default AS BEGIN
+  USE rows.Rows(NAME 'items', 7);
+  SELECT * FROM items;
+END;
+```
 
-The pure compiler resolves the captured graph, checks source types and embedded
-SQL, expands selected targets, emits ordinary SQL, and verifies the emitted result
-again against shared SQL owners. It returns an owned product with statement maps
-and digests, or a bounded diagnostic. Compilation executes no SQL.
+Run `transitc build --check`, then `transitc build`. Imports resolve explicit
+module interfaces. File paths and import aliases do not grant permissions or
+replace explicit durable object identities. Missing imports, visibility failures,
+cycles and exhausted evaluation budgets reject before publication.
 
-A check operation validates the product without publishing artifacts. A build
-adapter can publish SQL and provenance after successful compilation. Read the
-[artifact reference](../reference/artifacts.md) before treating those files as a
-deployable or trusted application.
+Repository dependencies name an exact revision. Replace the placeholders below
+with the repository's URL and full Git commit before using this declaration:
 
-## Correct failures
+```sql
+DEPENDENCY common FROM '<repository-url>' REVISION '<full-commit>';
+IMPORT shared FROM PACKAGE common FILE 'build.transit';
+```
 
-Use the primary location, notes, and call/definition locations to identify the
-source responsible for a failure. Filesystem failures may have a path without
-line/column coordinates. Correct the input or dependency problem and rebuild;
-a failed build does not produce a successful compiler product. See
-[diagnostics](../reference/diagnostics.md).
+Run `transitc build --fetch` after reviewing the declared repositories. Fetch is
+the only repository-network operation and requires Git on PATH. It verifies
+content and records transitive pins in `transit.lock`. Keep that lock with source.
+Subsequent `transitc build` runs offline from the verified cache; a missing cache,
+missing lock or digest mismatch fails. Restore the exact cache with fetch rather
+than editing hashes to accept different content.
 
-## Keep execution separate
+For local development, use `transitc build --override common=/absolute/path`.
+Overrides are explicit provenance inputs and cannot combine with fetch. They do
+not silently change repository pins. Remove the override to reproduce the locked
+repository build. Paths are confined; symlink escapes and invalid subdirectories
+are rejected. Never use build publication as a deployment approval.
 
-Migration synthesis reads an explicit immutable basis/history and proposes SQL;
-it does not apply schema changes. Test-suite compilation produces SQL cases and
-typed expectations. The existing Transit runner executes those cases against
-isolated runtime owners. Moving a test compiler does not move that runner or
-establish runtime compatibility.
+See [language](../reference/language.md) for the exact source contract and
+[artifacts](../reference/artifacts.md) for migration proposals.

@@ -1,0 +1,10 @@
+.{
+    .name = .transitc_compiler,
+    .version = "0.0.0-dev",
+    .fingerprint = 0x9e53fe8f592aa58a,
+    .minimum_zig_version = "0.17.0-dev.2267+48abf1a34",
+    .dependencies = .{
+        .transit_shared = .{ .url = "https://raw.githubusercontent.com/spoke-sh/transit/f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6/build/artifacts/transit-sql-frontend.tar.gz", .hash = "transit_sql_distribution-0.0.1-t9CQA7xtIgBsbtndwxNU7vvT84Qbqx8ar7Odrqx4eisn", .lazy = true },
+    },
+    .paths = .{ "build.zig", "build.zig.zon", "src", "README.md" },
+}

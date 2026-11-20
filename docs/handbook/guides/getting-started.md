@@ -1,63 +1,47 @@
-# Getting started
+# Compile a first application
 
-You can build and inspect the CLI scaffold today. You need Git and Nix with
-flakes enabled. Run commands from the repository root after cloning
-`https://github.com/spoke-sh/transitc.git`.
+Use a checkout of transitc with Nix and Git installed. From the repository root,
+follow the [development/install commands](https://github.com/spoke-sh/transitc/blob/main/CONTRIBUTING.md)
+to build `zig-out/bin/transitc`, or build the Nix package. No sibling checkout or
+running Transit service is needed. The pinned compiler is Zig
+`0.17.0-dev.2267+48abf1a34`; consumers of the executable need no Zig installation.
 
-## Build the scaffold
+Put the executable on your PATH and run `transitc --version`. Create an empty
+working directory containing this `build.transit`:
 
-```sh
-nix develop
-zig version
-zig build
-zig build run -- --help
-zig build run -- --version
+```sql
+CREATE TARGET default AS BEGIN
+  CREATE PUBLIC TABLE items (id BIGINT PRIMARY KEY, label TEXT);
+  INSERT INTO items VALUES (7, 'ready');
+  SELECT * FROM items;
+END;
 ```
 
-The pinned Zig version is `0.17.0-dev.2267+48abf1a34`. The executable is installed
-at `zig-out/bin/transitc`. The version output is
-`transitc 0.0.0-dev (bootstrap)`. Help states that compilation, dependency
-resolution, and test execution are unavailable in transitc. The shell provides a
-separate pinned upstream `transit` executable for integration checks. No sibling
-checkout or running service is needed.
-
-## Validate your checkout
+Check the complete source without publishing:
 
 ```sh
-just check
-just test-integration
-nix flake check
-just docs-install
-just docs-check
+transitc build --check --format json
 ```
 
-`just check` validates the scaffold. `just test-integration` exercises the pinned
-upstream compiler and local runtime, including SQL output, reproducibility,
-provenance, diagnostics, and passing/failing isolated tests. `nix flake check`
-runs packaged CLI and upstream integration checks in a sandbox. These results
-establish an upstream baseline, not transitc compiler parity.
-
-The docs commands install the locked dependencies, typecheck the site, and build
-it with link validation. The
-[integration guide](https://github.com/spoke-sh/transitc/blob/main/tests/integration/README.md)
-explains fixtures and how to update the pin.
-
-## Read and edit the handbook
+The JSON report has `ok: true`, `action: "check"` and `statements: 3`. It includes
+SQL and input digests; their exact values depend on the source and compiler.
+Build into a new directory:
 
 ```sh
-just docs-dev
+transitc build --out reviewed
 ```
 
-Open `http://localhost:3000/transitc/`. For documentation-only work, use
-`nix develop .#docs`; that shell contains Node/npm and Just without Zig or Transit.
-The [site tooling guide](https://github.com/spoke-sh/transitc/blob/main/docs/handbook/README.md)
-explains navigation and hosting paths.
+Inspect `reviewed/application.sql` and `reviewed/provenance.json`. SQL statements
+remain ordered and executable through ordinary Transit SQL owners. This command
+has not applied them. See [artifacts](../reference/artifacts.md) before migration
+or deployment. An existing explicit output directory refuses publication; choose
+a new directory. Without `--out`, intact content-addressed artifacts can be reused.
 
-## Troubleshoot setup
+If the entry is missing, create `build.transit` or select another file with
+`-f FILE`. A syntax error returns status 1 and a bounded source diagnostic; fix the
+reported source before rebuilding. Unknown options return status 2.
 
-If `zig version` differs, enter the Nix shell and inspect `command -v zig`.
-Do not update Zig independently of the manifest and Linux patch. If Nix cannot
-see a newly created flake file, make it known to Git before evaluating the Git
-flake. For missing JavaScript modules, rerun `just docs-install` from the root.
-An unsupported command error from `transitc build` is expected in this scaffold;
-the [CLI reference](../reference/cli.md) lists its complete current interface.
+The flake defines x86_64/aarch64 Linux and Darwin packages. Executed extraction
+evidence currently identifies its host separately; a package definition alone
+is not a successful native-host qualification. There are no signed standalone
+release archives or updater yet. Pin the Git revision when consuming the flake.

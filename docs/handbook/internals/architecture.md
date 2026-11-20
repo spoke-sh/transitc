@@ -1,55 +1,31 @@
-# Compiler architecture
+# Architecture
 
-The source account here is based on Transit commit
-`c1f2680d9353175e58ad503e750e7b4da76a84c5`. Only the CLI scaffold and build tooling
-exist in this repository today.
+The pure compiler consumes immutable source buffers and emits owned products. It
+performs bounded parsing, graph composition, typing, hygienic lowering and SQL
+verification. Workspace adapters own filesystem capture, exact repository fetch,
+locks, migration-basis loading and atomic artifact publication. The executable
+owns command dispatch. Execution and durable authority remain in Transit.
 
-## Existing separation
+Transit owns the shared SQL frontend, protocol values, spatial values and memory
+budget allocator. The compiler uses those public modules directly; it does not
+import Fuze's Arrow or scan executor. Fuze uses the same moved language types.
+The manifests pin the pure frontend and neutral test-contract distribution.
+Transit is upstream: its runtime and build graph do not import transitc.
 
-The
-[pure compiler](https://github.com/spoke-sh/transit/blob/c1f2680d9353175e58ad503e750e7b4da76a84c5/packages/zig/transit-compiler/src/root.zig)
-accepts immutable source buffers and options. Syntax/templates and the module
-graph feed source typing, proposed catalogs, program lowering, and SQL emission.
-Fuze's public typed owners validate expanded statements and verify emitted SQL.
-Migration synthesis works from an explicit immutable basis; test compilation
-returns cases and expectations without running them.
+The compiler's scratch and retained allocations share one bounded budget.
+Products own their arena and require `deinit`. Diagnostics are bounded value
+contracts; rendering borrows their live storage. Compile-time work has explicit
+source/depth/work/output bounds, independent of durable runtime cardinality.
 
-The CLI's
-[BuildSources adapter](https://github.com/spoke-sh/transit/blob/c1f2680d9353175e58ad503e750e7b4da76a84c5/apps/transit-cli/BuildSources.zig)
-owns file capture and frozen dependency resolution. Build adapters own artifact
-publication. This is the seam that allows compilation to remain deterministic
-with respect to captured inputs and options while tools perform I/O explicitly.
+Test products describe expected typed results, command counts, refusals and bounded
+workflow observations. They carry no service implementation. The workspace owns
+suite compilation, execution orchestration and reports. `transitc test` sends
+compiled cases to a separately pinned Transit process using upstream protocol
+types. The runtime supplies native statement owners and the assertion runner. Source is never sent to the runtime for recompilation.
 
-## Extraction boundaries
-
-| Boundary | Intended responsibility |
-| --- | --- |
-| CLI | Arguments, terminal output, exit status, composition |
-| Workspace | Filesystem/network adapters, locks, provenance, artifact publication |
-| Compiler | Immutable graph, source semantics, lowering, verified products |
-| SQL frontend | Shared SQL parsing, typed statement/schema/program validation |
-| Diagnostics | Bounded values and locations shared across those layers |
-
-The SQL frontend remains a proposal: Fuze's exact transitive closure and shared
-ownership must be resolved before a package is extracted. Memory budgeting should
-reuse the existing dependency. Do not independently reimplement shared SQL or
-protocol semantics to make imports compile.
-
-## Invariants and verification
-
-Preserve input and product bounds, cleanup after allocation failure, immutable
-captured inputs, deterministic output ordering, source-coordinate fidelity, and
-the independent emitted-SQL verification step. Returned product ownership and
-diagnostic lifetimes must remain explicit in the public API.
-
-The scaffold checks establish that the CLI builds/runs and documentation renders.
-The separate
-[upstream integration suite](https://github.com/spoke-sh/transitc/blob/main/tests/integration/README.md)
-invokes the pinned Transit compiler and runtime to verify SQL output, reproducible
-artifacts, provenance, diagnostic coordinates, and passing/failing isolated tests.
-It supplies a baseline for extraction; it does not prove transitc compiler parity.
-The source repository's
-[verification account](https://github.com/spoke-sh/transit/blob/c1f2680d9353175e58ad503e750e7b4da76a84c5/tests/query/application_source/README.md)
-identifies grammar comparisons, scoped formal checks, and independent SQL tests.
-Those checks and their fixtures have not moved; their results must not be
-represented as executed transitc evidence.
+The [compiled-case contract](https://github.com/spoke-sh/transit/blob/main/contracts/TEST_HOST_V1.md)
+requires both definitions, canonical SQL digests, bounded typed expectations and
+responses bound to the exact request. The caller checks terminal coverage and
+runtime identity, joins every child, and checks storage cleanup. Compiler,
+transport and native-host allocations have separate bounded lifetimes. A child
+failure or incomplete response cannot establish a passed case.

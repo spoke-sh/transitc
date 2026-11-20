@@ -5,22 +5,19 @@ title: Introduction
 
 # The Transit language compiler
 
-transitc will provide a standalone compiler for Transit application source.
-Its source implementation in Transit composes typed `.transit` modules and emits
-ordinary SQL with source mappings and provenance. Applying that SQL and executing
-tests require runtime owners outside pure compilation.
+transitc compiles typed `.transit` modules into ordinary SQL, with source mappings
+and provenance. It captures source and verifies dependencies locally. Compilation,
+publication of build artifacts, applying SQL and runtime execution are separate.
 
-This checkout currently provides a pinned development environment, a buildable
-CLI with help/version, and documentation. It does not yet parse or compile
-`.transit` files. The reserved packages describe the intended extraction boundaries.
+Start with [getting started](getting-started.md), then
+[compose modules and dependencies](source-workflow.md). The [CLI reference](../reference/cli.md)
+lists every supported option. [Artifacts](../reference/artifacts.md) explains
+identity and migration history; [diagnostics](../reference/diagnostics.md) explains
+errors. [Run application tests](testing.md) against isolated real database instances.
+Applications embedding the pure API use the [embedding guide](embedding.md).
 
-Start with [getting started](getting-started.md) to build the scaffold, then read
-the [CLI reference](../reference/cli.md). The
-[source workflow](source-workflow.md) explains the existing compiler's stages
-without presenting them as available commands in transitc.
-
-The [language source basis](../reference/language.md),
-[diagnostics](../reference/diagnostics.md), and
-[artifacts](../reference/artifacts.md) identify the contracts that extraction
-must preserve. [Architecture](../internals/architecture.md) explains the boundary
-between compiler values and I/O adapters.
+The standalone CLI supports build, check and explicit dependency fetch through
+`transitc build`, and complete test-suite compilation and execution through
+`transitc test`. The pure library only produces compiled test products. The CLI
+runs those products through a separately pinned Transit host with fresh private
+state for each case.

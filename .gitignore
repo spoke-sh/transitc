@@ -4,6 +4,7 @@ zig-pkg/
 *.o
 .direnv/
 .cache/
+__pycache__/
 node_modules/
 docs/handbook/.docusaurus/
 docs/handbook/dist/

@@ -2,15 +2,44 @@ default:
     @just --list
 
 build:
-    zig build
+    zig build "-Dtest-runtime=${TRANSIT_TEST_RUNTIME:-transit}"
 
 check:
-    zig fmt --check build.zig build.zig.zon apps
+    zig fmt --check build.zig build.zig.zon apps packages examples tests/query/application_source/driver.zig
+    python3 -B tests/dependencies/check.py
+    python3 -B tests/runner/launch.py tests/dependencies/diagnostic_inventory.py
+    python3 -B tests/runner/launch.py tests/dependencies/diagnostic_mappings.py
     zig build check
     nixfmt --check flake.nix nix/*.nix
 
-test-integration:
+test:
+    zig build test
+
+test-workspace: build
+    python3 -B tests/runner/launch.py tests/workspace/build.py zig-out/bin/transitc
+
+test-examples: build
+    python3 -B tests/examples.py zig-out/bin/transitc
+
+test-build-command: build
+    python3 -B tests/runner/launch.py tests/integration/build_command.py zig-out/bin/transitc
+
+test-command: build
+    python3 -B tests/runner/launch.py tests/integration/test_host_boundary.py zig-out/bin/transitc
+    python3 -B tests/runner/launch.py tests/integration/test_command.py zig-out/bin/transitc
+
+test-grammar:
+    zig build source-probe
+    python3 -B tests/runner/launch.py tests/query/application_source/verify.py zig-out/bin/transitc-source-probe
+
+test-types:
+    zig build source-probe
+    python3 -B tests/runner/launch.py tests/query/application_source/types.py zig-out/bin/transitc-source-probe
+
+test-integration: build
     python3 -B tests/integration/upstream_transit.py
+    python3 -B tests/integration/parity.py
+    python3 -B tests/integration/execute_sql.py
 
 docs-install:
     npm ci

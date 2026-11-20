@@ -1,6 +1,6 @@
 # Contributing
 
-The current task is to prepare a standalone compiler repository. Keep extraction
+This repository owns the standalone source compiler and workspace tools. Keep extraction
 changes separate from language changes so behavior can be compared against the
 source revision. Start with the [package map](packages/README.md) and
 [roadmap](docs/roadmap/README.md).
@@ -15,23 +15,32 @@ No sibling checkout is required.
 zig build
 zig build run -- --version
 just check
+just test
+just test-workspace
+just test-examples
+just test-command
+just test-grammar
+just test-types
 just test-integration
 nix flake check
 just docs-install
 just docs-check
 ```
 
-`just check` checks Zig/Nix formatting and compiles the CLI. `nix flake check`
-also runs help/version, checks rejection of an unavailable command, and runs the
-upstream integration suite. `just test-integration` runs that suite directly with
-the shell's pinned Transit. It checks actual compilation and isolated SQL runtime
-execution, not transitc/upstream equivalence. Add parity tests with extraction.
+`just check` validates Zig/Nix formatting, the dependency inventory and CLI/library
+compilation. `just test` runs compiler/workspace unit checks, including allocation
+failure coverage. The workspace suite requires Linux for seccomp failure controls.
+Grammar/type suites use the pinned ANTLR/Python/Lean tools. Integration separates
+upstream runtime smoke tests, exact compiler parity, and emitted SQL execution
+with retained restart. `just test-examples` checks the handbook code against
+runnable projects and inspects their published SQL/artifacts. `nix flake check` also
+builds the package and runs unit, source verification and parity checks in sandboxes.
 See the [integration guide](tests/integration/README.md) for fixtures, isolation,
 failure cases, and updating the upstream pin.
 `just docs-install` uses `npm ci` with the root lockfile. After intentionally
 editing a JavaScript manifest, run `npm install`, then rerun the docs check.
 
-Format Zig with `zig fmt build.zig build.zig.zon apps` and Nix with
+Format Zig with `zig fmt build.zig build.zig.zon apps packages tests/query/application_source/driver.zig` and Nix with
 `nixfmt flake.nix nix/*.nix`. Include new Zig package directories in checks when
 they acquire source. New flake files must be known to Git (`git add`) for a Git
 flake to see them; `path:.` can be used to inspect an untracked bootstrap.

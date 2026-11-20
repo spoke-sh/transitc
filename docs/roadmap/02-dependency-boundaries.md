@@ -1,6 +1,6 @@
 # 2. Dependency boundaries
 
-Status: Planned
+Status: Completed
 
 Prerequisites: [repository bootstrap](01-repository-bootstrap.md).
 
@@ -33,3 +33,12 @@ repository dependencies.
 - A minimal compilation proof establishes the chosen closure without live services.
 - Artifact/definition identity, release versioning, and license attribution
   decisions are recorded before downstream formats or consumers change.
+
+## Extraction implementation update
+
+Shared SQL/value modules remain Transit-owned. Standalone builds consume the
+The pure archive now contains SQL frontend, protocol, spatial, memory and neutral
+test-contract packages, pinned at Transit `f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`.
+The dependency direction is exclusively transitc to Transit. Compiler/workspace
+embedding into the upstream runtime has been removed. See the
+[package boundaries](../../packages/README.md) for the implemented ownership.

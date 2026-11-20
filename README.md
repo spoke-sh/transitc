@@ -1,11 +1,9 @@
 # transitc
 
-The Transit language compiler, being prepared for extraction from
-[Transit](https://github.com/spoke-sh/transit).
-
-This repository currently contains the development environment, a CLI scaffold,
-package boundaries, documentation, and an extraction plan. The CLI supports
-`--help` and `--version`; it does not compile Transit source yet.
+The offline Transit language compiler. It composes typed `.transit` modules,
+verifies emitted SQL, resolves exact dependencies and publishes SQL/provenance or
+migration proposals. `transitc test` compiles and runs isolated application suites
+using a compatible [Transit](https://github.com/spoke-sh/transit) database host.
 
 Consumers can use the packaged executable without installing a Zig toolchain:
 
@@ -25,18 +23,21 @@ it is not included in the executable's runtime closure.
 ```sh
 nix develop
 zig build
-zig build run -- --help
+zig build run -- build --help
 just check
+just test
+just test-command
 just test-integration
 ```
 
 The flake pins the same Zig **0.17.0-dev.2267+48abf1a34** toolchain and Nix inputs
 as the source repository, including its Linux loader fixes. See
 [toolchain notes](nix/README.md). An optional `.envrc` supports direnv.
-The default shell also provides the upstream `transit` executable pinned to
-`c1f2680d9353175e58ad503e750e7b4da76a84c5`, plus Python for integration tests.
-No sibling checkout is required. The upstream package is a development/test
-dependency; it is not part of the packaged transitc executable's runtime closure.
+The default shell puts the current pinned Transit test host on PATH and provides
+Python for integration tests. `TRANSIT_UPSTREAM_BIN` selects the frozen comparison
+binary at `e7434306334e3692c6f3e123cba0d278fa412196`. No sibling checkout is required. The Nix package
+includes the compatible test host in its runtime closure; ordinary compilation
+does not start it. See [application testing](docs/handbook/guides/testing.md).
 
 ```sh
 nix develop .#docs --command just docs-install
@@ -46,26 +47,25 @@ nix develop .#docs --command just docs-dev
 Open `http://localhost:3000/transitc/`. Run `just docs-check` in either shell to
 typecheck and build the handbook. `nix flake check` builds and smoke-checks the CLI
 and runs the [upstream integration suite](tests/integration/README.md) in a sandbox.
-The suite establishes upstream compiler/runtime behavior for later extraction;
-it does not establish transitc compiler parity, since that implementation has not moved.
+The suites distinguish the frozen upstream baseline, exact semantic parity,
+independent grammar/type verification and workspace failure controls.
 
 ## Layout
 
 ```text
 apps/transitc-cli/          executable and command-line integration
-packages/transitc-compiler/ pure compiler (planned)
-packages/transitc-workspace/ source capture, dependencies, artifacts (planned)
-packages/transitc-diagnostics/ shared diagnostic values (planned)
-packages/transitc-sql/      SQL frontend boundary (proposed)
+packages/transitc-compiler/ pure bounded compiler and test products
+packages/transitc-workspace/ source capture, dependencies, reports and artifacts
+contracts/                 source contract, independent grammar and corpus
 docs/handbook/             Docusaurus guides, reference, and internals
 docs/roadmap/              extraction milestones and acceptance criteria
 nix/                      pinned toolchain support
 tests/integration/        upstream compiler/runtime fixtures and checks
 ```
 
-The [package plan](packages/README.md) explains why these boundaries are useful
-and which dependencies still need an ownership decision. Package directories
-reserve destinations; they contain no placeholder library APIs.
+The [package map](packages/README.md) records shared ownership, exact dependency
+pins and the one-way upstream dependency boundary. [Attribution](NOTICE.md) records the
+source revision and intentional identity differences.
 
 Start with the [documentation index](docs/README.md),
 [contributor guide](CONTRIBUTING.md), and [extraction roadmap](docs/roadmap/README.md).

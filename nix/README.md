@@ -1,10 +1,13 @@
 # Toolchain
 
 `flake.nix` and `flake.lock` use Transit's nixpkgs and zig-overlay pins at
-`c1f2680d9353175e58ad503e750e7b4da76a84c5`. Those toolchain locks are unchanged;
-the lockfile also records the upstream `transit` input at that exact revision.
-`zig.nix`, `zig-dynamic-linker.patch`, and `verify-zig-download.sh` are copied
-from that revision as well. The inherited derivation name `transit-zig` identifies
+`c1f2680d9353175e58ad503e750e7b4da76a84c5`. Those toolchain locks are unchanged.
+The `transit-baseline` input remains frozen at
+`e7434306334e3692c6f3e123cba0d278fa412196` for comparison. The `transit` input
+pins the compatible compiled-case test host at `f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`. Transit is upstream and does not
+import this compiler or workspace.
+`zig.nix`, `zig-dynamic-linker.patch`, and `verify-zig-download.sh` were copied
+from the original basis. The inherited derivation name `transit-zig` identifies
 the same toolchain; it is not a runtime dependency.
 
 On Linux the wrapper chooses the matching Nix ELF loader for native builds.
@@ -14,11 +17,13 @@ pinned mirrors without accepting a different content hash. Darwin uses the
 locked overlay compiler directly.
 
 The default shell includes Zig, docs tooling, Python, and
-`transit.packages.<system>.transit` from the pinned upstream flake. Upstream's
+the current test-host executable on PATH. The frozen comparison binary is
+available only through `TRANSIT_UPSTREAM_BIN`. Both inputs'
 nixpkgs and zig-overlay inputs follow this repository's pins. The shell exports
 `TRANSIT_UPSTREAM_BIN` as the absolute store executable and
 `TRANSIT_UPSTREAM_REVISION` as the input revision, so integration tests cannot
-silently select another `transit` from PATH.
+silently select another `transit` from PATH. `TRANSIT_TEST_RUNTIME` selects the
+compatible compiled-case host; `TRANSIT_TEST_SOURCE` supplies upstream process/installation helpers. SQL grammar verification uses the frozen baseline.
 
 `.#docs` omits Transit, Python, Zig, and the C toolchain. Both shells are defined
 for x86_64/aarch64 Linux and Darwin; local validation establishes only the host
@@ -28,15 +33,21 @@ and its frontend assets if they are not cached.
 `transitc.nix` builds the CLI artifact with that same toolchain. The default
 package and `transitc` package expose only the installed executable, so consumers
 can use it in `mkShellNoCC` without inheriting the compiler development shell.
-Installation checks exercise help, the bootstrap version, and rejection of an
-unsupported command; the flake's bootstrap check also checks Zig formatting.
-The separate `checks.<system>.integration` runs the same Python suite as
-`just test-integration` against the pinned upstream package in the Nix sandbox.
+Installation checks exercise help/version, actual source checking and rejection
+of unknown commands, plus a real isolated application suite. Package checks run
+compiler/workspace tests;
+flake checks add exact upstream parity and independent grammar/type verification.
+The standalone shared frontend is pinned separately from the upstream runtime
+fixture. Compiler clients consume the same pinned upstream modules.
+The separate `checks.<system>.integration` runs the seven-case baseline from
+`just test-integration` against the frozen upstream package in the Nix sandbox.
 It has no dependency on a sibling checkout, downloads, or a running Transit service.
 See [integration checks](../tests/integration/README.md) for coverage and pin updates.
 
 When changing Zig, update the lock, version assertion in `flake.nix`, assertion
 in `zig.nix`, and `build.zig.zon` together. Review the patch against the new
 compiler sources and execute `nix flake check`. Do not track moving `master`
-without the reviewed lockfile. The upstream Transit executable is an integration
-dependency; Kubernetes and external database/SDK tooling are not required.
+without the reviewed lockfile. The comparison executable is an integration
+dependency. The packaged CLI retains
+the compatible test host in its runtime closure, while Zig remains build-only.
+Kubernetes and external database/SDK tooling are not required for local tests.

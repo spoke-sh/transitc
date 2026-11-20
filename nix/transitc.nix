@@ -1,8 +1,26 @@
 {
   lib,
   stdenv,
+  runCommand,
+  fetchurl,
   zig,
+  testRuntime,
+  sourceRevision ? "development",
+  sharedArchive ? fetchurl {
+    name = "transit-sql-frontend.tar.gz";
+    url = "https://raw.githubusercontent.com/spoke-sh/transit/f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6/build/artifacts/transit-sql-frontend.tar.gz";
+    hash = "sha256-yskbPRyoG+qpD43WBvSAvFk+fCKDuj6yAHMw3YiCVyU=";
+  },
 }:
+let
+  sharedHash = "transit_sql_distribution-0.0.1-t9CQA7xtIgBsbtndwxNU7vvT84Qbqx8ar7Odrqx4eisn";
+  dependencies = runCommand "transitc-zig-dependencies" { nativeBuildInputs = [ zig ]; } ''
+    export ZIG_GLOBAL_CACHE_DIR="$TMPDIR/zig-global-cache"
+    test "$(zig fetch ${sharedArchive})" = ${lib.escapeShellArg sharedHash}
+    mkdir -p "$out/${sharedHash}"
+    tar -xf ${sharedArchive} -C "$out/${sharedHash}"
+  '';
+in
 stdenv.mkDerivation {
   pname = "transitc";
   version = "0.0.0-dev";
@@ -13,34 +31,51 @@ stdenv.mkDerivation {
       ../build.zig.zon
       ../apps
       ../packages
+      ../tests
+      ../contracts
+      ../examples
+      ../LICENSE
+      ../NOTICE.md
+      ../README.md
     ];
   };
-
   nativeBuildInputs = [ zig ];
   dontConfigure = true;
   buildPhase = ''
     runHook preBuild
     export ZIG_GLOBAL_CACHE_DIR="$TMPDIR/zig-global-cache"
-    zig build -Doptimize=ReleaseSafe -Dcpu=baseline -j$NIX_BUILD_CORES --prefix "$out"
+    export ZIG_LOCAL_PKG_DIR="zig-pkg"
+    mkdir -p "$ZIG_LOCAL_PKG_DIR"
+    cp -r ${dependencies}/. "$ZIG_LOCAL_PKG_DIR/"
+    chmod -R u+w "$ZIG_LOCAL_PKG_DIR"
+    zig build -Doptimize=ReleaseSafe -Dcpu=baseline -Drevision=${lib.escapeShellArg sourceRevision} -Dtest-runtime=${testRuntime}/bin/transit -j$NIX_BUILD_CORES --prefix "$out"
     runHook postBuild
   '';
   dontInstall = true;
-
+  doCheck = true;
+  checkPhase = ''
+    runHook preCheck
+    zig build test -Doptimize=ReleaseSafe -Dcpu=baseline -j$NIX_BUILD_CORES
+    runHook postCheck
+  '';
   doInstallCheck = true;
   installCheckPhase = ''
     runHook preInstallCheck
     "$out/bin/transitc" --help
-    test "$("$out/bin/transitc" --version)" = "transitc 0.0.0-dev (bootstrap)"
+    "$out/bin/transitc" --version
+    "$out/bin/transitc" build -f tests/integration/fixtures/application/build.transit --check --format json
     status=0
-    "$out/bin/transitc" build >unsupported.stdout 2>unsupported.stderr || status=$?
+    "$out/bin/transitc" unknown >unsupported.stdout 2>unsupported.stderr || status=$?
     test "$status" -eq 2
     test ! -s unsupported.stdout
-    grep -F 'unsupported arguments' unsupported.stderr
+    grep -F 'unsupported command' unsupported.stderr
+    "$out/bin/transitc" test --help
+    "$out/bin/transitc" test -f tests/fixtures/application-tests/build.transit --format json
     runHook postInstallCheck
   '';
-
+  passthru = { inherit dependencies sharedArchive; };
   meta = {
-    description = "Transit language compiler CLI scaffold";
+    description = "Offline Transit source compiler and workspace tools";
     mainProgram = "transitc";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;
