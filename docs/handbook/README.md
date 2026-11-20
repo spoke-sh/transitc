@@ -9,11 +9,11 @@ From the repository root:
 
 ```sh
 nix develop .#docs
-just docs-install
-just docs-dev
+just docs::install
+just docs::dev
 ```
 
-The development URL is `http://localhost:3000/transitc/`. `just docs-check`
+The development URL is `http://localhost:3000/transitc/`. `just docs::check`
 typechecks configuration/navigation and builds into `docs/handbook/dist`.
 `npm run docs:serve` previews that output. The root npm workspace/lockfile is
 independent of Transit's Vite+, Board, generated APIs, and SDK catalog.

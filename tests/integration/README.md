@@ -1,6 +1,6 @@
 # Upstream Transit integration
 
-Run `nix develop --command just test-integration` from the repository root.
+Run `nix develop --command just test::integration` from the repository root.
 The shell provides the upstream `transit` package and Python; no pip dependencies,
 sibling checkout, downloads during tests, or running server are needed.
 
@@ -58,7 +58,7 @@ and retained restart. Runtime helpers are imported from `TRANSIT_UPSTREAM_SOURCE
 the frozen Nix source, not a sibling checkout. The standalone compiler does not
 acquire a service dependency from this integration fixture.
 
-`just test-workspace`, `just test-grammar` and `just test-types` cover dependency
+`just test::workspace`, `just test::grammar` and `just test::types` cover dependency
 failures/publication, independent syntax/formatting, and bounded typed/program
 correspondence respectively. Each evidence category keeps its premises.
 
@@ -85,7 +85,7 @@ running any tests. Nix checks pass these inputs explicitly.
 
 To upgrade the baseline, review the new upstream source/CLI contracts, change
 the revision in `flake.nix`, run `nix flake lock`, and re-enter the shell. Run
-`just test-integration` and `nix flake check`, and review changed expectations
+`just test::integration` and `nix flake check`, and review changed expectations
 against the source contract rather than accepting new output automatically.
 Update this guide and the extraction source inventory when adopting a new basis.
 
@@ -95,20 +95,23 @@ Such a run does not replace the pinned Nix check and still validates the revisio
 
 ## Validation
 
+Commands in this history use the current module names; the original runs used
+the former flat task names. The recorded results are unchanged.
+
 On 2026-11-18, all seven tests passed on x86_64 Linux both through
-`nix develop --command just test-integration` and the sandboxed integration
+`nix develop --command just test::integration` and the sandboxed integration
 derivation. `just check`, the handbook check, and workflow lint also passed.
 Flake evaluation passed for all four declared systems; ARM and Darwin test
 execution was not performed.
 
 On 2026-11-19, the refreshed `e7434306334e3692c6f3e123cba0d278fa412196` pin
 passed all seven unchanged tests on x86_64 Linux through
-`nix develop --command just check test-integration` and
+`nix develop --command just check test::integration` and
 `nix build .#checks.x86_64-linux.integration --no-link --print-build-logs`.
 Both runs verified the executable's exact revision; no fixture expectations
 needed updating. The bootstrap check and `nix flake check --print-build-logs`
-also passed. After `nix develop .#docs --command just docs-install`, the handbook
-passed `nix develop --option eval-cache false .#docs --command just docs-check`
+also passed. After `nix develop .#docs --command just docs::install`, the handbook
+passed `nix develop --option eval-cache false .#docs --command just docs::check`
 and `nix develop --option eval-cache false .#docs --command env TRANSITC_DOCS_BASE_URL=/ npm run docs:build`.
 The evaluation-cache override avoided contention with the concurrent upstream
 build; it changed no toolchain or test inputs. These results establish the small
@@ -125,14 +128,14 @@ feature or native host platform.
 
 ## Standalone application tests
 
-Run `just test-command` to exercise `transitc test`. The separate `transit` input
+Run `just test::command` to exercise `transitc test`. The separate `transit` input
 pins a compatible compiled-case host. `application_test.py` owns the complete
 source suite here: Table/Queue assertions, multi-schema programs, offline
 resolution, failure lifecycle, resource limits and cleanup. `test_command.py`
 checks the actual runtime revision and executable digest in available reports.
 The runtime's installed SQL oracle remains independent of the compiler CLI.
 
-Run `just test-build-command` for the full extracted `application_build.py`
+Run `just test::build-command` for the full extracted `application_build.py`
 schedule: dependency capture, offline publication, source diagnostics, migration
 planning/application/recovery, workspace composition, typed Queue and modular
 programs, plus emitted SQL execution against hand-written independent oracles.

@@ -20,14 +20,17 @@ it is not included in the executable's runtime closure.
 
 ## Develop
 
+Run `just` to list the root tasks. `just docs` and `just test` list their
+subtasks; invoke them as `just docs::dev` or `just test::unit`.
+
 ```sh
 nix develop
 zig build
 zig build run -- build --help
 just check
-just test
-just test-command
-just test-integration
+just test::unit
+just test::command
+just test::integration
 ```
 
 The flake pins the same Zig **0.17.0-dev.2267+48abf1a34** toolchain and Nix inputs
@@ -40,11 +43,11 @@ includes the compatible test host in its runtime closure; ordinary compilation
 does not start it. See [application testing](docs/handbook/guides/testing.md).
 
 ```sh
-nix develop .#docs --command just docs-install
-nix develop .#docs --command just docs-dev
+nix develop .#docs --command just docs::install
+nix develop .#docs --command just docs::dev
 ```
 
-Open `http://localhost:3000/transitc/`. Run `just docs-check` in either shell to
+Open `http://localhost:3000/transitc/`. Run `just docs::check` in either shell to
 typecheck and build the handbook. `nix flake check` builds and smoke-checks the CLI
 and runs the [upstream integration suite](tests/integration/README.md) in a sandbox.
 The suites distinguish the frozen upstream baseline, exact semantic parity,
@@ -60,6 +63,7 @@ contracts/                 source contract, independent grammar and corpus
 docs/handbook/             Docusaurus guides, reference, and internals
 docs/roadmap/              extraction milestones and acceptance criteria
 nix/                      pinned toolchain support
+tasks/                    Just modules for documentation and test suites
 tests/integration/        upstream compiler/runtime fixtures and checks
 ```
 

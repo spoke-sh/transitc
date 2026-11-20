@@ -13,7 +13,7 @@ formatter idempotence and equivalent ordered SQL/schema/plan/test results.
 Only source spans/digests and source-derived test identity may differ after
 formatting; literals, bindings, actions, expected typed bytes and counts remain.
 
-Run `just test-grammar` inside `nix develop`. The task uses
+Run `just test::grammar` inside `nix develop`. The task uses
 the existing pinned SQL tools; those tools are absent from the installed runtime
 dependency graph. Generation, compiled projection and comparison have separate
 failure outcomes. Every run retains its inputs, outputs, seed, source/tool/binary
@@ -40,7 +40,7 @@ and source-expression parentheses. It does not bind a catalog or execute tests.
 
 ## Typed-target laws and correspondence
 
-`types.py` drives `just test-types` with the repository-pinned
+`types.py` drives `just test::types` with the repository-pinned
 Lean 4 tool. [TypedTarget.lean](../../../contracts/application-source/TypedTarget.lean)
 models exact scalar/domain types, typed de Bruijn variables, checked total variant
 arm tables, ordered inserts into explicitly typed Table bindings, five-state

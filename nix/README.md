@@ -40,7 +40,7 @@ flake checks add exact upstream parity and independent grammar/type verification
 The standalone shared frontend is pinned separately from the upstream runtime
 fixture. Compiler clients consume the same pinned upstream modules.
 The separate `checks.<system>.integration` runs the seven-case baseline from
-`just test-integration` against the frozen upstream package in the Nix sandbox.
+`just test::integration` against the frozen upstream package in the Nix sandbox.
 It has no dependency on a sibling checkout, downloads, or a running Transit service.
 See [integration checks](../tests/integration/README.md) for coverage and pin updates.
 

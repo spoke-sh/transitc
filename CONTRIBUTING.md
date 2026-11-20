@@ -11,33 +11,42 @@ Use `nix develop` at the root. The shell supplies pinned Zig, upstream Transit,
 Python, Node 24/npm, Just, and nixfmt. Use Git from your host environment.
 No sibling checkout is required.
 
+Run `just` for the root task list, and `just docs` or `just test` for their
+subtasks. The root exposes `build`, `check`, `docs`, and `test`; keep it to at most
+five entries and add docs/test tasks to [their modules](tasks/). Invoke a subtask
+with `just docs::check` or `just test::unit`. Multiple suites can share one
+invocation, for example `just test::workspace test::examples`, so their shared
+build prerequisite runs once. All tasks run from the repository root, including
+when invoked from a subdirectory.
+
 ```sh
 zig build
 zig build run -- --version
 just check
-just test
-just test-workspace
-just test-examples
-just test-command
-just test-grammar
-just test-types
-just test-integration
+just test::unit
+just test::workspace
+just test::examples
+just test::build-command
+just test::command
+just test::grammar
+just test::types
+just test::integration
 nix flake check
-just docs-install
-just docs-check
+just docs::install
+just docs::check
 ```
 
 `just check` validates Zig/Nix formatting, the dependency inventory and CLI/library
-compilation. `just test` runs compiler/workspace unit checks, including allocation
+compilation. `just test::unit` runs compiler/workspace unit checks, including allocation
 failure coverage. The workspace suite requires Linux for seccomp failure controls.
 Grammar/type suites use the pinned ANTLR/Python/Lean tools. Integration separates
 upstream runtime smoke tests, exact compiler parity, and emitted SQL execution
-with retained restart. `just test-examples` checks the handbook code against
+with retained restart. `just test::examples` checks the handbook code against
 runnable projects and inspects their published SQL/artifacts. `nix flake check` also
 builds the package and runs unit, source verification and parity checks in sandboxes.
 See the [integration guide](tests/integration/README.md) for fixtures, isolation,
 failure cases, and updating the upstream pin.
-`just docs-install` uses `npm ci` with the root lockfile. After intentionally
+`just docs::install` uses `npm ci` with the root lockfile. After intentionally
 editing a JavaScript manifest, run `npm install`, then rerun the docs check.
 
 Format Zig with `zig fmt build.zig build.zig.zon apps packages tests/query/application_source/driver.zig` and Nix with

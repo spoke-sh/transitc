@@ -27,13 +27,16 @@ runtime implementation into the bootstrap.
 
 Executed on 2026-11-18 on x86_64 Linux, with the pinned Zig compiler and Node 24:
 
+The docs commands below use the current module names; the original runs used
+the former flat task names. The recorded results are unchanged.
+
 | Check | Result |
 | --- | --- |
 | `nix develop --command just check` | Passed Zig/Nix formatting and CLI compilation |
 | `nix build .#checks.x86_64-linux.bootstrap --no-link --print-build-logs` | Passed sandboxed build, help/version, and rejection of an unavailable command |
 | `nix flake check --print-build-logs` | Passed host checks; other systems were not executed |
-| `nix develop .#docs --command just docs-install` | Passed locked installation; audit reported zero vulnerabilities after documented transitive overrides |
-| `nix develop .#docs --command just docs-check` | Passed strict types and production build at `/transitc/` |
+| `nix develop .#docs --command just docs::install` | Passed locked installation; audit reported zero vulnerabilities after documented transitive overrides |
+| `nix develop .#docs --command just docs::check` | Passed strict types and production build at `/transitc/` |
 | `TRANSITC_DOCS_BASE_URL=/ npm run docs:build` in the docs shell | Passed root-path production build |
 | Browser smoke with local Chromium/Playwright | Root production preview and prefixed development server loaded, CLI navigation worked, mobile navigation opened, and no page errors occurred in light/dark contexts |
 | Local Markdown file links, `actionlint`, and `git diff HEAD --check` | Passed |
