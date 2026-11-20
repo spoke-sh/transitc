@@ -38,7 +38,7 @@ repository dependencies.
 
 Shared SQL/value modules remain Transit-owned. Standalone builds consume the
 The pure archive now contains SQL frontend, protocol, spatial, memory and neutral
-test-contract packages, pinned at Transit `fdc7d123886838e5cd2be269f2000faea44ac21b`.
+test-contract packages, pinned at Transit `f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`.
 The dependency direction is exclusively transitc to Transit. Compiler/workspace
 embedding into the upstream runtime has been removed. See the
 [package boundaries](../../packages/README.md) for the implemented ownership.

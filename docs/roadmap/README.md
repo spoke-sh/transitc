@@ -71,7 +71,7 @@ override, format and color options. These commands are now implemented and
 documented in the handbook. The extraction scope also includes `transitc test`:
 source resolution, compilation, orchestration and reports move here, while a
 bounded compiled-case host in Transit retains database execution. Transit's
-existing commands become adapters over these shared libraries.
+source commands are removed; its native host executes compiled test cases.
 
 Parity must distinguish semantic output from tool identity. The existing CLI
 includes its executable digest and revision in provenance and input/cache
@@ -90,7 +90,7 @@ protocol, memory and compiled-case test types, plus native database execution.
 Transit contains no compiler snapshot or dependency on transitc.
 
 Standalone manifests pin the deterministic five-package pure source archive at
-Transit `fdc7d123886838e5cd2be269f2000faea44ac21b`, with both Zig content hash and
+Transit `f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`, with both Zig content hash and
 Nix SHA256. The comparison binary remains frozen at
 `e7434306334e3692c6f3e123cba0d278fa412196`; the compatible compiled-case host is
 selected separately by the `transit` flake input. Final validation must cover the

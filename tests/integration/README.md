@@ -64,6 +64,14 @@ correspondence respectively. Each evidence category keeps its premises.
 
 ## Upstream identity and updates
 
+The compiled-case runtime and both Zig package dependencies pin merged Transit
+[`f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`](https://github.com/spoke-sh/transit/commit/f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6).
+The pure frontend archive has unchanged bytes at this revision, so its Nix
+SHA256 and Zig package content hash remain unchanged. To refresh this dependency,
+update the `transit` input and lock, both package manifests, and the archive URL in
+`nix/transitc.nix`; fetch and verify the archive before running the package and
+compiled-case integration checks. The comparison baseline is updated separately.
+
 The frozen comparison pin is
 [`e7434306334e3692c6f3e123cba0d278fa412196`](https://github.com/spoke-sh/transit/tree/e7434306334e3692c6f3e123cba0d278fa412196).
 The fixture retains its original attribution above. The

@@ -36,8 +36,8 @@
       "inputs": {
         "nixpkgs": "nixpkgs",
         "transit": "transit",
-        "zig-overlay": "zig-overlay",
-        "transit-baseline": "transit-baseline"
+        "transit-baseline": "transit-baseline",
+        "zig-overlay": "zig-overlay"
       }
     },
     "systems": {
@@ -66,39 +66,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1795128245,
-        "narHash": "sha256-6MG1z6/4LO5OCP+OnUUGpL3x6G1X0kiVuLfefU9evGI=",
+        "lastModified": 1795142748,
+        "narHash": "sha256-shyWiAuAq8Jcd6Nttp2IfA73qaPp6WMXxr7mIXtQ8tw=",
         "owner": "spoke-sh",
         "repo": "transit",
-        "rev": "dd31e93a5fece94c8cfe59be908a00b4060589d3",
+        "rev": "f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6",
         "type": "github"
       },
       "original": {
         "owner": "spoke-sh",
         "repo": "transit",
-        "rev": "dd31e93a5fece94c8cfe59be908a00b4060589d3",
-        "type": "github"
-      }
-    },
-    "zig-overlay": {
-      "inputs": {
-        "flake-compat": "flake-compat",
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "systems": "systems"
-      },
-      "locked": {
-        "lastModified": 1790211021,
-        "narHash": "sha256-k/W7SURVOS1/c8jxz3mee4CiY+TsY/kR9Td4lKAmOTo=",
-        "owner": "mitchellh",
-        "repo": "zig-overlay",
-        "rev": "3a2ffc4e62b3104d45b24ec616fd32486729675b",
-        "type": "github"
-      },
-      "original": {
-        "owner": "mitchellh",
-        "repo": "zig-overlay",
+        "rev": "f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6",
         "type": "github"
       }
     },
@@ -123,6 +101,28 @@
         "owner": "spoke-sh",
         "repo": "transit",
         "rev": "e7434306334e3692c6f3e123cba0d278fa412196",
+        "type": "github"
+      }
+    },
+    "zig-overlay": {
+      "inputs": {
+        "flake-compat": "flake-compat",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "systems": "systems"
+      },
+      "locked": {
+        "lastModified": 1790211021,
+        "narHash": "sha256-k/W7SURVOS1/c8jxz3mee4CiY+TsY/kR9Td4lKAmOTo=",
+        "owner": "mitchellh",
+        "repo": "zig-overlay",
+        "rev": "3a2ffc4e62b3104d45b24ec616fd32486729675b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mitchellh",
+        "repo": "zig-overlay",
         "type": "github"
       }
     }
