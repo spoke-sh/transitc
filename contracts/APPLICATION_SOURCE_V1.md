@@ -363,7 +363,8 @@ declaration to share a domain. Independent declarations with the same identity
 reject, even with equal base types. Paths, aliases and physical representations
 are not nominal identity. Constructors such as `MachineId(7)` accept a base
 value; implicit conversion, rebranding, unwrapping, arithmetic and ordering
-reject. Equality/inequality require the same domain. Named parameter kinds and
+reject. Equality/inequality require the same domain and an admitted base-type
+comparison; JSON and INTERVAL domains have no source comparison operators. Named parameter kinds and
 `TYPE imported.MachineId` retain that type through module interfaces.
 
 A variant has 1–64 unique constructors, each with at most 64 unique scalar/domain

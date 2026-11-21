@@ -32,7 +32,7 @@ def run(driver, destination, must_fail):
     for label, entry, body in [
             ('higher-order', source, pipeline),
             ('direct', source.replace('steps.Save, ', ''), pipeline.replace('command PROCEDURE OF steps.Store, ', '').replace('CALL command(', 'CALL steps.Save(')),
-            ('import-alias', source.replace('IMPORT steps FROM', 'IMPORT ops FROM').replace('steps.Save', 'ops.Save'), pipeline)]:
+            ('import-alias', source.replace('IMPORT steps FROM', 'IMPORT ops FROM').replace('steps.Save', 'ops.Save').replace('steps.Emit', 'ops.Emit'), pipeline)]:
         requests.append(dict(name=label, source=entry, files=[dict(path='steps.transit', text=steps), dict(path='pipeline.transit', text=body)], compile='build'))
     products = execute(driver, requests, destination, 'callable-products')
     for output in products:
@@ -56,7 +56,7 @@ def run(driver, destination, must_fail):
     bad = copy.deepcopy(requests[0])
     bad['name'] = 'widened-callee-precondition'
     prototype, implementation = steps.split('CREATE PUBLIC PROCEDURE Save', 1)
-    bad['files'][0]['text'] = prototype + 'CREATE PUBLIC PROCEDURE Save' + implementation.replace('id >= 1', 'id >= 0')
+    bad['files'][0]['text'] = prototype + 'CREATE PUBLIC PROCEDURE Save' + implementation.replace('id >= 1', 'id >= 0', 1)
     refused = execute(driver, [bad], destination, 'callable-refusal')[0]
     same('CallableSignatureMismatch', refused.get('compile_error'), 'exact precondition signature refusal')
     assert 'product' not in refused

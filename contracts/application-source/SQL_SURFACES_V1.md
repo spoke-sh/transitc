@@ -22,8 +22,10 @@ Every newly advertised surface needs an independent SQL comparison.
 The NUMERIC/JSON/INTERVAL fixture qualifies direct Table projection. Adding
 ORDER BY to the combined projection routes it through a native relational
 profile that refuses `UnsupportedRelationalType`; this is retained negative
-evidence. JSON equality, numeric arithmetic/rounding operations
-and interval arithmetic/ordering are not qualified by a literal round trip.
+evidence. JSON equality and interval arithmetic/ordering are not qualified by a literal round
+trip. The separate numeric-operators fixture qualifies DECIMAL_ADD with REJECT
+and DECIMAL_RESCALE with HALF_EVEN, explicit result descriptors, NULL, Inexact and
+Overflow. Other decimal operators remain outside that executed evidence.
 NUMERIC literals must fit their declared precision and scale exactly; inexact
 scale refuses `Inexact` and overflow refuses `Overflow`. Duplicate JSON keys
 refuse `DuplicateField`. No intermediate float conversion is introduced. SQL NULL,

@@ -139,4 +139,7 @@ exact values and boundary cases. The installed checks compare an independent SQL
 oracle, including reordered JSON keys, and preserve values after restart. The
 qualified query is direct projection: the combined `ORDER BY` query is refused by
 Transit's relational profile. The separate `application-json-helpers` fixture covers native program extraction.
-Decimal rounding operations and interval ordering remain separate surfaces.
+The `application-numeric-operators` fixture checks DECIMAL_ADD with REJECT and
+DECIMAL_RESCALE with HALF_EVEN, explicit output precision/scale, NULL and refused
+inexact/overflow results. These ordinary SQL functions do not add source arithmetic.
+Interval ordering and other decimal operators remain separate surfaces.

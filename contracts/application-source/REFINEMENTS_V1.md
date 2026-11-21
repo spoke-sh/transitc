@@ -13,7 +13,9 @@ AS BEGIN ATOMIC RETURN amount; END;
 
 The admitted terms are a scalar parameter `IS NOT NULL`, a BIGINT parameter
 compared with a constant signed 64-bit integer, and equality/inequality between
-scalar parameters of exactly matching type and nominal domain. Postconditions
+scalar parameters of exactly matching type and nominal domain whose base type
+admits equality. JSON and INTERVAL comparisons remain refused; JSON parameters
+may use the non-nullness obligation. Postconditions
 also admit `result`, which names the declared scalar return value. A parameter
 named `result` is refused on contracted helpers to avoid ambiguity. Clauses may
 conjoin at most 16 terms; each phase has at most 16 clauses. The clauses use

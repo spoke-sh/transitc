@@ -8,4 +8,6 @@ order in the signature is immaterial. All resource bindings are explicit.
 `expected.sql` independently expands one instance. The integration journey
 compares both generated instances, ordered refusals, returning-helper rollback,
 restart and current-rights denial after removing the source tree. The isolated
-suite retains the standard 30-second case and five-minute suite budgets.
+suite focuses on one imported returning callable and its Stream rollback; the
+installed journey retains both Table and Stream effects and nested calls. It
+retains the standard 30-second case and five-minute suite budgets.

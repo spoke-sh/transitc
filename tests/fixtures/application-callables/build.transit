@@ -7,17 +7,24 @@ CREATE TARGET default AS BEGIN
   USE First();
   USE pipes.Pipeline(steps.Save, NAME 'second_rows', NAME 'second_events', NAME 'second_requests', NAME 'second_route', '120s');
 END;
+CREATE MODULE Probe(command PROCEDURE OF steps.Emit) AS BEGIN
+  CREATE PUBLIC STREAM events(id BIGINT NOT NULL);
+  CREATE PUBLIC QUEUE requests(id BIGINT NOT NULL, allowed BOOLEAN NOT NULL);
+  CREATE PUBLIC DATAFLOW route FROM QUEUE requests AS request AS BEGIN
+    BEGIN ATOMIC LET answer = CALL command(events,request.id,request.allowed); END;
+  END;
+  AUTHORIZE DATAFLOW route AS ROLE CURRENT_ROLE;
+  ACTIVATE DATAFLOW route;
+END;
 CREATE TEST TARGET tests AS BEGIN
-  TEST 'imported nested callable' USING MODULES (pipes.Pipeline(steps.Save, NAME 'accepted', NAME 'events', NAME 'requests', NAME 'route', '30s')) AS BEGIN
+  TEST 'imported callable' USING MODULES (Probe(steps.Emit)) AS BEGIN
     ENQUEUE INTO requests VALUES (7, TRUE);
     ASSERT WORKFLOW NAME 'route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;
-    ASSERT ROWS (SELECT * FROM accepted) EQUAL ((7));
     ASSERT ROWS (CONSUME * FROM events) EQUAL ((7));
   END;
-  TEST 'returning callable rollback' USING MODULES (pipes.Pipeline(steps.Save, NAME 'accepted', NAME 'events', NAME 'requests', NAME 'route', '30s')) AS BEGIN
+  TEST 'returning callable rollback' USING MODULES (Probe(steps.Emit)) AS BEGIN
     ENQUEUE INTO requests VALUES (7, FALSE);
     ASSERT WORKFLOW NAME 'route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
-    ASSERT ROWS (SELECT * FROM accepted) EQUAL ();
     ASSERT ROWS (CONSUME * FROM events) EQUAL ();
   END;
 END;

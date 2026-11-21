@@ -16,3 +16,13 @@ AS BEGIN ATOMIC
   LET saved = CALL Store(accepted, events, id, allowed);
   RETURN saved;
 END;
+
+CREATE PUBLIC PROCEDURE Emit(events STREAM(id BIGINT NOT NULL), id BIGINT, allowed BOOLEAN) RETURNS BIGINT
+EFFECTS (PRODUCE events)
+REQUIRES id >= 1 ELSE 'PositiveId'
+ENSURES result = id ELSE 'SameId'
+AS BEGIN ATOMIC
+  PRODUCE INTO events VALUES(id);
+  REQUIRE allowed ELSE 'LateRefusal';
+  RETURN id;
+END;
