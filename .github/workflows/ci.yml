@@ -21,10 +21,22 @@ jobs:
       - name: Check compiler, source verification and upstream parity
         run: nix flake check --print-build-logs
       - name: Execute source grammar and typed correspondence checks
-        run: nix build .#checks.x86_64-linux.source --no-link --print-build-logs
+        run: |
+          nix build .#checks.x86_64-linux.source --out-link .cache/source-result --print-build-logs
+          cp -RL .cache/source-result .cache/source-evidence
       - run: nix develop --command just check test::release
       - run: nix develop --command just test::clean-build
       - run: nix develop --command just test::fmt test::documentation test::workspace test::examples test::integration test::build-command test::command
+      - name: Retain independent comparisons and runtime phase evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: compiler-qualification-evidence
+          path: |
+            .cache/source-evidence/
+            .cache/checks/
+          include-hidden-files: true
+          retention-days: 30
   handbook:
     runs-on: ubuntu-latest
     steps:

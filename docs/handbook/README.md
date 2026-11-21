@@ -37,8 +37,18 @@ second maintained location.
 
 Guides must distinguish commands supported here from behavior inspected in
 Transit. No compiler syntax tutorial is complete until its examples execute with
-the extracted compiler. Search, generated contract pages, and release downloads
-are future documentation work; the bootstrap supplies navigation only.
+the extracted compiler. `just test::documentation` checks reader-task coverage,
+CLI options and automation/dependency examples; `just test::examples` checks exact
+source and runtime outcomes. Search and generated contract pages remain future
+work; the sidebar and references cover the current handbook's fourteen pages.
+
+Run `nix develop .#docs-browser --command just docs::browser` on Linux to exercise
+all pages with Chromium, keyboard controls, mobile/desktop viewports and both
+themes. Prefix/root results are separate in `.cache/handbook-report-*` and
+`.cache/handbook-browser-*`; CI retains reports, screenshots and failure traces.
+Prism's light/dark palettes and focusable tables are checked for accessible
+contrast and keyboard scrolling. Keep Playwright and `playwright-core` aligned
+through the root override so the accessibility adapter uses the same browser API.
 
 ## Hosting configuration
 

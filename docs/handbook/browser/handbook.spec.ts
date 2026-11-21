@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import handbook from "../package.json";
 
 const pages = ["guides", "reference", "internals"].flatMap((section) =>
   readdirSync(resolve(section)).filter((name) => name.endsWith(".md")).map((name) => {
@@ -20,6 +21,7 @@ for (const entry of pages) {
     const response = await page.goto(entry.route);
     expect(response?.status()).toBe(200);
     await expect(page.locator("h1")).toHaveText(entry.title);
+    await expect(page.getByRole("contentinfo")).toContainText(`transitc ${handbook.version}`);
     await expect(page.locator("html")).toHaveAttribute("data-theme", info.project.name.endsWith("dark") ? "dark" : "light");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     const accessibility = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();

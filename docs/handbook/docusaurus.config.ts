@@ -1,8 +1,17 @@
 import { themes } from "prism-react-renderer";
+import { execFileSync } from "node:child_process";
+import handbook from "./package.json";
 import type { Config } from "@docusaurus/types";
 import type { Options, ThemeConfig } from "@docusaurus/preset-classic";
 
 const baseUrl = process.env.TRANSITC_DOCS_BASE_URL ?? "/transitc/";
+let revision = "development";
+try {
+  const value = process.env.GITHUB_SHA ?? execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+  if (/^[0-9a-f]{40}$/.test(value)) revision = value;
+} catch {
+  // An exported source tree can still build documentation without Git metadata.
+}
 if (!/^\/(?:[A-Za-z0-9_-]+\/)*$/.test(baseUrl)) {
   throw new Error("TRANSITC_DOCS_BASE_URL must start and end with / and contain path segments only");
 }
@@ -46,7 +55,10 @@ const config: Config = {
         { href: "https://github.com/spoke-sh/transitc", label: "GitHub", position: "right" },
       ],
     },
-    footer: { style: "light", copyright: "transitc · The Transit language compiler" },
+    footer: {
+      style: "light",
+      copyright: `transitc ${handbook.version} · ${revision === "development" ? revision : `<a href="https://github.com/spoke-sh/transitc/tree/${revision}">Source ${revision.slice(0, 12)}</a>`}`,
+    },
     colorMode: { respectPrefersColorScheme: true },
     tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 3 },
     prism: {

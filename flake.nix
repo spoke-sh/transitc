@@ -178,7 +178,9 @@
                 zig build source-probe -Doptimize=ReleaseSafe
                 python3 -B tests/runner/launch.py tests/query/application_source/verify.py zig-out/bin/transitc-source-probe
                 python3 -B tests/runner/launch.py tests/query/application_source/types.py zig-out/bin/transitc-source-probe
-                touch "$out"
+                mkdir -p "$out"
+                cp -r .cache/verification/. "$out/"
+                printf '%s\n' '${self.rev or self.dirtyRev or "development"}' > "$out/source-revision"
               '';
         }
       );
