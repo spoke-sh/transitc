@@ -19,6 +19,7 @@ INSTALLED = (
     ('refinements',), ('callables',), ('scalar_surfaces',),
     ('sql_scalars',), ('json_helpers',),
 )
+OUTER_CASE_SECONDS = 330
 
 
 def validate(report, expected):
@@ -71,7 +72,7 @@ def execute(compiler, destination, phases, fixtures):
                                            '--format', 'json'], cwd=ROOT, stdout=stdout, stderr=stderr,
                                           start_new_session=True) as process:
                         try:
-                            result['exit_code'] = process.wait(timeout=330)
+                            result['exit_code'] = process.wait(timeout=OUTER_CASE_SECONDS)
                         except BaseException:
                             # Own the compiler and its host descendants together.
                             # The outer guard cannot leave a native case running.
@@ -93,6 +94,13 @@ def execute(compiler, destination, phases, fixtures):
         except Exception as error:
             result['error'] = f'{type(error).__name__}: {error}'
         finally:
+            if isinstance(selected, str):
+                # Timeouts may leave a partial reply. Retain its identity just as
+                # we retain a complete failed report, after all writers join.
+                for key, suffix in (('report', '.json'), ('stderr', '.stderr')):
+                    artifact = destination / (name + suffix)
+                    if artifact.exists():
+                        result[key] = capture.identity(artifact)
             result['complete'] = True
             result['elapsed_seconds'] = round(time.monotonic() - start, 3)
             capture.write_json(output, report)

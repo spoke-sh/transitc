@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
+import time
 import unittest
 from unittest.mock import patch
 
@@ -11,6 +12,32 @@ from integration import composition
 
 
 class Composition(unittest.TestCase):
+    def test_timeout_joins_descendants_and_retains_partial_reply(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            compiler = directory / 'compiler'
+            compiler.write_text('''#!/usr/bin/env python3
+import pathlib,subprocess,sys,time
+marker = pathlib.Path(__file__).with_name('late-write')
+subprocess.Popen([sys.executable, '-c',
+    "import sys,time; f=open(sys.argv[1],'w'); time.sleep(1); f.write('escaped'); f.close()",
+    str(marker)])
+while not marker.exists(): time.sleep(.01)
+print('partial reply', flush=True)
+time.sleep(30)
+''')
+            compiler.chmod(0o700)
+            with patch.dict(os.environ, TRANSIT_TEST_RUNTIME=str(compiler)), \
+                    patch.object(composition, 'OUTER_CASE_SECONDS', .5):
+                self.assertFalse(composition.execute(compiler, directory,
+                    [('isolated-timeout', 'timeout')], {'timeout': ['timeout']}))
+            result = json.loads((directory / 'evidence.json').read_text())['phases'][0]
+            self.assertIn('TimeoutExpired', result['error'])
+            self.assertEqual(result['report'], composition.capture.identity(directory / 'isolated-timeout.json'))
+            self.assertEqual((directory / 'isolated-timeout.json').read_text(), 'partial reply\n')
+            time.sleep(1)
+            self.assertEqual((directory / 'late-write').read_text(), '', 'host descendant escaped cleanup')
+
     def test_case_inventory_and_budgets(self):
         report = {'complete': True, 'ok': True, 'cases': [
             {'name': name, 'status': 'passed', 'error_code': None} for name in ('one', 'two')],
