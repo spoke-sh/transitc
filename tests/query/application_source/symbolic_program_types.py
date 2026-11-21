@@ -7,6 +7,17 @@ ROOT = Path(__file__).resolve().parents[3]
 SOURCE = ROOT / 'tests/fixtures/application-symbolic-program/build.transit'
 
 
+def whole_shape(product, domain=None):
+    records = [node['type'] for node in product['steps'][3]['checked']['program']['nodes']
+               if node['type']['kind'] == 'record' and len(node['type']['fields']) == 64]
+    same(True, bool(records), 'whole input shape')
+    expected = [dict(name='id' if i == 0 else f'c{i}', value=dict(
+        kind='integer', nullable=i != 0, domain=domain if i == 0 else None, fields=[]))
+        for i in range(64)]
+    for record in records:
+        same(expected, record['fields'], 'authored field names, nullability and nominal domains')
+
+
 def compare(kind, product):
     steps = product['steps']
     same(6, len(steps), 'only selected program/control statements emitted')
@@ -50,8 +61,7 @@ def row_matrix(driver, destination, must_fail):
         same(False, any('__transit$symbolic' in step['sql'] for step in product['steps']), 'no checker constants emitted')
         same(63, product['steps'][2]['sql'].count(' BIGINT ,') + product['steps'][2]['sql'].count(' BIGINT )'), 'authored nullable columns')
         if case['name'].endswith('Site') and 'positional' not in case['name']:
-            records = [node['type'] for node in product['steps'][3]['checked']['program']['nodes'] if node['type']['kind'] == 'record']
-            same(True, any(len(record['fields']) == 64 for record in records), 'whole input preserves all fields')
+            whole_shape(product)
     # All-arm checking must leave already-concrete SQL and definition identity unchanged.
     concrete = []
     for case in cases:
@@ -75,6 +85,18 @@ def row_matrix(driver, destination, must_fail):
     for result in extra:
         assert 'product' in result, result
         same(False, any('__transit$symbolic' in step['sql'] for step in result['product']['steps']), 'no composed checker constants emitted')
+    nominal = cases[1]['source'].replace('id BIGINT NOT NULL', 'id $site NOT NULL').replace(
+        'ROW(id BIGINT)', 'ROW(id SiteId)').replace('entry.id > 0', 'entry.id = expected')
+    nullable = cases[1]['source'].replace('ROW(id BIGINT)', 'ROW(c1 BIGINT)').replace(
+        'entry.id > 0', 'entry.c1 IS NOT NULL')
+    descriptors = execute(driver, [dict(name=f'{label}-{arm}', source=entry.replace(
+        'Target.Site(SiteId(7))', f'Target.{arm}({arm}Id(7))'), compile='build')
+        for label, entry in (('nominal-row', nominal), ('nullable-row', nullable))
+        for arm in ('Machine', 'Site')], destination, 'whole-row-descriptors')
+    for result in descriptors:
+        assert 'product' in result, result
+    whole_shape(descriptors[1]['product'], 'example.site')
+    whole_shape(descriptors[3]['product'])
     bad = []
     for label, before, after, code in [
             ('missing-field', 'ROW(id BIGINT)', 'ROW(absent BIGINT)', 'UnknownProgramField'),
@@ -84,19 +106,24 @@ def row_matrix(driver, destination, must_fail):
         if label == 'missing-field':
             entry = entry.replace('entry.id', 'entry.absent')
         bad.append((dict(name=label, source=entry, compile='build'), code))
+    bad.append((dict(name='foreign-row-field', source=nominal.replace(
+        'ROW(id SiteId)', 'ROW(id MachineId)').replace('entry.id = expected', 'entry.id = entry.id'),
+        compile='build'), 'SourceDomainMismatch'))
     refused = execute(driver, [case for case, _ in bad], destination, 'whole-row-refusals')
     for (_, expected), result in zip(bad, refused):
         same(expected, result.get('compile_error'), 'invalid unselected whole-row call')
     controls = []
-    def shape(product):
-        records = [node['type'] for node in product['steps'][3]['checked']['program']['nodes'] if node['type']['kind'] == 'record']
-        same(True, any(len(record['fields']) == 64 for record in records), 'whole input shape')
     damaged = copy.deepcopy(outputs[1]['product'])
     for node in damaged['steps'][3]['checked']['program']['nodes']:
         if node['type']['kind'] == 'record':
             node['type']['fields'] = []
-    controls.append(must_fail('lost whole input fields', lambda: shape(damaged)))
-    return len(outputs) + len(fixed) + len(extra), controls
+    controls.append(must_fail('lost whole input fields', lambda: whole_shape(damaged)))
+    damaged = copy.deepcopy(descriptors[1]['product'])
+    for node in damaged['steps'][3]['checked']['program']['nodes']:
+        if node['type']['kind'] == 'record' and len(node['type']['fields']) == 64:
+            node['type']['fields'][1]['value']['nullable'] = False
+    controls.append(must_fail('lost whole input nullability', lambda: whole_shape(damaged, 'example.site')))
+    return len(outputs) + len(fixed) + len(extra) + len(descriptors), controls
 
 
 def run(driver, destination, must_fail):
