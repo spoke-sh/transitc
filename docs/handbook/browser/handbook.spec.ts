@@ -23,9 +23,11 @@ for (const entry of pages) {
     await expect(page.locator("html")).toHaveAttribute("data-theme", info.project.name.endsWith("dark") ? "dark" : "light");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     const accessibility = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
-    expect(accessibility.violations).toEqual([]);
+    expect(accessibility.violations.map(({ id, nodes }) => ({
+      id, nodes: nodes.map(({ target, failureSummary }) => ({ target, failureSummary })),
+    }))).toEqual([]);
     expect(errors).toEqual([]);
-    if (entry.route === "reference/cli") {
+    if (["reference/cli", "guides/automation"].includes(entry.route)) {
       await page.screenshot({ path: info.outputPath("cli.png"), fullPage: true });
       await info.attach("CLI screenshot", { path: info.outputPath("cli.png"), contentType: "image/png" });
     }

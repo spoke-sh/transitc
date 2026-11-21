@@ -6,7 +6,7 @@ const sidebars: SidebarsConfig = {
       type: "category",
       label: "Guides",
       collapsed: false,
-      items: ["guides/introduction", "guides/getting-started", "guides/source-workflow", "guides/formatting", "guides/testing", "guides/embedding"],
+      items: ["guides/introduction", "guides/installation", "guides/getting-started", "guides/source-workflow", "guides/formatting", "guides/testing", "guides/embedding", "guides/automation", "guides/troubleshooting"],
     },
     {
       type: "category",

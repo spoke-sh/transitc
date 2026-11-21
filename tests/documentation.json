@@ -1,0 +1,15 @@
+[
+  {"task": "Install or upgrade", "page": "guides/installation.md", "evidence": ["tests/clean_build.py", "tasks/archive.py", ".github/workflows/ci.yml"]},
+  {"task": "Compile a first application", "page": "guides/getting-started.md", "evidence": ["tests/examples.py", "examples/first/build.transit"]},
+  {"task": "Compose modules", "page": "guides/source-workflow.md", "evidence": ["tests/examples.py", "tests/workspace/build.py", "tests/query/application_source/types.py"]},
+  {"task": "Manage dependencies", "page": "guides/source-workflow.md", "evidence": ["tests/documentation.py", "tests/workspace/build.py"]},
+  {"task": "Check and debug source", "page": "reference/diagnostics.md", "evidence": ["tests/workspace/build.py", "tests/dependencies/diagnostic_mappings.py"]},
+  {"task": "Format source", "page": "guides/formatting.md", "evidence": ["tests/integration/format_command.py"]},
+  {"task": "Inspect outputs", "page": "reference/artifacts.md", "evidence": ["tests/workspace/build.py", "tests/examples.py"]},
+  {"task": "Generate migrations", "page": "reference/artifacts.md", "evidence": ["tests/examples.py", "tests/workspace/build.py", "tests/integration/parity.py"]},
+  {"task": "Author tests", "page": "guides/testing.md", "evidence": ["tests/examples.py", "tests/integration/test_command.py", "tests/integration/test_host_boundary.py"]},
+  {"task": "Embed the compiler", "page": "guides/embedding.md", "evidence": ["examples/embed/main.zig", "tests/clean_build.py"]},
+  {"task": "Integrate CI/editors", "page": "guides/automation.md", "evidence": ["examples/check.sh", "tests/documentation.py", "tests/integration/format_command.py"]},
+  {"task": "Understand the language", "page": "reference/language.md", "evidence": ["tests/query/application_source/verify.py", "tests/query/application_source/types.py", "tests/query/application_source/program_types.py", "tests/integration/parity.py"]},
+  {"task": "Troubleshoot limits", "page": "guides/troubleshooting.md", "evidence": ["tests/workspace/build.py", "tests/integration/test_host_boundary.py", "tests/integration/format_command.py"]}
+]

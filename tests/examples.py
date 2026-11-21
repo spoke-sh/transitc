@@ -15,7 +15,7 @@ PROJECTS = {
     'modules': ('guides/source-workflow.md', {'rows.transit': 0, 'build.transit': 1},
                 'CREATE TABLE "items" ( ID BIGINT );\n'
                 'INSERT INTO "items" VALUES ( 7 );\nSELECT * FROM ITEMS;\n'),
-    'migration': ('reference/artifacts.md', {'build.transit': 0},
+    'migration': ('reference/artifacts.md', {'build.transit': 0, 'next.transit': 1},
                   'CREATE TABLE ITEMS ( ID BIGINT PRIMARY KEY );\n'),
 }
 
@@ -30,17 +30,32 @@ def main():
         with tempfile.TemporaryDirectory(prefix='transitc-example-') as temporary:
             root = Path(temporary)
             shutil.copytree(ROOT / 'examples' / name, root / 'source')
-            result = subprocess.run([str(compiler), 'build', '--out', str(root / 'output'), '--format', 'json'],
+            output = root / 'source/migration-review' if name == 'migration' else root / 'output'
+            result = subprocess.run([str(compiler), 'build', '--out', str(output), '--format', 'json'],
                                     cwd=root / 'source', capture_output=True, text=True, timeout=120)
             assert result.returncode == 0, result
             assert json.loads(result.stdout)['ok'] is True
-            output = root / 'output'
             sql = output / ('desired.sql' if name == 'migration' else 'application.sql')
             assert sql.read_text() == expected_sql, (name, sql.read_text())
             assert (output / 'provenance.json').is_file()
             if name == 'migration':
                 assert (output / 'basis.json').is_file()
                 assert (output / 'migrations/0001-tables.sql').read_text() == expected_sql
+                evolved = root / 'source/migration-review-2'
+                command = [str(compiler), 'build', '-f', 'next.transit', '--out', str(evolved), '--format', 'json']
+                result = subprocess.run(command, cwd=root / 'source', capture_output=True, text=True, timeout=120)
+                assert result.returncode == 0, result
+                assert (evolved / 'migrations/0001-tables.sql').read_text() == expected_sql
+                assert 'ADD COLUMN' in (evolved / 'migrations/0002-tables.sql').read_text()
+                history = output / 'migrations/0001-tables.sql'
+                history.write_text(expected_sql + '-- edited history\n')
+                result = subprocess.run([str(compiler), 'build', '-f', 'next.transit', '--check', '--format', 'json'],
+                                        cwd=root / 'source', capture_output=True, text=True, timeout=120)
+                assert result.returncode == 1 and 'MigrationHistoryChanged' in result.stdout, result
+                history.write_text(expected_sql)
+                result = subprocess.run([str(compiler), 'build', '-f', 'next.transit', '--check'],
+                                        cwd=root / 'source', capture_output=True, text=True, timeout=120)
+                assert result.returncode == 0, result
         print(f'PASS handbook {page}: exact source and published {name} artifacts')
 
     page = ROOT / 'docs/handbook/guides/testing.md'

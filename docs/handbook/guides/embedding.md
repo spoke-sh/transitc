@@ -31,3 +31,20 @@ rights. Workspace APIs add I/O explicitly and are unnecessary for in-memory use.
 The repository's compiler unit tests exercise allocation failures and independent
 product ownership. The private grammar probe consumes this same public API and
 projects types/products for independent comparisons; it is not an alternate parser.
+
+## Run the complete consumer
+
+From a transitc checkout, execute the checked
+[consumer](https://github.com/spoke-sh/transitc/blob/main/examples/embed/main.zig):
+
+```sh
+nix develop .#toolchain --command zig build test-embed
+```
+
+It prints `CREATE TABLE ITEMS ( ID BIGINT );` and returns zero. The consumer frees
+its captured source before reading the compiled product, checks the exact SQL and
+releases the product at the end. Change the source to `invalid source;` to exercise
+the error return without a product, then restore the accepted target. The public
+API and its allocation-failure tests run on each native compiler host. Embedding
+does not require a Transit service. See [limits](../reference/language.md) before
+supplying larger input graphs; allocator failure must propagate to the caller.
