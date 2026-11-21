@@ -2,7 +2,7 @@
 
 The [handbook](handbook/guides/introduction.md) describes this repository's current
 behavior and the compiler contracts. The [roadmap](roadmap/README.md) owns
-planned extraction work, decisions, status, and acceptance criteria.
+compiler delivery plans, extraction history, decisions, status and acceptance criteria.
 
 | Location | Owner |
 | --- | --- |
