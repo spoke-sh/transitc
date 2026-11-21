@@ -26,6 +26,8 @@ foundation with unfinished acceptance criteria; it does not assert completion of
 the proposed units. The [extraction qualification](../qualification/extraction.md)
 records executed foundation checks separately from the expanded feature and
 performance work in milestones 5–10.
+The [typed composition qualification](../qualification/typed-composition.md)
+records milestone 5's delivered increments, passing evidence and open gates.
 
 ## Source and ownership
 

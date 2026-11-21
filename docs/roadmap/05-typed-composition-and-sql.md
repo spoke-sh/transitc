@@ -23,7 +23,8 @@ These are bounded source features. Compile-time matching does not establish
 dynamic dispatch, source visibility does not establish runtime-private storage,
 and reference-only exports do not grant row access. The independent grammar and
 selected Lean/SQL comparisons cover the admitted profile; they do not prove the
-whole compiler correct. The remaining units below are proposals.
+whole compiler correct. The progress table separates delivered increments from
+the remaining milestone gates.
 
 ## Delivery units
 
@@ -40,11 +41,37 @@ per operation, rather than waiting for every Transit milestone. Runtime closures
 unrestricted dependent types, runtime recursion and implicit parallel effect
 dispatch remain outside these units; any extension needs a separate contract.
 
+## Current implementation progress
+
+The first implementation increments add closed-record runtime MATCH, all-arm
+program specialization, ONE/OPTIONAL query results, bounded whole-row presence
+refinement, ordered helper pre/postconditions, exact callable/effect signatures,
+DATE/NUMERIC/JSON/INTERVAL source values and native scalar qualification.
+Contracts, independent grammar/type comparisons, failure cases and guides ship
+with each increment. These additions do not close this milestone.
+
+| Plan unit | Delivered increment | Remaining gate |
+| --- | --- | --- |
+| A/B | Explicit tag/payload encoding, exhaustive runtime MATCH, nominal payload checks, hygienic lowering and symbolic program/control checking in every compile-time arm | Installed generated/oracle dispatch, restart and rights checks pass; isolated runtime qualification and whole-input ROW helpers with symbolic scalar holes remain open |
+| C | ONE and OPTIONAL SELECT results, ordered ONE assertion, guarded optional projection, preserved nominal fields and nullable cells | Installed ONE/OPTIONAL generated/oracle and restart checks pass; isolated completion, bounded many and state-carrying values remain open |
+| D | Direct immutable row-presence facts plus ordered non-nullness, same-type equality and constant BIGINT bounds in explicit REQUIRES/ENSURES contracts; installed refusal/rollback journey passes | Isolated runtime qualification; general implication solving and resource-derived facts remain outside the bounded profile |
+| E | Exact FUNCTION/GUARD/PROCEDURE OF module arguments and resource effects; nested inlining, explicit instances, installed oracle/rollback/restart/current-rights denial pass | Isolated runtime qualification; callable row/many returns and implicit signature subtyping remain unsupported |
+| F | DATE/NUMERIC/JSON/INTERVAL source values, exact Table cells, DECIMAL_ADD/DECIMAL_RESCALE and NULL/error checks; JSON runtime helper transport/extraction; creation/add-column descriptors | Native program-value, symbolic prepared-parameter, relational-profile and view gates; JSON helper installed and isolated checks pass |
+
+See the [runtime handoff](05-runtime-handoff.md) for exact upstream boundaries and
+separately listed compiler work. The support matrix in
+[SQL surfaces](../../contracts/application-source/SQL_SURFACES_V1.md) distinguishes
+literal/codec qualification from query operators and program values. Runtime
+reports that hit a deadline remain failures, even when compile-time checks pass.
+
 ## Implementation plan for review
 
-Proposed on 2026-11-21, after the milestone 3/4 qualification merge at transitc
-`66a54e303eece69945453d2e29576b2af171c70a`. This section proposes implementation
-work; it does not extend the supported language or record completed checks.
+Reviewed implementation basis, recorded on 2026-11-21 after the milestone 3/4
+qualification merge at transitc
+`66a54e303eece69945453d2e29576b2af171c70a`. The plan below preserves its original
+acceptance obligations. The progress table above and the
+[qualification record](../qualification/typed-composition.md) identify implemented
+surfaces and executed checks; the plan itself is not evidence of completion.
 
 Use the [qualified extraction](../qualification/extraction.md) as the baseline:
 shared pure packages and the compiled-case host at Transit

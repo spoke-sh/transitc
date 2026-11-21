@@ -1,0 +1,647 @@
+{
+  "version": 1,
+  "host": {
+    "system": "Linux",
+    "machine": "x86_64",
+    "kernel": "6.17.0-41-generic"
+  },
+  "compiler_implementation_revision": "c0e2c8413fd0d4b47aff371a376ce90687642cc2",
+  "runtime_revision": "f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6",
+  "baseline_revision": "e7434306334e3692c6f3e123cba0d278fa412196",
+  "reports": [
+    {
+      "name": "date",
+      "fixture": "application-date",
+      "local_run": "run-hp5i7g9e",
+      "report": "date.json",
+      "sha256": "b63286009024713798f3b69a694b4d76447edb801e79ced38c8b33503a981343",
+      "complete": true,
+      "ok": true,
+      "compiler_digest": "a1ef606f1b75b3cc88701f2177c297a58e640db03209f0cc909d7ed3fcec0848",
+      "case_results": [
+        {
+          "name": "date values retain exact days and NULL",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "run_revision": "7e80404ff82600c677cd3a71dd75867c57090d10",
+      "run_dirty": true,
+      "installed": {
+        "date": {
+          "rows": [
+            {
+              "id": "1",
+              "day": "-719162",
+              "nullable_day": null
+            },
+            {
+              "id": "2",
+              "day": "0",
+              "nullable_day": null
+            },
+            {
+              "id": "3",
+              "day": "19782",
+              "nullable_day": null
+            },
+            {
+              "id": "4",
+              "day": "2932896",
+              "nullable_day": null
+            }
+          ],
+          "source_removed": true,
+          "independent_sql": true,
+          "restart": true,
+          "guide_failure_and_correction": true
+        }
+      }
+    },
+    {
+      "name": "scalars",
+      "fixture": "application-sql-scalars",
+      "local_run": "run-jzi6vqm9",
+      "report": "scalars.json",
+      "sha256": "db46b4986d01a0d15dc14e7f96cfbd2aebcbdab9c54dea743f7a760df1364c20",
+      "complete": true,
+      "ok": true,
+      "compiler_digest": "ee0714ce7e91073def9b8330acc0a9e0dfb9f0ef61709a416931a59259b46aa6",
+      "case_results": [
+        {
+          "name": "exact decimal JSON and interval components",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "run_revision": "c0e2c8413fd0d4b47aff371a376ce90687642cc2",
+      "run_dirty": true,
+      "installed": {
+        "numeric_expressions": {
+          "independent_sql": true,
+          "explicit_rounding": true,
+          "null": true,
+          "inexact": true,
+          "overflow": true
+        },
+        "values": {
+          "source_removed": true,
+          "independent_sql": true,
+          "restart": true,
+          "rows": 3,
+          "refused_before_publication": 7,
+          "numeric_guide_failure_and_correction": true,
+          "lossless_guide_failure_and_correction": true
+        }
+      }
+    },
+    {
+      "name": "numeric-operators",
+      "fixture": "application-numeric-operators",
+      "local_run": "run-jzi6vqm9",
+      "report": "numeric-operators.json",
+      "sha256": "453ecb9dd2138a3e660c7a4eb6584f13112542d505a499219137c1477c0cae3c",
+      "complete": true,
+      "ok": true,
+      "compiler_digest": "ee0714ce7e91073def9b8330acc0a9e0dfb9f0ef61709a416931a59259b46aa6",
+      "case_results": [
+        {
+          "name": "exact operations",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "run_revision": "c0e2c8413fd0d4b47aff371a376ce90687642cc2",
+      "run_dirty": true,
+      "installed": {
+        "numeric_expressions": {
+          "independent_sql": true,
+          "explicit_rounding": true,
+          "null": true,
+          "inexact": true,
+          "overflow": true
+        },
+        "values": {
+          "source_removed": true,
+          "independent_sql": true,
+          "restart": true,
+          "rows": 3,
+          "refused_before_publication": 7,
+          "numeric_guide_failure_and_correction": true,
+          "lossless_guide_failure_and_correction": true
+        }
+      }
+    },
+    {
+      "name": "json-helpers",
+      "fixture": "application-json-helpers",
+      "local_run": "run-s4zaknek",
+      "report": "json-helpers.json",
+      "sha256": "d0b58ea6fcd171a270f84217b7ee8364395ec32fdc203822ce208a3063fb0434",
+      "complete": true,
+      "ok": true,
+      "compiler_digest": "ee0714ce7e91073def9b8330acc0a9e0dfb9f0ef61709a416931a59259b46aa6",
+      "case_results": [
+        {
+          "name": "exact JSON extraction",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "JSON null is a value",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "run_revision": "c0e2c8413fd0d4b47aff371a376ce90687642cc2",
+      "run_dirty": true,
+      "installed": {
+        "installed": {
+          "source_removed": true,
+          "independent_sql": true,
+          "restart": true,
+          "completed": 3,
+          "refused": 3
+        }
+      }
+    },
+    {
+      "name": "callables-combined",
+      "fixture": "application-callables",
+      "local_run": "run-ct_2yivc",
+      "report": "callables-combined.json",
+      "sha256": "822b882a44edc981459cbb6d44dc889c3242a2b5403a652be0633c84f3d98ebb",
+      "complete": false,
+      "ok": false,
+      "compiler_digest": "696d03503a89aad04eb9f6f675a8d9561394e9852faf5143407eb0f6bbce6126",
+      "case_results": [
+        {
+          "name": "imported nested callable",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "returning callable rollback",
+          "status": "not_run",
+          "error_code": null
+        }
+      ],
+      "run_revision": "01694cb9ce28bf4edf92505dc8d264a1b4ac9c4d",
+      "run_dirty": true,
+      "installed": {
+        "installed": {
+          "source_removed": true,
+          "independent_sql": true,
+          "restart": true,
+          "instances": 2,
+          "completed_per_instance": 1,
+          "refused_per_instance": 2,
+          "current_rights_denial": true,
+          "guide_failure_and_correction": true
+        }
+      }
+    },
+    {
+      "name": "refinements-combined",
+      "fixture": "application-refinements",
+      "local_run": "run-xzi4w4tg",
+      "report": "refinements-combined.json",
+      "sha256": "81fed3958ddc79d2644206fd77b6fa6d80ec633ad968c2f9c7925ec46c0a142d",
+      "complete": false,
+      "ok": false,
+      "compiler_digest": "41e059da5847a19b52fe0c5c3fc85c83d000f36f885122d445c3c5444e6e53be",
+      "case_results": [
+        {
+          "name": "bounds accepted",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "missing amount",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "lower bound",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "upper bound",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "postcondition rollback",
+          "status": "not_run",
+          "error_code": null
+        }
+      ],
+      "run_revision": "39c28efdd651db748f3a36f5da15e031132179d6",
+      "run_dirty": true,
+      "installed": {
+        "installed": {
+          "source_removed": true,
+          "independent_sql": true,
+          "restart": true,
+          "completed": 1,
+          "refused": 4,
+          "guide_failure_and_correction": true
+        }
+      }
+    },
+    {
+      "name": "refinements-focused",
+      "fixture": "application-refinements",
+      "local_run": "focused-69h3px3c",
+      "report": "refinements-focused.json",
+      "sha256": "92ec29fad12ce8dae9c852d4a5934eaaa5ef8896bc5de1f35f4e2cdbe5009309",
+      "complete": false,
+      "ok": false,
+      "compiler_digest": "696d03503a89aad04eb9f6f675a8d9561394e9852faf5143407eb0f6bbce6126",
+      "case_results": [
+        {
+          "name": "bounds accepted",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "missing amount",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "lower bound",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "upper bound",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "postcondition rollback",
+          "status": "not_run",
+          "error_code": null
+        }
+      ]
+    },
+    {
+      "name": "cardinality-initial",
+      "fixture": "application-cardinality",
+      "local_run": "run-4ou1bah6",
+      "report": "cardinality-initial.json",
+      "sha256": "bb2283e9b18d20c27665be98eb330ee9c386ce3c134f1e05248315289cc60186",
+      "complete": false,
+      "ok": false,
+      "compiler_digest": "acc68726052800524b07c8f1ebafcc917e7a3073bcec816e38be5f29ef13c763",
+      "case_results": [
+        {
+          "name": "one present NULL",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "one absent",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "one multiple",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "one rollback",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "optional present NULL",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "optional absent",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "optional multiple",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "optional rollback",
+          "status": "not_run",
+          "error_code": null
+        }
+      ],
+      "run_revision": "f60901e2f68dd06ecab3b9cb1e762510a9c087b9",
+      "run_dirty": true,
+      "installed": {}
+    },
+    {
+      "name": "callables-focused-final",
+      "fixture": "application-callables",
+      "local_run": "run-741zt5vn",
+      "report": "callables-focused-final.json",
+      "sha256": "22ba4965efa86c245610df9fa9bf1bc23e62c04389c773f951674623b002e147",
+      "complete": false,
+      "ok": false,
+      "compiler_digest": "ee0714ce7e91073def9b8330acc0a9e0dfb9f0ef61709a416931a59259b46aa6",
+      "run_revision": "c0e2c8413fd0d4b47aff371a376ce90687642cc2",
+      "run_dirty": true,
+      "case_results": [
+        {
+          "name": "imported callable",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "returning callable rollback",
+          "status": "not_run",
+          "error_code": null
+        }
+      ]
+    },
+    {
+      "name": "refinements-focused-final",
+      "fixture": "application-refinements",
+      "local_run": "run-741zt5vn",
+      "report": "refinements-focused-final.json",
+      "sha256": "d69d68cd6ca5b26244888dda13bb0f5a49be60396c30989c907e153b37b38b27",
+      "complete": false,
+      "ok": false,
+      "compiler_digest": "ee0714ce7e91073def9b8330acc0a9e0dfb9f0ef61709a416931a59259b46aa6",
+      "run_revision": "c0e2c8413fd0d4b47aff371a376ce90687642cc2",
+      "run_dirty": true,
+      "case_results": [
+        {
+          "name": "bounds accepted",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "missing amount",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "lower bound",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "upper bound",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "postcondition rollback",
+          "status": "not_run",
+          "error_code": null
+        }
+      ]
+    },
+    {
+      "name": "variant-encoding-final",
+      "fixture": "application-variant-encoding",
+      "local_run": "run-o2eks0l6",
+      "report": "variant-encoding-final.json",
+      "sha256": "31d11e1f9a5a69211053d869515ef77b2835d20a87decf8a1e072571539c8e69",
+      "complete": false,
+      "ok": false,
+      "compiler_digest": "ee0714ce7e91073def9b8330acc0a9e0dfb9f0ef61709a416931a59259b46aa6",
+      "run_revision": "c0e2c8413fd0d4b47aff371a376ce90687642cc2",
+      "run_dirty": true,
+      "installed": {
+        "native": [
+          {
+            "operation": "union-program",
+            "cause": "ProgramTypeMismatch"
+          },
+          {
+            "operation": "view-ddl",
+            "cause": "UnsupportedStatement"
+          },
+          {
+            "operation": "tag-payload-dispatch",
+            "completed": 2,
+            "refused": 1,
+            "rows": [
+              {
+                "id": "1",
+                "tag": "Machine",
+                "resource_id": "7"
+              },
+              {
+                "id": "2",
+                "tag": "Site",
+                "resource_id": "7"
+              }
+            ],
+            "restart": true,
+            "revocation": true
+          }
+        ],
+        "dynamic": {
+          "rows": [
+            [
+              {
+                "id": "1",
+                "machine_id": "7"
+              }
+            ],
+            [
+              {
+                "id": "2",
+                "site_id": "7"
+              }
+            ],
+            [
+              {
+                "id": "1",
+                "tag": "machine"
+              },
+              {
+                "id": "2",
+                "tag": "site"
+              }
+            ]
+          ],
+          "source_removed": true,
+          "independent_sql": true,
+          "restart": true,
+          "revocation": true,
+          "guide_failure_and_correction": true
+        }
+      },
+      "case_results": [
+        {
+          "name": "machine dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "site dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "invalid tag",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing active payload",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "populated inactive payload",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "missing selected resource",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "rollback after write",
+          "status": "not_run",
+          "error_code": null
+        }
+      ]
+    },
+    {
+      "name": "cardinality-final",
+      "fixture": "application-cardinality",
+      "local_run": "run-ok7oiqd5",
+      "report": "cardinality-final.json",
+      "sha256": "ba7ccf398ae416d5521dce67349b95bbe358975efa7da0cafa7a363cdaf40640",
+      "complete": false,
+      "ok": false,
+      "compiler_digest": "ee0714ce7e91073def9b8330acc0a9e0dfb9f0ef61709a416931a59259b46aa6",
+      "run_revision": "c0e2c8413fd0d4b47aff371a376ce90687642cc2",
+      "run_dirty": true,
+      "installed": {
+        "one": {
+          "rows": [
+            {
+              "id": "1",
+              "presence": "present",
+              "note": null
+            }
+          ],
+          "completed": 1,
+          "refused": 3,
+          "source_removed": true,
+          "independent_sql": true,
+          "restart": true,
+          "optional_failure_and_correction": false
+        },
+        "optional": {
+          "rows": [
+            {
+              "id": "1",
+              "presence": "present",
+              "note": null
+            },
+            {
+              "id": "2",
+              "presence": "absent",
+              "note": null
+            }
+          ],
+          "completed": 2,
+          "refused": 2,
+          "source_removed": true,
+          "independent_sql": true,
+          "restart": true,
+          "optional_failure_and_correction": true
+        }
+      },
+      "case_results": [
+        {
+          "name": "one present NULL",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one absent",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one multiple",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one rollback",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional present NULL",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional absent",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "optional multiple",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "optional rollback",
+          "status": "not_run",
+          "error_code": null
+        }
+      ]
+    }
+  ],
+  "final_local_checks": {
+    "revision": "7e57ba1de5ab17cd8ba79a4a3e6a44ac1b712f8b",
+    "dirty": true,
+    "note": "Pending changes were qualification and roadmap documentation; runtime reports above retain their actual earlier identities.",
+    "compiler_sha256": "4006708eaad8cf7f8acfd5f6160ebca5773f2a29fffdd9706d1a5d1982a2cf3d",
+    "source_evidence_store_path": "/nix/store/6r52wlb28m2hfyda2lg7q1wf2kg1npc9-transitc-source-verification",
+    "checks": [
+      {
+        "name": "format-ownership-and-build",
+        "command": "nix develop --command just check",
+        "exit_code": 0,
+        "log": "format-ownership-and-build.txt",
+        "sha256": "1c679fd6c518ed77830ec06df66fcecf9743ded7f4100f03243a533e1a72761c",
+        "original_log_sha256": "1c679fd6c518ed77830ec06df66fcecf9743ded7f4100f03243a533e1a72761c",
+        "log_normalization": "Trailing whitespace removed from each line; no lines omitted."
+      },
+      {
+        "name": "nix-compiler-install-and-parity",
+        "command": "nix flake check --print-build-logs",
+        "exit_code": 0,
+        "log": "nix-compiler-install-and-parity.txt",
+        "sha256": "be579b7e5c11bc875bc0142b28f1ab7549105c6718eb4dbcc410301aed72a1e3",
+        "original_log_sha256": "b1fabe39545e7fb999bfd4dff03819547206711df19c9cd0deef16f9fb543a63",
+        "log_normalization": "Trailing whitespace removed from each line; no lines omitted."
+      },
+      {
+        "name": "independent-source",
+        "command": "nix build .#checks.x86_64-linux.source --out-link .cache/m5-final-source-result --print-build-logs",
+        "exit_code": 0,
+        "log": "independent-source.txt",
+        "sha256": "c10be1bf8fd0350a1adde55ab9dc7732bbd78180a252c007a1479c8b2be448dd",
+        "original_log_sha256": "c10be1bf8fd0350a1adde55ab9dc7732bbd78180a252c007a1479c8b2be448dd",
+        "log_normalization": "Trailing whitespace removed from each line; no lines omitted."
+      }
+    ]
+  }
+}

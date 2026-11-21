@@ -1,0 +1,109 @@
+{
+  "format": "transit_test_v1",
+  "definition": "f311e893f8d2f4c21f426790172fadfebe7eb2364615eb1566c09f11d39bb0bb",
+  "compiler_revision": "development",
+  "compiler_digest": "ee0714ce7e91073def9b8330acc0a9e0dfb9f0ef61709a416931a59259b46aa6",
+  "runtime": {
+    "revision": "f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6",
+    "executable_digest": [
+      220,
+      161,
+      83,
+      79,
+      36,
+      21,
+      190,
+      255,
+      47,
+      110,
+      203,
+      108,
+      182,
+      238,
+      199,
+      124,
+      53,
+      97,
+      67,
+      62,
+      129,
+      133,
+      83,
+      167,
+      140,
+      43,
+      6,
+      92,
+      169,
+      163,
+      155,
+      121
+    ]
+  },
+  "target": "tests",
+  "input_digest": "7c5e582774eda225eabcef8c1da82975666bfc33bd8e1e6d14d6bdeb94766953",
+  "sql_digest": "859e64eac5d9f2ece0c29ebb762831c7b250ec071116b9a78815ce9104a98bbf",
+  "complete": true,
+  "ok": true,
+  "compiler_peak_bytes": 3235438,
+  "cases": [
+    {
+      "name": "exact operations",
+      "identity": "3753c9fc4d1b09ad421aa71200a53324b036849ac67d0bcf9ca73755ea847eac",
+      "sql_digest": "905a00dabdcc1c0740ec834ddb1538530b955bdfa9b17b4eaf95ef551361a187",
+      "location": {
+        "source": "root/build.transit",
+        "source_encoding": "utf8",
+        "source_truncated": false,
+        "statement": null,
+        "offset": "405",
+        "length": "308",
+        "line": "11",
+        "byte_column": "3"
+      },
+      "status": "passed",
+      "error_code": null,
+      "observation": {
+        "actions": 4,
+        "rows": 4,
+        "bytes": 40,
+        "operation": null,
+        "failure": null,
+        "resources": {
+          "memory_peak_bytes": 33261528,
+          "storage_reserved_bytes": 1214701
+        }
+      },
+      "action_location": {
+        "source": "root/build.transit",
+        "source_encoding": "utf8",
+        "source_truncated": false,
+        "statement": null,
+        "offset": "589",
+        "length": "117",
+        "line": "13",
+        "byte_column": "5"
+      }
+    }
+  ],
+  "sources": [
+    {
+      "package": "root",
+      "path": "build.transit",
+      "digest": "eda92e272f64076a834a5028dd1f49bab8bb501478a53a6da25e0da09ad578a9"
+    }
+  ],
+  "dependencies": [],
+  "limits": {
+    "cases": 128,
+    "actions": 1024,
+    "rows": 10000,
+    "result_bytes": 16777216,
+    "report_bytes": 1048576,
+    "case_ms": 30000,
+    "suite_ms": 300000,
+    "cleanup_ms": 5000,
+    "host_bytes": 268435456,
+    "storage_bytes": 268435456
+  }
+}
