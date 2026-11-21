@@ -63,6 +63,11 @@ and storage caps. Source code and command options cannot raise these limits.
 These local tests establish application behavior in this profile, not distributed
 provider or production deployment qualification.
 
+Keep independent success and refusal scenarios in separate cases. Each case gets
+fresh state and its own execution budget. `WITHIN ... OBSERVATIONS` bounds a
+workflow assertion's observation count; it cannot extend the 30-second deadline.
+For `TestDeadline`, reduce the work in each case while retaining its assertions.
+
 To select a locally built compatible host, use `transitc test --runtime /path/to/transit`.
 The host must implement the current compiled-case definition. The report identifies
 the actual runtime revision and executable digest; changing runtimes during a suite
