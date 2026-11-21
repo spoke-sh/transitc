@@ -564,7 +564,7 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
             _ = try Annotations.check(sc, sc, comp.graph, cat, analysis.parsed.program, &analysis.bound, raw_sql, st, org, obs, &comp.context, &comp.work, comp.limits.work);
         }
     }.run;
-    var check_catalog = try Symbolic.catalog(scratch, temp_catalog, sql, symbolic_parameters.items, &at);
+    var check_catalog = try Symbolic.catalog(scratch, temp_catalog, symbolic_parameters.items);
     check_fn(compiler, &check_catalog, sql, &at, scratch, def, res_bindings.items, sites.items, origins.items, obligations.items) catch |err| {
         const err_offset = compiler.context.offset orelse at.offset;
         for (origins.items) |origin| if (err_offset >= origin.start and err_offset < origin.end) {
@@ -2070,8 +2070,6 @@ fn emitValueHole(self: *Self, env: *const Env, tokens: []const s.Token, i: *usiz
     if (value == .symbolic) {
         const name_ = try std.fmt.allocPrint(self.scratch, "__transit$symbolic_{d}", .{self.symbolic_parameters.items.len});
         try self.symbolic_parameters.append(self.scratch, .{ .name = name_, .scalar = value.symbolic });
-        try self.writer.writeAll(self.input_emitted);
-        try self.writer.writeByte('.');
         try Compiler.quoted(&self.writer, name_, '"');
     } else try Compiler.writeValue(&self.writer, value);
     try self.sites.append(self.output, .{ .start = start, .end = self.writer.len(), .value = value });
@@ -2413,7 +2411,7 @@ fn validateUnusedQueueArg(self: *Self, fp: FnParam, call_offset: usize, depth: u
             _ = try Annotations.check(sc, sc, comp.graph, cat, analysis.parsed.program, &analysis.bound, raw_sql, st, org, obs, &comp.context, &comp.work, comp.limits.work);
         }
     }.run;
-    var check_catalog = try Symbolic.catalog(self.scratch, self.catalog.*, sql, self.symbolic_parameters.items, &at);
+    var check_catalog = try Symbolic.catalog(self.scratch, self.catalog.*, self.symbolic_parameters.items);
     run_check(self.compiler, &check_catalog, sql, &at, self.scratch, sub_sites.items, sub_origins.items, sub_obs.items) catch |err| {
         const err_offset = self.compiler.context.offset orelse at.offset;
         for (sub_origins.items) |o| if (err_offset >= o.start and err_offset < o.end) {

@@ -600,7 +600,7 @@
       },
       "open_error_set_uses": 11,
       "propagation": {
-        "try": 530,
+        "try": 528,
         "catch": 26
       },
       "imports": [
@@ -953,7 +953,7 @@
     },
     "packages/transitc-compiler/src/SymbolicProgram.zig": {
       "errors": {
-        "UnsupportedSymbolicSchema": 1
+        "ProgramTooComplex": 1
       },
       "outcomes": {},
       "error_sets": {},
@@ -962,11 +962,10 @@
       },
       "open_error_set_uses": 0,
       "propagation": {
-        "try": 8,
+        "try": 2,
         "catch": 0
       },
       "imports": [
-        "Graph.zig",
         "SourceTypes.zig",
         "WorkingCatalog.zig",
         "std",

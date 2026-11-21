@@ -36,7 +36,7 @@ pub fn analyze(catalog: *Catalog, sql: []const u8, location: *f.Sql.Location) !A
         .page => return error.ApplicationHostUnavailable,
     }
     if (parsed.program.failure) |failure| try self.block(failure.instructions);
-    var bound = try a.Types.bind(catalog.scratch, parsed.program, self.resources.items, location);
+    var bound = try a.Types.bindForAnalysis(catalog.scratch, parsed.program, self.resources.items, catalog.program_parameters, location);
     errdefer bound.deinit();
     try bound.requirements.requireAvailable(a.Types.Requirements.publicData());
     if (bound.native.count() != 0) return error.UnsupportedBuildProgramDependency;

@@ -81,3 +81,38 @@ test "symbolic IF cannot introduce a program or its controls" {
     defer std.testing.allocator.free(changed);
     try std.testing.expectError(error.UnsupportedSymbolicSchema, compile(std.testing.allocator, changed));
 }
+
+fn wholeRow(allocator: std.mem.Allocator, width: usize) ![]const u8 {
+    var schema: std.Io.Writer.Allocating = .init(allocator);
+    defer schema.deinit();
+    try schema.writer.writeAll("id BIGINT NOT NULL");
+    for (1..width) |i| try schema.writer.print(", c{d} BIGINT", .{i});
+    const wide = try std.mem.replaceOwned(u8, allocator, source, "id BIGINT NOT NULL", schema.written());
+    defer allocator.free(wide);
+    const helper = try std.mem.replaceOwned(u8, allocator, wide, "CREATE MODULE EmitSite", "CREATE FUNCTION Accept(entry ROW(id BIGINT), expected SiteId) RETURNS BOOLEAN AS BEGIN RETURN entry.id > 0 AND expected = expected; END; CREATE MODULE EmitSite");
+    defer allocator.free(helper);
+    return std.mem.replaceOwned(u8, allocator, helper, "INSERT INTO sites VALUES ($value)", "REQUIRE Accept(request, $value) ELSE 'BadInput'; INSERT INTO sites VALUES ($value)");
+}
+
+test "symbolic constants do not consume full input row field budget" {
+    const t = std.testing;
+    const text = try wholeRow(t.allocator, 64);
+    defer t.allocator.free(text);
+    const product = try compile(t.allocator, text);
+    defer product.deinit();
+    for (product.steps) |step| try t.expect(std.mem.indexOf(u8, step.sql, "__transit$symbolic") == null);
+    const too_wide = try wholeRow(t.allocator, 65);
+    defer t.allocator.free(too_wide);
+    try t.expectError(error.ProgramTooComplex, compile(t.allocator, too_wide));
+}
+
+fn wholeRowAllocation(allocator: std.mem.Allocator, text: []const u8) !void {
+    const product = try compile(allocator, text);
+    defer product.deinit();
+}
+
+test "full input symbolic checking releases every failed allocation" {
+    const text = try wholeRow(std.testing.allocator, 64);
+    defer std.testing.allocator.free(text);
+    try std.testing.checkAllAllocationFailures(std.testing.allocator, wholeRowAllocation, .{text});
+}

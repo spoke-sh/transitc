@@ -15,6 +15,8 @@ context: ?*@import("SourceDiagnostic.zig").Context = null,
 schemas: std.ArrayList([]const u8) = .empty,
 entries: std.ArrayList(*const Entry) = .empty,
 programs: std.ArrayList(Program) = .empty,
+/// Statement-local analysis inputs; never part of a resource or build product.
+program_parameters: []const f.ApplicationProgram.Types.Field = &.{},
 
 const FkContext = struct {
     catalog: *const Self,
