@@ -24,9 +24,12 @@ zig build
 zig build run -- --version
 just check
 just test::unit
+just test::clean-build
 just test::fmt
 just test::workspace
 just test::examples
+just test::documentation
+just test::release
 just test::build-command
 just test::command
 just test::grammar
@@ -71,6 +74,22 @@ The [handbook tooling guide](docs/handbook/README.md) covers previewing and
 hosting paths. [CI](.github/workflows/ci.yml) validates both `/transitc/` and `/`.
 The separate [handbook workflow](.github/workflows/handbook.yml) builds pull requests
 and publishes the current `main` revision to GitHub Pages.
+
+Run browser checks with `nix develop .#docs-browser --command just docs::browser`
+on Linux. CI installs Playwright's Chromium and checks every published page at both
+hosting paths, with desktop/mobile viewports and light/dark themes. Reports and
+screenshots live in `.cache/handbook-report-*` and `.cache/handbook-browser-*`.
+Keep the thirteen reader tasks in [the coverage map](tests/documentation.json)
+aligned with milestone 4; `just test::documentation` checks the map, public CLI
+options, version and the automation/dependency guide examples.
+
+The `toolchain` shell omits Transit and documentation tooling for native compiler
+checks. CI builds and executes portable archives on x86_64/ARM64 Linux and macOS,
+then signs their bytes with GitHub build provenance. To build a local unsigned
+candidate from a clean committed tree, run
+`nix develop .#toolchain --command python3 tasks/archive.py`. Local archives are
+not signed CI results. See [release qualification](docs/qualification/extraction.md)
+for the support boundary and the draft-release promotion workflow.
 
 ## Extracting code
 

@@ -4,6 +4,7 @@
 Use `transitc build --help`, `transitc fmt --help` or `transitc test --help` for command-specific options.
 Help prints to stdout without reading source or starting a test host.
 `transitc --version` prints the compiler version and build revision.
+The global options are `--help` (also `-h`) and `--version`.
 
 ```text
 transitc build [OPTIONS]

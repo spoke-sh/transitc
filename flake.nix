@@ -82,6 +82,21 @@
           common = [ pkgs.just ];
         in
         {
+          toolchain = pkgs.mkShell {
+            packages = common ++ [
+              zig
+              pkgs.python3
+              pkgs.nixfmt
+            ];
+            buildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.stdenv.cc.libc ];
+          };
+          docs-browser = pkgs.mkShellNoCC {
+            packages = common ++ [
+              pkgs.nodejs_24
+              pkgs.chromium
+            ];
+            CHROMIUM_EXECUTABLE = "${pkgs.chromium}/bin/chromium";
+          };
           default = pkgs.mkShell {
             packages = common ++ [
               zig
@@ -90,7 +105,6 @@
               (pkgs.python3.withPackages (ps: [ ps.antlr4-python3-runtime ]))
               pkgs.antlr4
               pkgs.lean4
-              pkgs.git
               testRuntime
             ];
             TRANSIT_UPSTREAM_BIN = "${upstreamTransit}/bin/transit";
@@ -164,7 +178,9 @@
                 zig build source-probe -Doptimize=ReleaseSafe
                 python3 -B tests/runner/launch.py tests/query/application_source/verify.py zig-out/bin/transitc-source-probe
                 python3 -B tests/runner/launch.py tests/query/application_source/types.py zig-out/bin/transitc-source-probe
-                touch "$out"
+                mkdir -p "$out"
+                cp -r .cache/verification/. "$out/"
+                printf '%s\n' '${self.rev or self.dirtyRev or "development"}' > "$out/source-revision"
               '';
         }
       );

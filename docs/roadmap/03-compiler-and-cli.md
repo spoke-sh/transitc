@@ -1,15 +1,16 @@
 # 3. Compiler and CLI extraction
 
-Status: In Progress
+Status: Completed
 
 Prerequisites: [dependency boundaries](02-dependency-boundaries.md).
 
 ## Frozen comparison basis
 
-The default Nix shell supplies upstream Transit at the frozen source basis.
+The default Nix shell supplies the frozen upstream comparison binary and the
+separately pinned compatible Transit test host.
 The [integration suite](../../tests/integration/README.md) checks real compiler
 output, provenance, reproducibility, diagnostics, and isolated runtime tests.
-The original seven upstream cases remain unchanged. Nine additional parity
+The original seven upstream cases remain unchanged. Twelve additional parity
 cases compare the extracted compiler with that frozen binary, covering the
 expanded source profile and expected tool-identity differences. Runtime
 execution of emitted SQL and retained restart are checked separately.
@@ -58,3 +59,9 @@ The compiler, workspace adapter and independent source checks are implemented.
 Shared SQL/value and compiled-case modules remain Transit-owned and exactly
 pinned. Transit no longer embeds compiler or workspace code; native runtime
 execution stays upstream behind the bounded process contract.
+
+The coordinated [Transit cutover](https://github.com/spoke-sh/transit/pull/474)
+is merged. The [qualification record](../qualification/extraction.md) retains
+standalone clean-cache/native builds, source comparisons, runtime journeys,
+host-boundary refusals, revisions and corrected failures. New language profiles
+and expanded application qualification remain in milestones 5–10.

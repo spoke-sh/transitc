@@ -1,6 +1,6 @@
 # 4. Documentation and qualification
 
-Status: In Progress
+Status: Completed
 
 Prerequisites: [compiler and CLI extraction](03-compiler-and-cli.md). Write docs
 with each earlier slice; this milestone closes coverage and release qualification.
@@ -51,32 +51,32 @@ compiler version; no inherited Transit result is labeled as a transitc run.
 
 ## Extraction implementation update
 
-The handbook now describes build/check/fetch, `transitc test`, source language,
-dependencies, diagnostics, artifacts, migration proposals and the embedding API.
-Three build projects are checked against their source snippets and exact emitted
-artifacts; a fourth checks isolated test cases and a deliberate assertion failure.
-The embedding example
-releases its source before inspecting the compiler-owned product.
+The thirteen reader tasks have owning pages and executable checks in the
+[coverage map](../../tests/documentation.json). The handbook includes installation
+and upgrades, verified archives, complete module/dependency examples, formatting,
+diagnostics, immutable migration evolution, isolated tests, embedding, CI/editor
+integration and troubleshooting. Checked fixtures own example source and expected
+SQL. The embedding consumer releases source before reading its owned product.
 
-On x86_64 Linux, the sandboxed Nix package, unit/ownership tests, workspace
-journeys, upstream baseline, parity cases and emitted-SQL/restart proof passed.
-The compiler source basis was
-[`aeefd7f4bfa7b457749749aea786917794d794d8`](https://github.com/spoke-sh/transitc/commit/aeefd7f4bfa7b457749749aea786917794d794d8),
-with the frozen runtime and shared frontend revisions recorded in the
-[roadmap index](README.md#implementation-status). This record predates the
-standalone test command; its host-boundary qualification is recorded separately.
-Independent source verification executed 192 cases, 134 formatting roundtrips
-and 10 grammar negative controls. Typed correspondence executed 14 Lean laws,
-136 finite equalities, 16 typed and 21 program comparisons, four refusals and
-21 negative controls. These are transitc runs, not inherited Transit evidence.
+The [qualification record](../qualification/extraction.md) preserves exact source,
+compiler and runtime identities, commands, logs, failures and corrections. Native
+Linux/macOS x86_64/ARM64 jobs execute clean-cache builds, unit/embedding checks,
+installed portable archives, formatting and guide examples, then sign and verify
+the candidates with a tamper-refusal check. The complete Nix package and database
+host are qualified on x86_64 Linux; other runtime hosts are outside this claim.
 
-Handbook strict TypeScript and production builds, including broken-link and
-anchor rejection, passed at both `/transitc/` and `/`. The CLI, libraries and
-embedding consumer cross-compiled for `aarch64-linux-gnu`, `aarch64-macos` and
-`x86_64-macos`.
-Cross-compilation does not establish native execution on those hosts.
+Strict TypeScript and production builds reject broken links/anchors. Browser
+checks cover every page, desktop/mobile layouts, light/dark themes, accessibility
+and navigation at both `/transitc/` and `/`, with screenshots and reports retained.
+The separate Pages workflow publishes current `main` and checks public routes;
+the record distinguishes the existing live site from this PR's publication build.
 
-This milestone remains In Progress: native ARM/Darwin execution, visual/browser
-release qualification, signed release archives and live documentation hosting
-have not been qualified. Transit consumer runtime checks are recorded with the
-coordinated extraction PR; they do not extend these standalone host claims.
+Archive manifests, executable versions and the handbook identify their source
+revision and compiler version. The release workflow verifies successful main CI
+and matching tags before promoting all four signed candidates to a draft without
+rebuilding. Qualification does not claim a stable release has been published.
+
+Earlier extraction evidence at
+[`aeefd7f4bfa7b457749749aea786917794d794d8`](https://github.com/spoke-sh/transitc/commit/aeefd7f4bfa7b457749749aea786917794d794d8)
+predates the standalone test command. It remains historical evidence; the linked
+qualification record owns the current foundation and its support boundaries.

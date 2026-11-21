@@ -8,6 +8,10 @@ _default:
 unit:
     zig build test
 
+# Build a source copy with empty dependency and compiler caches (requires host Git).
+clean-build:
+    python3 -B tests/clean_build.py
+
 # Check source formatting, comment preservation, and atomic file updates.
 fmt: _build
     python3 -B tests/integration/format_command.py zig-out/bin/transitc
@@ -19,6 +23,14 @@ workspace: _build
 # Compile and execute the handbook examples.
 examples: _build
     python3 -B tests/examples.py zig-out/bin/transitc
+
+# Check documentation coverage, CLI parity and automation/dependency examples.
+documentation: _build
+    python3 -B tests/documentation.py zig-out/bin/transitc
+
+# Check release promotion identity and corruption refusals.
+release:
+    python3 -B tests/release.py
 
 # Exercise transitc build and its application/migration fixtures.
 build-command: _build

@@ -1,0 +1,8 @@
+zig build "-Dtest-runtime=${TRANSIT_TEST_RUNTIME:-transit}"
+python3 -B tests/examples.py zig-out/bin/transitc
+PASS handbook guides/getting-started.md: exact source and published first artifacts
+PASS handbook guides/source-workflow.md: exact source and published modules artifacts
+PASS handbook reference/artifacts.md: exact source and published migration artifacts
+PASS handbook testing: exact source, isolated cases and deliberate assertion failure
+python3 -B tests/documentation.py zig-out/bin/transitc
+PASS 13 handbook task mappings, CLI options, version and runnable guide success/failure/correction paths

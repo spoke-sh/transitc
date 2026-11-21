@@ -1,0 +1,3 @@
+CREATE MIGRATION TARGET default FROM 'migration-review/basis.json' FOR DATABASE 'transit' SCHEMA 'public' VERSION '0002' NAME 'tables' AS BEGIN
+  CREATE PUBLIC TABLE items (id BIGINT PRIMARY KEY, label TEXT);
+END;

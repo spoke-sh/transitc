@@ -1,0 +1,90 @@
+{
+  "platform": "Linux-6.17.0-41-generic-x86_64-with-glibc2.42",
+  "machine": "x86_64",
+  "compiler_sha256": "2ba2df1a2f45ac85e04c05ee69ec1bcc9b4dd6eab00350f42e639f363306bd4b",
+  "compiler_version": "transitc 0.0.0-dev (development)",
+  "source_verification_revision": "b650d0f0ad106b1c5b3a9919f2f554fe5ce097f7",
+  "browser_revision": "09a2256",
+  "compiler_source_revision": "6200fd0e945f68d28c706b9afbc6b79a9667dfc3",
+  "test_runtime_revision": "f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6",
+  "frozen_comparison_revision": "e7434306334e3692c6f3e123cba0d278fa412196",
+  "files": {
+    "checks.log": "ff9bcd6c211d39b2c105072c772df4324cac205aaa4c532c57f20ea8fbace352",
+    "documentation-closeout.log": "85104065a7c0a4939956f41cbfe23e6a73db22ca73e6eee39b88be801bd27ce7",
+    "handbook-closeout.log": "54070d28fdcce07f7addd082e3d91925d7e7e29b05a1efc48bbe91f27d340170",
+    "handbook-examples.log": "c8999a4017ffd7c119c4d1acef709bfa4e6224782e397d931c43a4b9bdf338e0",
+    "handbook-prefix.log": "37797f7ab3d667db3b373d6bcef6254e4c9a9d65d799f099d91c59bb3f523430",
+    "handbook-root.log": "3be08182024c160a2a04dff89c7b243c1afbc0ef8dc82ab4496fc49b92f0e51a",
+    "multi-schema-positive.log": "eee84df4f8c53a96326241ef60d4328a53bdcb48a7dfb7bb80c9d78ceb28effa",
+    "multi-schema-refusal.log": "f2c39bffe9c49f984731567df696624c81bb03146e948db650924b77a4d5a53f",
+    "multi-schema-split.log": "835ed5e782800be0670d6ba6c109db123b11bf7295a0d87eb2d32fc4c3ebea82",
+    "nix-package.log": "008eeac6ee287a46dcfc64f71e181a58514608e0c85642e06365c91fd4827b84",
+    "runtime-final.log": "bb598f22d2a0005a5ac7808bd3da5a6fdee7617446da988abf9f42e213216327",
+    "runtime-initial.log": "7b4bded28dce4936467e62e875cb00b7057d085b1d213c6cc588dd7436eb8738",
+    "runtime-interrupted.log": "57f68a6e70f1c7114b45af2191b50fa67109af5932b739f5f9e1a250f3305862",
+    "source.log": "be2543488fb60f707c92628eb2a0e94c3b00a110ecef9b884966aa93a3975729"
+  },
+  "commands": [
+    {
+      "command": "nix develop .#toolchain --command just check test::unit test::release",
+      "exit_code": 0,
+      "log": "checks.log"
+    },
+    {
+      "command": "nix build .#checks.x86_64-linux.source --out-link .cache/source-final --print-build-logs",
+      "exit_code": 0,
+      "log": "source.log"
+    },
+    {
+      "command": "nix flake check --print-build-logs",
+      "exit_code": 0,
+      "log": "nix-package.log"
+    },
+    {
+      "command": "nix develop --option eval-cache false .#docs-browser --command just docs::check docs::browser",
+      "exit_code": 0,
+      "log": "handbook-prefix.log"
+    },
+    {
+      "command": "nix develop --option eval-cache false .#docs-browser --command env TRANSITC_DOCS_BASE_URL=/ just docs::browser",
+      "exit_code": 0,
+      "log": "handbook-root.log"
+    },
+    {
+      "command": "nix develop --command just test::examples test::documentation",
+      "exit_code": 0,
+      "log": "handbook-examples.log"
+    },
+    {
+      "command": "nix develop --command just test::workspace test::integration test::build-command test::command",
+      "exit_code": 1,
+      "log": "runtime-initial.log",
+      "note": "Workspace, upstream, parity, SQL/restart, build-command and host-boundary checks passed. The application test schedule failed at the combined multi-schema case deadline; see the corrected run separately."
+    },
+    {
+      "command": "nix develop --option eval-cache false --command just test::command",
+      "exit_code": 1,
+      "log": "runtime-interrupted.log",
+      "note": "Invalid qualification attempt: a concurrent toolchain documentation check replaced zig-out/bin/transitc with a compiler lacking the pinned host path. Restarted with a fixed compiler copy; no product change."
+    },
+    {
+      "command": "nix develop --option eval-cache false .#docs --command just docs::check",
+      "exit_code": 0,
+      "log": "handbook-closeout.log"
+    },
+    {
+      "command": "nix develop --option eval-cache false .#toolchain --command just test::documentation",
+      "exit_code": 0,
+      "log": "documentation-closeout.log",
+      "compiler_sha256": "c12d593105afdee1a79b8f9dbc405087a5e62486a56ca1613122c7bf30c2e35a"
+    },
+    {
+      "command": "nix develop --option eval-cache false --command python3 -B tests/runner/launch.py tests/integration/test_command.py .cache/qualified-compiler/transitc",
+      "exit_code": 0,
+      "log": "runtime-final.log",
+      "note": "Fixed copy of the qualified compiler; SHA-256 matches compiler_sha256. Full corrected application schedule and independent installed-SQL oracle passed."
+    }
+  ],
+  "transcript_format": "Terminal escape sequences and trailing whitespace removed; result text preserved.",
+  "runtime_fixture_revision": "7aee57f4f988b114994848eadc37de6193b84a55"
+}

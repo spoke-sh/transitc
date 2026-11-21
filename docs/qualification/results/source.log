@@ -1,0 +1,9 @@
+error (ignored): error: SQLite database '/home/alex/.cache/nix/eval-cache-v5/76705a36d909a5172d27feed347111fbfc353a546e35857746d63fd766d932c5.sqlite' is busy
+this derivation will be built:
+  /nix/store/33lhys2sw2jr5x2apvbjr5ljxyacrvqx-transitc-source-verification.drv
+building '/nix/store/33lhys2sw2jr5x2apvbjr5ljxyacrvqx-transitc-source-verification.drv'...
+transitc-source-verification> Compiler/workspace imports match the bounded ownership inventory
+transitc-source-verification> source grammar evidence: /build/source/.cache/verification/application-source-grammar/run-o_q5gxnw
+transitc-source-verification> PASS 192 source cases, 134 roundtrips, 10 negative controls
+transitc-source-verification> typed source evidence: /build/source/.cache/verification/application-source-types/run-ahvr1uou
+transitc-source-verification> PASS 14 Lean laws, 136 finite equalities, 16 typed/SQL and 21 program comparisons, 4 refusals, 21 negative controls

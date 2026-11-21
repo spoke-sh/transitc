@@ -407,12 +407,20 @@ def multi_schema_test_journey(cli, parent):
         "TEST 'multi-schema reference exports and typed domains execute in isolated host' USING MODULES (platform) AS BEGIN\n"
         f"  USE AddNetwork(networks, 7, types.EnvId(UUID '{env_uuid}'), '10.1.0.0/16');\n"
         f"  USE SendDeploy(requests, 901, types.EnvId(UUID '{env_uuid}'), 'acme', 7, 'eu-central-1');\n"
-        f"  USE SendDeploy(requests, 902, types.EnvId(UUID '{env_uuid}'), 'wrong-tenant', 7, 'eu-central-1');\n"
-        "  ASSERT WORKFLOW NAME 'deployments.provision' COMPLETED 1 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n"
+        "  ASSERT WORKFLOW NAME 'deployments.provision' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;\n"
         "  ASSERT ROWS (SELECT id, env_id, net_id, deployed_at, digest, tag FROM deployments.releases) EQUAL (\n"
         f"    (901, UUID '{env_uuid}', 7, TIMESTAMP '2026-07-04T09:30:00Z', X'DEADBEEF', 'eu-central-1')\n"
         "  );\n"
         "  ASSERT ROWS (CONSUME id, tag FROM deployments.events) EQUAL ((901, 'eu-central-1'));\n"
+        "END;\n"
+        # Each path has its own fresh database and the unchanged 30-second
+        # case budget. Combining both durable workflows exceeded that budget.
+        "TEST 'multi-schema nested guard refuses a foreign tenant without effects' USING MODULES (platform) AS BEGIN\n"
+        f"  USE AddNetwork(networks, 7, types.EnvId(UUID '{env_uuid}'), '10.1.0.0/16');\n"
+        f"  USE SendDeploy(requests, 902, types.EnvId(UUID '{env_uuid}'), 'wrong-tenant', 7, 'eu-central-1');\n"
+        "  ASSERT WORKFLOW NAME 'deployments.provision' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n"
+        "  ASSERT ROWS (SELECT id, env_id, net_id, deployed_at, digest, tag FROM deployments.releases) EQUAL ();\n"
+        "  ASSERT ROWS (CONSUME id, tag FROM deployments.events) EQUAL ();\n"
         "END;\n"
     )
     source(ws, 'app/multi_schema.test.transit', suite_text)
@@ -436,7 +444,7 @@ def multi_schema_test_journey(cli, parent):
     ))
     report = invoke(cli, ws, timeout=180)
     assert report['target'] == 'tests' and report['complete'], report
-    assert [case['status'] for case in report['cases']] == ['passed'], report
+    assert [case['status'] for case in report['cases']] == ['passed', 'passed'], report
 
     # Test cases also respect EXPORT REFERENCE TABLE encapsulation and cannot read tenancy.environments directly.
     source(ws, 'app/multi_schema.test.transit',

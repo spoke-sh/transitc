@@ -1,0 +1,24 @@
+npm run docs:check
+
+> docs:check
+> npm run typecheck --workspace @transitc/handbook && npm run docs:build
+
+
+> @transitc/handbook@0.0.0-dev typecheck
+> tsc --noEmit
+
+
+> docs:build
+> npm run build --workspace @transitc/handbook
+
+
+> @transitc/handbook@0.0.0-dev build
+> docusaurus build --out-dir dist
+
+[INFO] [en] Creating an optimized production build...
+[webpackbar] ℹ Compiling Client
+[webpackbar] ℹ Compiling Server
+[webpackbar] ✔ Server: Compiled successfully in 1.22s
+[webpackbar] ✔ Client: Compiled successfully in 3.71s
+[SUCCESS] Generated static files in "dist".
+[INFO] Use `npm run serve` command to test your build locally.

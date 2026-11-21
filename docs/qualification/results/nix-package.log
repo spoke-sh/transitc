@@ -1,0 +1,89 @@
+evaluating flake...
+checking flake output 'packages'...
+checking derivation packages.x86_64-linux.transitc...
+derivation evaluated to /nix/store/wrcvgpq6gc0cy5472z05f0dndby53bxp-transitc-0.0.0-dev.drv
+checking derivation packages.x86_64-linux.default...
+derivation evaluated to /nix/store/wrcvgpq6gc0cy5472z05f0dndby53bxp-transitc-0.0.0-dev.drv
+checking flake output 'devShells'...
+checking derivation devShells.x86_64-linux.default...
+derivation evaluated to /nix/store/c8jh34lvj73h8z3j5bc1lmppaznaazs3-nix-shell.drv
+checking derivation devShells.x86_64-linux.toolchain...
+derivation evaluated to /nix/store/2xyn4b4p6phfrkf04c0jb8xkg1vn9sds-nix-shell.drv
+checking derivation devShells.x86_64-linux.docs-browser...
+derivation evaluated to /nix/store/z22zb0j2i04539y1l71cqwj6l9jhqcd4-nix-shell.drv
+checking derivation devShells.x86_64-linux.docs...
+derivation evaluated to /nix/store/kc3g0idgjb7hr20mnrp5xjxpli6zxihi-nix-shell.drv
+checking flake output 'checks'...
+checking derivation checks.x86_64-linux.integration...
+derivation evaluated to /nix/store/pcsfd0nwi297z18fvisja36pjkkng0fi-transitc-upstream-integration.drv
+checking derivation checks.x86_64-linux.compiler...
+derivation evaluated to /nix/store/wrcvgpq6gc0cy5472z05f0dndby53bxp-transitc-0.0.0-dev.drv
+checking derivation checks.x86_64-linux.parity...
+derivation evaluated to /nix/store/66bj5s0kcnspzcbab3rz94y66s96lvy0-transitc-parity.drv
+checking derivation checks.x86_64-linux.source...
+derivation evaluated to /nix/store/33lhys2sw2jr5x2apvbjr5ljxyacrvqx-transitc-source-verification.drv
+checking flake output 'formatter'...
+checking derivation formatter.x86_64-linux...
+derivation evaluated to /nix/store/qjrlmz1gspls8i7l1mlnpn3xa4ck45dk-nixfmt-1.5.0.drv
+running 4 flake checks...
+building '/nix/store/wrcvgpq6gc0cy5472z05f0dndby53bxp-transitc-0.0.0-dev.drv'...
+transitc> Running phase: unpackPhase
+transitc> unpacking source archive /nix/store/1zgg3zvq4l63gnr01xwq57jxl8ki6hrw-source
+transitc> source root is source
+transitc> Running phase: patchPhase
+transitc> Running phase: updateAutotoolsGnuConfigScriptsPhase
+transitc> Running phase: buildPhase
+transitc> buildPhase completed in 2 minutes 24 seconds
+transitc> Running phase: checkPhase
+transitc> CREATE TABLE ITEMS ( ID BIGINT );
+transitc> checkPhase completed in 53 seconds
+transitc> Running phase: fixupPhase
+transitc> shrinking RPATHs of ELF executables and libraries in /nix/store/wxkiv3b6n594q9v8wppcwc75ylxz4505-transitc-0.0.0-dev
+transitc> shrinking /nix/store/wxkiv3b6n594q9v8wppcwc75ylxz4505-transitc-0.0.0-dev/bin/transitc
+transitc> checking for references to /build/ in /nix/store/wxkiv3b6n594q9v8wppcwc75ylxz4505-transitc-0.0.0-dev...
+transitc> patching script interpreter paths in /nix/store/wxkiv3b6n594q9v8wppcwc75ylxz4505-transitc-0.0.0-dev
+transitc> stripping (with command strip and flags -S -p) in  /nix/store/wxkiv3b6n594q9v8wppcwc75ylxz4505-transitc-0.0.0-dev/bin
+transitc> Running phase: installCheckPhase
+transitc> transitc
+transitc>
+transitc> Usage: transitc COMMAND [OPTIONS]
+transitc>
+transitc> Commands:
+transitc>   build  Compile Transit source to SQL
+transitc>   fmt    Format Transit source
+transitc>   test   Run application tests
+transitc>
+transitc> Options:
+transitc>   --help     Show this help
+transitc>   --version  Show version
+transitc>
+transitc> Run transitc COMMAND --help for command options.
+transitc> transitc 0.0.0-dev (b650d0f0ad106b1c5b3a9919f2f554fe5ce097f7)
+transitc> Format Transit source in place.
+transitc>
+transitc> Usage: transitc fmt [OPTIONS] [PATH...]
+transitc>
+transitc> Paths default to the current directory. Directories are searched recursively.
+transitc>
+transitc> Options:
+transitc>   --check  List unformatted files without writing them
+transitc>   --stdin  Format standard input to standard output
+transitc>   --help   Show this help
+transitc> fmt.transit
+transitc> {"ok":true,"action":"check","target":"default","input_digest":"33bc5979ec51f8b8d456b51f5be4f87813113e599a6ae18c4b1a05f758abdd93","sql_digest":"b174883f2e72c7ee599a9f09f54ec5fa2350e5be8f4ee94bab56a7e545a26933","statements":4}
+transitc> transitc: unsupported command; use transitc --help
+transitc> Run application tests in isolated databases.
+transitc>
+transitc> Usage: transitc test [OPTIONS]
+transitc>
+transitc> Options:
+transitc>   -f FILE              Entry file (default: build.transit)
+transitc>   --target NAME        Target (default: tests or sole test target)
+transitc>   --override NAME=DIR  Local dependency override (repeatable)
+transitc>   --runtime FILE       Transit test host executable
+transitc>   --format text|json   Output format (default: text)
+transitc>   --color auto|off|on  Diagnostic color (default: auto)
+transitc>   --help               Show this help
+transitc> {"format":"transit_test_v1","definition":"f311e893f8d2f4c21f426790172fadfebe7eb2364615eb1566c09f11d39bb0bb","compiler_revision":"b650d0f0ad106b1c5b3a9919f2f554fe5ce097f7","compiler_digest":"d2a6e78af5667e51795a29f32346b9ddc9988948afe885c8619fa8226e663e59","runtime":{"revision":"f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6","executable_digest":[220,161,83,79,36,21,190,255,47,110,203,108,182,238,199,124,53,97,67,62,129,133,83,167,140,43,6,92,169,163,155,121]},"target":"tests","input_digest":"3e6da3dd3bf9c91a58c7d1ee48d95d470919cd19bb2ec014d0619067c5f5cf00","sql_digest":"4158dd27066f5c7611e34c1999ea0aa7df23d871fdb6904715c5837eea648fa4","complete":true,"ok":true,"compiler_peak_bytes":3330770,"cases":[{"name":"writes and refusals","identity":"7aab0a06fd8f31720c16b905433b394d21e88c58bb5f21e57ea9bd416ee85c13","sql_digest":"d30e2749c8d557a6258d86d9ec09462d08ade9a51dfc0ca4286dc641ed4c694d","location":{"source":"root/build.transit","source_encoding":"utf8","source_truncated":false,"statement":null,"offset":"139","length":"401","line":"6","byte_column":"3"},"status":"passed","error_code":null,"observation":{"actions":6,"rows":4,"bytes":66,"operation":null,"failure":null,"resources":{"memory_peak_bytes":33258823,"storage_reserved_bytes":1356832}},"action_location":{"source":"root/build.transit","source_encoding":"utf8","source_truncated":false,"statement":null,"offset":"465","length":"68","line":"10","byte_column":"5"}},{"name":"fresh state","identity":"7aa8cba8531ac9baa3112f3d982bc8fdcf54e95ad67ee87d1ebabc227846fc64","sql_digest":"4cfa14b01245db793bed76cf0700cc4c7861cb5028a59373131da58785b165b1","location":{"source":"root/build.transit","source_encoding":"utf8","source_truncated":false,"statement":null,"offset":"543","length":"190","line":"12","byte_column":"3"},"status":"passed","error_code":null,"observation":{"actions":4,"rows":1,"bytes":10,"operation":null,"failure":null,"resources":{"memory_peak_bytes":33258270,"storage_reserved_bytes":1213321}},"action_location":{"source":"root/build.transit","source_encoding":"utf8","source_truncated":false,"statement":null,"offset":"670","length":"56","line":"14","byte_column":"5"}}],"sources":[{"package":"root","path":"build.transit","digest":"094b444285898f660d4b4bd11b579a9804de4b85ea420b3c351854b3dc3fea79"},{"package":"root","path":"rows.transit","digest":"e78d563cec6e68c3dad76339dd440aae3886226be59b7fc5db6bd946a0805da5"}],"dependencies":[],"limits":{"cases":128,"actions":1024,"rows":10000,"result_bytes":16777216,"report_bytes":1048576,"case_ms":30000,"suite_ms":300000,"cleanup_ms":5000,"host_bytes":268435456,"storage_bytes":268435456}}
+warning: The check omitted these incompatible systems: aarch64-darwin, aarch64-linux, x86_64-darwin
+Use '--all-systems' to check all.

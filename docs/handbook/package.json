@@ -6,7 +6,8 @@
     "start": "docusaurus start --host 127.0.0.1 --no-open",
     "build": "docusaurus build --out-dir dist",
     "serve": "docusaurus serve --dir dist --host 127.0.0.1 --no-open",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "browser": "playwright test"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",
@@ -15,9 +16,11 @@
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@docusaurus/module-type-aliases": "3.10.2",
     "@docusaurus/plugin-content-docs": "3.10.2",
     "@docusaurus/types": "3.10.2",
+    "@playwright/test": "1.63.0",
     "@types/node": "24.0.0",
     "@types/react": "19.3.0",
     "typescript": "7.0.2"

@@ -77,7 +77,7 @@ jobs:
         env:
           SITE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
-          for route in '' guides/getting-started reference/cli internals/architecture; do
+          for route in '' guides/getting-started guides/installation guides/automation guides/troubleshooting reference/cli internals/architecture; do
             curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 10 \
               "${SITE_URL%/}/$route" --output /dev/null
           done

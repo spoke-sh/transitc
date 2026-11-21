@@ -41,7 +41,6 @@ If the entry is missing, create `build.transit` or select another file with
 `-f FILE`. A syntax error returns status 1 and a bounded source diagnostic; fix the
 reported source before rebuilding. Unknown options return status 2.
 
-The flake defines x86_64/aarch64 Linux and Darwin packages. Executed extraction
-evidence currently identifies its host separately; a package definition alone
-is not a successful native-host qualification. There are no signed standalone
-release archives or updater yet. Pin the Git revision when consuming the flake.
+See [installation and upgrades](installation.md) for native archive verification,
+supported hosts and compiler/runtime compatibility. Pin the Git revision when
+consuming the flake; a development version label alone does not identify a build.

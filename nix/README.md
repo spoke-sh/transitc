@@ -25,7 +25,11 @@ nixpkgs and zig-overlay inputs follow this repository's pins. The shell exports
 silently select another `transit` from PATH. `TRANSIT_TEST_RUNTIME` selects the
 compatible compiled-case host; `TRANSIT_TEST_SOURCE` supplies upstream process/installation helpers. SQL grammar verification uses the frozen baseline.
 
-`.#docs` omits Transit, Python, Zig, and the C toolchain. Both shells are defined
+`.#docs` omits Transit, Python, Zig, and the C toolchain. `.#toolchain` supplies
+only Zig, Just, Python and nixfmt (plus the native C environment); `.#docs-browser`
+adds Nix Chromium to the documentation tools for local Linux browser checks.
+Git comes from the host and is not added to any development shell.
+Compiler and documentation shells are defined
 for x86_64/aarch64 Linux and Darwin; local validation establishes only the host
 platform's result. A first default-shell invocation may build the upstream runtime
 and its frontend assets if they are not cached.
