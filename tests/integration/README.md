@@ -85,8 +85,8 @@ remain 30 seconds, five minutes and five seconds. Temporary test installations
 are private; publish reviewed reports, not credentials or runtime directories.
 Keep other storage-heavy proofs outside this qualification window. The deadline
 includes durable native execution, so competing disk workloads can legitimately
-exhaust it. Partial replies from an outer timeout retain their artifact identities
-after the compiler and its host process group have been killed and joined.
+exhaust it. The outer guard terminates the process group, waits for the compiler
+to exit and retains partial reply hashes.
 
 ## Upstream identity and updates
 

@@ -12,7 +12,7 @@ from integration import composition
 
 
 class Composition(unittest.TestCase):
-    def test_timeout_joins_descendants_and_retains_partial_reply(self):
+    def test_timeout_terminates_descendants_and_retains_partial_reply(self):
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)
             compiler = directory / 'compiler'

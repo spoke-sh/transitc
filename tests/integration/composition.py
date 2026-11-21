@@ -96,7 +96,8 @@ def execute(compiler, destination, phases, fixtures):
         finally:
             if isinstance(selected, str):
                 # Timeouts may leave a partial reply. Retain its identity just as
-                # we retain a complete failed report, after all writers join.
+                # we retain a complete failed report, after terminating the group
+                # and waiting for the compiler to exit.
                 for key, suffix in (('report', '.json'), ('stderr', '.stderr')):
                     artifact = destination / (name + suffix)
                     if artifact.exists():
