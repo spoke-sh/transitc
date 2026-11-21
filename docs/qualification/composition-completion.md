@@ -42,7 +42,16 @@ The failed wall-time syscall sample coincided with concurrent storage proof
 work: 4,886 `fsync` calls accumulated 42.69 seconds across threads (8.74 ms mean),
 and the host exhausted its 30-second budget. Linux I/O pressure samples and the
 strict host response are retained under `results/composition-completion/contention/`.
-Those measurements establish a slow, progressing execution; they do not alone
-establish that every earlier failure had the same cause. The next comparison
-uses the same request and binary after storage work finishes. No timeout,
-authority check, lease or durability setting has been relaxed.
+The identical request and binary, under the identical wall-time tracing command,
+passed in 17.83 seconds after the storage proof finished its active phase. The
+completed case performed 7,996 `fsync` calls, accumulating 11.01 seconds across
+threads (1.38 ms mean); I/O pressure at entry fell from 4.89% to 0.10%.
+The unchanged exact row and workflow assertions passed. These paired results
+are retained under `results/composition-completion/low-io/`.
+
+This reproduction assigns deadline exhaustion to storage latency under competing
+durable workloads, not a stalled Queue claim or compiler scheduling. It does not
+establish that every older failure had that cause. Final qualification must run
+without overlapping storage-heavy proofs; the aggregate composition runner itself
+executes each independent phase sequentially. No timeout, authority check, lease
+or durability setting has been relaxed, and no speculative runtime fix is claimed.
