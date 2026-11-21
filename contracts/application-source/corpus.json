@@ -1333,5 +1333,19 @@
     "name": "cardinality-many-refused",
     "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE items (id BIGINT); CREATE PUBLIC QUEUE jobs (id BIGINT NOT NULL); CREATE PUBLIC DATAFLOW p FROM QUEUE jobs AS request AS BEGIN LET found MANY = SELECT id FROM items; END; END;",
     "parse": false
+  },
+  {
+    "name": "symbolic-program-specialization",
+    "source": "CREATE DOMAIN MachineId AS BIGINT IDENTITY 'example.machine';\nCREATE DOMAIN SiteId AS BIGINT IDENTITY 'example.site';\nCREATE VARIANT Target AS (Machine(id MachineId), Site(id SiteId));\nCREATE FUNCTION identity_machine(value MachineId) RETURNS MachineId AS BEGIN RETURN value; END;\nCREATE FUNCTION accepts(value MachineId) RETURNS BOOLEAN AS BEGIN RETURN TRUE; END;\nCREATE MODULE EmitMachine(value MachineId) AS BEGIN\n  CREATE PUBLIC DATAFLOW machine_route FROM QUEUE requests AS request WHERE accepts($value) AS BEGIN\n    BEGIN ATOMIC\n      INSERT INTO machines VALUES (identity_machine($value)) ON CONFLICT (id) DO ASSERT SAME ROW;\n    END;\n  END;\n  AUTHORIZE DATAFLOW machine_route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW machine_route;\nEND;\nCREATE MODULE EmitSite(value SiteId) AS BEGIN\n  CREATE PUBLIC DATAFLOW site_route FROM QUEUE requests AS request AS BEGIN\n    BEGIN ATOMIC\n      INSERT INTO sites VALUES ($value) ON CONFLICT (id) DO ASSERT SAME ROW;\n    END;\n  END;\n  AUTHORIZE DATAFLOW site_route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW site_route;\nEND;\nCREATE MODULE Setup(machine TYPE, site TYPE, selected Target) AS BEGIN\n  CREATE PUBLIC TABLE machines (id $machine PRIMARY KEY);\n  CREATE PUBLIC TABLE sites (id $site PRIMARY KEY);\n  CREATE PUBLIC QUEUE requests (id BIGINT NOT NULL);\n  MATCH selected\n    WHEN Target.Machine(value) THEN USE EmitMachine(value);\n    WHEN Target.Site(value) THEN USE EmitSite(value);\n  END MATCH;\nEND;\nCREATE TARGET default AS BEGIN USE Setup(TYPE MachineId, TYPE SiteId, Target.Machine(MachineId(7))); END;\n",
+    "parse": true,
+    "compile": "build",
+    "steps": 6
+  },
+  {
+    "name": "symbolic-program-unselected-domain",
+    "source": "CREATE DOMAIN MachineId AS BIGINT IDENTITY 'example.machine';\nCREATE DOMAIN SiteId AS BIGINT IDENTITY 'example.site';\nCREATE VARIANT Target AS (Machine(id MachineId), Site(id SiteId));\nCREATE FUNCTION identity_machine(value MachineId) RETURNS MachineId AS BEGIN RETURN value; END;\nCREATE FUNCTION accepts(value MachineId) RETURNS BOOLEAN AS BEGIN RETURN TRUE; END;\nCREATE MODULE EmitMachine(value MachineId) AS BEGIN\n  CREATE PUBLIC DATAFLOW machine_route FROM QUEUE requests AS request WHERE accepts($value) AS BEGIN\n    BEGIN ATOMIC\n      INSERT INTO machines VALUES (identity_machine($value)) ON CONFLICT (id) DO ASSERT SAME ROW;\n    END;\n  END;\n  AUTHORIZE DATAFLOW machine_route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW machine_route;\nEND;\nCREATE MODULE EmitSite(value SiteId) AS BEGIN\n  CREATE PUBLIC DATAFLOW site_route FROM QUEUE requests AS request AS BEGIN\n    BEGIN ATOMIC\n      INSERT INTO machines VALUES ($value) ON CONFLICT (id) DO ASSERT SAME ROW;\n    END;\n  END;\n  AUTHORIZE DATAFLOW site_route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW site_route;\nEND;\nCREATE MODULE Setup(machine TYPE, site TYPE, selected Target) AS BEGIN\n  CREATE PUBLIC TABLE machines (id $machine PRIMARY KEY);\n  CREATE PUBLIC TABLE sites (id $site PRIMARY KEY);\n  CREATE PUBLIC QUEUE requests (id BIGINT NOT NULL);\n  MATCH selected\n    WHEN Target.Machine(value) THEN USE EmitMachine(value);\n    WHEN Target.Site(value) THEN USE EmitSite(value);\n  END MATCH;\nEND;\nCREATE TARGET default AS BEGIN USE Setup(TYPE MachineId, TYPE SiteId, Target.Machine(MachineId(7))); END;\n",
+    "parse": true,
+    "compile": "build",
+    "error": "SourceDomainMismatch"
   }
 ]

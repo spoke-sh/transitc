@@ -855,6 +855,7 @@ fn checkBody(self: *Self, file: usize, statements: []const s.Statement, bindings
     };
     if (stable_catalog and (checker.catalog.schemas.items.len != self.catalog.schemas.items.len or
         checker.catalog.entries.items.len != self.catalog.entries.items.len or
+        checker.catalog.programs.items.len != self.catalog.programs.items.len or
         (if (checker.exports) |v| v.items.len else 0) != (if (self.exports) |v| v.items.len else 0))) return error.UnsupportedSymbolicSchema;
 }
 fn match(self: *Self, file: usize, input: @FieldType(@FieldType(s.Statement, "value"), "match"), bindings: []const Binding, depth: usize) !void {
@@ -1584,7 +1585,6 @@ fn emit(self: *Self, file: usize, span: s.Span, template: s.Template.Syntax, bin
 }
 fn emitStatement(self: *Self, file: usize, span: s.Span, template: s.Template.Syntax, bindings: []const Binding, origins: *std.ArrayList(Origin), at: *f.Sql.Location) !void {
     const tokens = template.tokens;
-    if (self.symbolic and (template.kind == .program or template.kind == .control)) return error.UnsupportedSymbolicProgram;
     if (self.in_case and self.actions.items.len == Test.max_actions) return error.TestActionLimit;
     self.file = file;
     self.offset = span.start;
@@ -1604,27 +1604,35 @@ fn emitStatement(self: *Self, file: usize, span: s.Span, template: s.Template.Sy
     self.catalog.bindings = bindings;
     self.catalog.context = &self.context;
     const is_create = tokenIs(self.graph.sources[file].text, tokens[0], "CREATE");
+    var symbolic_parameters: @import("SymbolicProgram.zig").Parameters = .empty;
     const raw = if (template.kind == .program)
-        try @import("ProgramLowering.zig").lowerProgram(self, file, tokens, bindings, scratch, f.Sql.max_statement_bytes, &sites, origins, &obligations)
+        try @import("ProgramLowering.zig").lowerProgram(self, file, tokens, bindings, scratch, f.Sql.max_statement_bytes, &sites, origins, &obligations, &symbolic_parameters)
     else
         try expand(self.graph.sources[file].text, tokens, bindings, self.activeSchemas(), scratch, f.Sql.max_statement_bytes, false, if (log_statement) null else &type_sites, self.a, &sites, origins);
+    var check_catalog = try @import("SymbolicProgram.zig").catalog(scratch, self.catalog, raw, symbolic_parameters.items, at);
     // DDL creates the proposed shape; other statements check source annotations
     // before the ordinary binder can erase nominal identity into scalar values.
     var digest: [32]u8 = undefined;
     if (is_create and template.kind != .program) digest = try self.catalog.check(raw, at);
     const resource_checked = if (log_statement) try @import("ResourceOperands.zig").check(template, bindings) else null;
     const checked = if (template.kind == .program) blk: {
-        var analysis = try @import("ProgramCheck.zig").analyze(&self.catalog, raw, at);
+        var analysis = try @import("ProgramCheck.zig").analyze(&check_catalog, raw, at);
         defer analysis.deinit();
         var result = resource_checked.?;
-        result.program = try @import("ProgramAnnotations.zig").check(scratch, self.a, self.graph, &self.catalog, analysis.parsed.program, &analysis.bound, raw, sites.items, origins.items, obligations.items, &self.context, &self.work, self.limits.work);
+        result.program = try @import("ProgramAnnotations.zig").check(scratch, self.a, self.graph, &check_catalog, analysis.parsed.program, &analysis.bound, raw, sites.items, origins.items, obligations.items, &self.context, &self.work, self.limits.work);
         break :blk result;
     } else if (template.kind == .control or template.kind == .create_schema) resource_checked.? else try Operands.check(scratch, self.a, self.graph, &self.catalog, self.owner, bindings, raw, sites.items, self.symbolic, &self.context);
     self.context = .{};
     if (log_statement and self.symbolic and !is_create) _ = try self.catalog.check(raw, at);
     if (!log_statement) try Catalog.verifyTypeOperands(scratch, raw, type_sites.items, at);
     self.checked_statements += 1;
-    if (self.symbolic) return;
+    if (self.symbolic) {
+        if (template.kind == .program) {
+            _ = try check_catalog.check(raw, at);
+            self.catalog.programs = check_catalog.programs;
+        }
+        return;
+    }
     const canonical = if (template.kind == .program) raw else blk: {
         origins.clearRetainingCapacity();
         break :blk try expand(self.graph.sources[file].text, tokens, bindings, self.activeSchemas(), scratch, f.Sql.max_statement_bytes, true, null, self.a, null, origins);

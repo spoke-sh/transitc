@@ -36,6 +36,9 @@
       "packages/transitc-compiler/src/SourceTypes.zig": [
         "transit_sql_frontend"
       ],
+      "packages/transitc-compiler/src/SymbolicProgram.zig": [
+        "transit_sql_frontend"
+      ],
       "packages/transitc-compiler/src/Syntax.zig": [
         "transit_sql_frontend"
       ],
@@ -76,6 +79,9 @@
         "transit_protocol"
       ],
       "packages/transitc-compiler/src/source_test.zig": [
+        "transit_protocol"
+      ],
+      "packages/transitc-compiler/src/symbolic_program_test.zig": [
         "transit_protocol"
       ],
       "packages/transitc-compiler/src/tests.zig": [

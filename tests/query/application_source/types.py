@@ -11,7 +11,7 @@ import tempfile
 from runner import capture
 from runner.paths import ROOT
 from query.application_source.verify import execute, same
-from query.application_source import program_types, dynamic_types, scalar_types, cardinality_types
+from query.application_source import program_types, dynamic_types, scalar_types, cardinality_types, symbolic_program_types
 
 SPEC = ROOT / 'contracts/application-source/TypedTarget.lean'
 THEOREMS = {
@@ -231,13 +231,16 @@ def main():
     controls += scalar_controls
     cardinalities, cardinality_controls = cardinality_types.run(driver, destination, must_fail)
     controls += cardinality_controls
+    symbolic, symbolic_controls = symbolic_program_types.run(driver, destination, must_fail)
+    controls += symbolic_controls
+    meta["symbolic_programs_compared"] = symbolic
     meta["cardinalities_compared"] = cardinalities
     meta["date_values_compared"] = scalars
     meta["runtime_matches_compared"] = dynamic
     meta.update(programs_compared=programs, completed=True, named_laws=len(THEOREMS), finite_equalities=len(names) - len(THEOREMS),
                 compared=len(outputs), refused=len(refused), negative_controls=controls)
     capture.write_json(destination / 'evidence.json', meta)
-    print(f'PASS {len(THEOREMS)} Lean laws, {len(names) - len(THEOREMS)} finite equalities, {len(outputs)} typed/SQL and {programs} program and {dynamic} runtime MATCH and {scalars} DATE and {cardinalities} cardinality comparisons, {len(refused)} refusals, {len(controls)} negative controls')
+    print(f'PASS {len(THEOREMS)} Lean laws, {len(names) - len(THEOREMS)} finite equalities, {len(outputs)} typed/SQL and {programs} program and {dynamic} runtime MATCH and {scalars} DATE and {cardinalities} cardinality and {symbolic} symbolic program comparisons, {len(refused)} refusals, {len(controls)} negative controls')
 
 
 if __name__ == '__main__':

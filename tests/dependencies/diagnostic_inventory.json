@@ -146,7 +146,7 @@
         "UnknownSourceSymbol": 4,
         "UnsupportedRecursiveExports": 1,
         "UnsupportedSourceDeclaration": 6,
-        "UnsupportedSymbolicProgram": 2,
+        "UnsupportedSymbolicProgram": 1,
         "UnsupportedSymbolicSchema": 2,
         "UnsupportedTestOption": 1,
         "WrongSourceTargetKind": 3
@@ -207,7 +207,7 @@
       },
       "open_error_set_uses": 10,
       "propagation": {
-        "try": 243,
+        "try": 245,
         "catch": 34
       },
       "imports": [
@@ -218,6 +218,7 @@
         "ResourceOperands.zig",
         "SourceDiagnostic.zig",
         "SourceTypes.zig",
+        "SymbolicProgram.zig",
         "Syntax.zig",
         "Test.zig",
         "TypedOperands.zig",
@@ -446,7 +447,7 @@
         "InvalidParameterType": 13,
         "InvalidQueuePredicate": 1,
         "InvalidSourceName": 2,
-        "InvalidSourceOperand": 3,
+        "InvalidSourceOperand": 4,
         "InvalidSourceSyntax": 12,
         "InvalidSourceTemplate": 1,
         "InvalidVariantConstructor": 1,
@@ -470,7 +471,8 @@
         "UnknownSourceOperand": 3,
         "UnsupportedLogOperand": 1,
         "UnsupportedNominalColumn": 1,
-        "UnsupportedProgramInstruction": 1
+        "UnsupportedProgramInstruction": 1,
+        "UnsupportedSymbolicProgram": 1
       },
       "outcomes": {
         "Env.mode": [
@@ -549,7 +551,7 @@
       },
       "open_error_set_uses": 11,
       "propagation": {
-        "try": 500,
+        "try": 508,
         "catch": 26
       },
       "imports": [
@@ -558,6 +560,7 @@
         "ProgramAnnotations.zig",
         "ProgramCheck.zig",
         "SourceTypes.zig",
+        "SymbolicProgram.zig",
         "Syntax.zig",
         "TypedOperands.zig",
         "WorkingCatalog.zig",
@@ -847,6 +850,28 @@
         "Graph.zig",
         "SourceDiagnostic.zig",
         "Syntax.zig",
+        "std",
+        "transit_sql_frontend"
+      ]
+    },
+    "packages/transitc-compiler/src/SymbolicProgram.zig": {
+      "errors": {
+        "UnsupportedSymbolicSchema": 1
+      },
+      "outcomes": {},
+      "error_sets": {},
+      "error_returns": {
+        "catalog()": "<inferred>"
+      },
+      "open_error_set_uses": 0,
+      "propagation": {
+        "try": 8,
+        "catch": 0
+      },
+      "imports": [
+        "Graph.zig",
+        "SourceTypes.zig",
+        "WorkingCatalog.zig",
         "std",
         "transit_sql_frontend"
       ]

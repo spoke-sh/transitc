@@ -170,6 +170,16 @@ quoted identifiers are inert. Module operands cannot become SQL tokens. Expanded
 statements are checked by the ordinary typed SQL owners before emission. Runtime
 positional parameters are not part of this fully bound target profile.
 
+Compile-time MATCH checks programs and their control statements in every arm.
+Symbolic scalar holes bind to temporary typed inputs, preserving physical and
+nominal descriptors without inventing values. Only the selected concrete arm is
+emitted. No temporary catalog fields or checking-only program identities escape
+into artifacts. Resource names and shapes stay concrete; a symbolic IF may not
+add programs, resources, schemas or exports. Whole-input ROW helper arguments
+combined with symbolic scalar holes remain unsupported; pass individual fields.
+Quoted `__transit$symbolic_` input names are reserved during symbolic checking.
+
+
 ## Executable target
 
 The target supports `CREATE SCHEMA [IF NOT EXISTS]`, schema-qualified and

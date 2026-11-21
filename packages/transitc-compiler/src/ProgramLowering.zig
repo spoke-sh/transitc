@@ -11,6 +11,7 @@ const types = @import("SourceTypes.zig");
 const Operands = @import("TypedOperands.zig");
 const Annotations = @import("ProgramAnnotations.zig");
 const ProgramCheck = @import("ProgramCheck.zig");
+const Symbolic = @import("SymbolicProgram.zig");
 
 const CallOrigin = Operands.CallOrigin;
 const Symbol = struct { original: []const u8, emitted: []const u8 };
@@ -71,6 +72,7 @@ writer: Compiler.BoundedBuffer,
 sites: *std.ArrayList(Operands.Site),
 origins: *std.ArrayList(Operands.Origin),
 obligations: *std.ArrayList(Annotations.Obligation),
+symbolic_parameters: *Symbolic.Parameters,
 next_id: usize = 0,
 in_queue_predicate: bool = false,
 queue_name: []const u8 = "",
@@ -466,6 +468,7 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
     var origins: std.ArrayList(Operands.Origin) = .empty;
     var obligations: std.ArrayList(Annotations.Obligation) = .empty;
 
+    var symbolic_parameters: Symbolic.Parameters = .empty;
     var lowerer: Self = .{
         .compiler = compiler,
         .catalog = &temp_catalog,
@@ -475,6 +478,7 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
         .sites = &sites,
         .origins = &origins,
         .obligations = &obligations,
+        .symbolic_parameters = &symbolic_parameters,
         .queue_name = "__transit$in",
         .input_emitted = "\"__transit$req\"",
     };
@@ -553,7 +557,8 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
             _ = try Annotations.check(sc, sc, comp.graph, cat, analysis.parsed.program, &analysis.bound, raw_sql, st, org, obs, &comp.context, &comp.work, comp.limits.work);
         }
     }.run;
-    check_fn(compiler, &temp_catalog, sql, &at, scratch, sites.items, origins.items, obligations.items) catch |err| {
+    var check_catalog = try Symbolic.catalog(scratch, temp_catalog, sql, symbolic_parameters.items, &at);
+    check_fn(compiler, &check_catalog, sql, &at, scratch, sites.items, origins.items, obligations.items) catch |err| {
         const err_offset = compiler.context.offset orelse at.offset;
         for (origins.items) |origin| if (err_offset >= origin.start and err_offset < origin.end) {
             if (origin.file) |origin_file| compiler.file = origin_file;
@@ -575,6 +580,7 @@ pub fn lowerProgram(
     sites: *std.ArrayList(Operands.Site),
     origins: *std.ArrayList(Operands.Origin),
     obligations: *std.ArrayList(Annotations.Obligation),
+    symbolic_parameters: *Symbolic.Parameters,
 ) ![]const u8 {
     errdefer origins.clearRetainingCapacity();
     if (tokens.len < 4) return error.InvalidSourceSyntax;
@@ -592,6 +598,12 @@ pub fn lowerProgram(
         .sites = sites,
         .origins = origins,
         .obligations = obligations,
+        .symbolic_parameters = symbolic_parameters,
+    };
+    // Type-only inputs cannot be named by authored SQL. Helpers are checked
+    // independently against their declared row shapes before specialization.
+    if (compiler.symbolic) for (tokens) |token| {
+        if (token.kind == .quoted and std.mem.startsWith(u8, try self.decodeProgramName(text, token), "__transit$symbolic_")) return error.UnsupportedSymbolicProgram;
     };
     var env: Env = .{
         .file = file,
@@ -2029,6 +2041,7 @@ fn emitValueHole(self: *Self, env: *const Env, tokens: []const s.Token, i: *usiz
     };
     switch (value) {
         .integer, .text, .boolean, .uuid, .timestamptz, .date, .binary, .nominal => {},
+        .symbolic => if (!self.compiler.symbolic) return error.InvalidSourceOperand,
         .table, .stream, .queue, .identifier => {
             self.setError(env, dollar_tok.start);
             return error.UnsupportedLogOperand;
@@ -2041,7 +2054,13 @@ fn emitValueHole(self: *Self, env: *const Env, tokens: []const s.Token, i: *usiz
     i.* += 2;
     if (self.writer.len() != 0) try self.writer.writeByte(' ');
     const start = self.writer.len();
-    try Compiler.writeValue(&self.writer, value);
+    if (value == .symbolic) {
+        const name_ = try std.fmt.allocPrint(self.scratch, "__transit$symbolic_{d}", .{self.symbolic_parameters.items.len});
+        try self.symbolic_parameters.append(self.scratch, .{ .name = name_, .scalar = value.symbolic });
+        try self.writer.writeAll(self.input_emitted);
+        try self.writer.writeByte('.');
+        try Compiler.quoted(&self.writer, name_, '"');
+    } else try Compiler.writeValue(&self.writer, value);
     try self.sites.append(self.output, .{ .start = start, .end = self.writer.len(), .value = value });
     var rec = self.makeOrigin(env, dollar_tok.start);
     rec.start = start;
@@ -2323,6 +2342,8 @@ fn emitHoistedLet(self: *Self, caller_env: *const Env, h_name: []const u8, expec
         .sites = &hoist.sites,
         .origins = &hoist.origins,
         .obligations = &hoist.obligations,
+        .symbolic_parameters = self.symbolic_parameters,
+        .input_emitted = self.input_emitted,
         .next_id = self.next_id,
     };
     const origin = sub.makeOrigin(caller_env, arg_offset);
@@ -2354,6 +2375,7 @@ fn validateUnusedQueueArg(self: *Self, fp: FnParam, call_offset: usize, depth: u
         .sites = &sub_sites,
         .origins = &sub_origins,
         .obligations = &sub_obs,
+        .symbolic_parameters = self.symbolic_parameters,
         .next_id = self.next_id,
         .in_queue_predicate = true,
         .queue_name = self.queue_name,
@@ -2378,7 +2400,8 @@ fn validateUnusedQueueArg(self: *Self, fp: FnParam, call_offset: usize, depth: u
             _ = try Annotations.check(sc, sc, comp.graph, cat, analysis.parsed.program, &analysis.bound, raw_sql, st, org, obs, &comp.context, &comp.work, comp.limits.work);
         }
     }.run;
-    run_check(self.compiler, self.catalog, sql, &at, self.scratch, sub_sites.items, sub_origins.items, sub_obs.items) catch |err| {
+    var check_catalog = try Symbolic.catalog(self.scratch, self.catalog.*, sql, self.symbolic_parameters.items, &at);
+    run_check(self.compiler, &check_catalog, sql, &at, self.scratch, sub_sites.items, sub_origins.items, sub_obs.items) catch |err| {
         const err_offset = self.compiler.context.offset orelse at.offset;
         for (sub_origins.items) |o| if (err_offset >= o.start and err_offset < o.end) {
             if (o.file) |of| self.compiler.file = of;

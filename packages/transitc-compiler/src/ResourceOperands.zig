@@ -20,7 +20,7 @@ pub fn check(template: s.Syntax, bindings: []const types.Binding) !Operands.Chec
             .value, .operand => if (value == .reference_table) return error.ReferenceOnlyTableAccess else if (value != .integer and value != .text and value != .boolean and
                 value != .uuid and value != .timestamptz and value != .date and value != .binary and
                 !(value == .nominal and template.kind != .control) and
-                !(template.kind == .program and (value == .table or value == .stream or value == .queue or value == .identifier))) return error.UnsupportedLogOperand,
+                !(template.kind == .program and (value == .symbolic or value == .table or value == .stream or value == .queue or value == .identifier))) return error.UnsupportedLogOperand,
         }
     }
     return .{ .table = "", .schema = @splat(0), .columns = &.{}, .operands = &.{} };

@@ -1,0 +1,33 @@
+CREATE DOMAIN MachineId AS BIGINT IDENTITY 'example.machine';
+CREATE DOMAIN SiteId AS BIGINT IDENTITY 'example.site';
+CREATE VARIANT Target AS (Machine(id MachineId), Site(id SiteId));
+CREATE FUNCTION identity_machine(value MachineId) RETURNS MachineId AS BEGIN RETURN value; END;
+CREATE FUNCTION accepts(value MachineId) RETURNS BOOLEAN AS BEGIN RETURN TRUE; END;
+CREATE MODULE EmitMachine(value MachineId) AS BEGIN
+  CREATE PUBLIC DATAFLOW machine_route FROM QUEUE requests AS request WHERE accepts($value) AS BEGIN
+    BEGIN ATOMIC
+      INSERT INTO machines VALUES (identity_machine($value)) ON CONFLICT (id) DO ASSERT SAME ROW;
+    END;
+  END;
+  AUTHORIZE DATAFLOW machine_route AS ROLE CURRENT_ROLE;
+  ACTIVATE DATAFLOW machine_route;
+END;
+CREATE MODULE EmitSite(value SiteId) AS BEGIN
+  CREATE PUBLIC DATAFLOW site_route FROM QUEUE requests AS request AS BEGIN
+    BEGIN ATOMIC
+      INSERT INTO sites VALUES ($value) ON CONFLICT (id) DO ASSERT SAME ROW;
+    END;
+  END;
+  AUTHORIZE DATAFLOW site_route AS ROLE CURRENT_ROLE;
+  ACTIVATE DATAFLOW site_route;
+END;
+CREATE MODULE Setup(machine TYPE, site TYPE, selected Target) AS BEGIN
+  CREATE PUBLIC TABLE machines (id $machine PRIMARY KEY);
+  CREATE PUBLIC TABLE sites (id $site PRIMARY KEY);
+  CREATE PUBLIC QUEUE requests (id BIGINT NOT NULL);
+  MATCH selected
+    WHEN Target.Machine(value) THEN USE EmitMachine(value);
+    WHEN Target.Site(value) THEN USE EmitSite(value);
+  END MATCH;
+END;
+CREATE TARGET default AS BEGIN USE Setup(TYPE MachineId, TYPE SiteId, Target.Machine(MachineId(7))); END;
