@@ -52,7 +52,7 @@ with each increment. These additions do not close this milestone.
 
 | Plan unit | Delivered increment | Remaining gate |
 | --- | --- | --- |
-| A/B | Explicit tag/payload encoding, exhaustive runtime MATCH, nominal payload checks, hygienic lowering and symbolic program/control checking in every compile-time arm | Installed generated/oracle dispatch, restart and rights checks pass; isolated runtime qualification and whole-input ROW helpers with symbolic scalar holes remain open |
+| A/B | Explicit tag/payload encoding, exhaustive runtime MATCH, nominal payload checks, hygienic lowering and all-arm program/control checking; whole-input ROW specialization with a separate bounded scalar environment | Whole-row unit, independent field/domain and candidate runtime checks pass; the pure upstream API merge and complete candidate runtime qualification remain open |
 | C | ONE and OPTIONAL SELECT results, ordered ONE assertion, guarded optional projection, preserved nominal fields and nullable cells | Installed ONE/OPTIONAL generated/oracle and restart checks pass; isolated completion, bounded many and state-carrying values remain open |
 | D | Direct immutable row-presence facts plus ordered non-nullness, same-type equality and constant BIGINT bounds in explicit REQUIRES/ENSURES contracts; installed refusal/rollback journey passes | Isolated runtime qualification; general implication solving and resource-derived facts remain outside the bounded profile |
 | E | Exact FUNCTION/GUARD/PROCEDURE OF module arguments and resource effects; nested inlining, explicit instances, installed oracle/rollback/restart/current-rights denial pass | Isolated runtime qualification; callable row/many returns and implicit signature subtyping remain unsupported |
@@ -66,7 +66,7 @@ reports that hit a deadline remain failures, even when compile-time checks pass.
 
 ## Next slice: complete the existing composition profile
 
-**Status: Proposed for review.** Basis: the merge of
+**Status: Implementation in progress.** Basis: the merge of
 [PR #5](https://github.com/spoke-sh/transitc/pull/5) at transitc
 `391ef54024aefe1eb23885962d920b57d6b07485`, inspected on 2026-11-21.
 This slice closes the isolated-execution and symbolic-input gaps in the delivered
@@ -84,9 +84,11 @@ identify a common cause or establish a compiler regression.
 
 At the planning check, all four native compiler/archive jobs and the handbook job
 in [PR run 44948950220](https://github.com/spoke-sh/transitc/actions/runs/44948950220)
-passed. Its compiler job passed Nix, independent source verification, release and
-clean-build steps; the combined process/integration step was still running.
-Record its eventual outcome and the tested revision before implementation.
+passed. Its compiler job subsequently finished successfully, including Nix,
+independent source verification, release, clean-build and combined
+process/integration steps. All six jobs passed at the merged PR revision.
+The [completion qualification](../qualification/composition-completion.md)
+retains the subsequent baseline reproduction and investigation.
 Successful native compiler jobs do not qualify database execution on those hosts.
 
 Keep shared packages and the compiled-case host at

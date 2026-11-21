@@ -55,9 +55,13 @@ installed journeys from isolated deadline failures. Fixing or investigating a
 failing test remains work; a declared runtime dependency does not turn a failure
 into a pass.
 
-Whole-input ROW helpers combined with symbolic scalar holes remain outside the
-bounded checker. Admitting that combination requires compiler implementation and
-its independent hygiene/type/refusal tests, not a new runtime representation.
+Whole-input ROW helpers with symbolic scalar holes now preserve the authored
+Queue shape through a separate bounded analysis environment. The compiler and
+independent hygiene/type/refusal tests are implemented; the supporting pure
+Transit API and its candidate pin still require upstream merge and complete
+qualification. This needs no new native ROW representation. See the
+[completion record](../qualification/composition-completion.md) for actual
+revisions and results.
 Source callable row/many returns, general implication solving, implicit signature
 subtyping and unrestricted predicates are not silently admitted by this increment.
 New source forms that depend on the native gates above still need their own

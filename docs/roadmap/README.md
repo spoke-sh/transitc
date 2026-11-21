@@ -28,7 +28,7 @@ records executed foundation checks separately from the expanded feature and
 performance work in milestones 5–10.
 The [typed composition qualification](../qualification/typed-composition.md)
 records milestone 5's delivered increments, passing evidence and open gates.
-Its [next proposed slice](05-typed-composition-and-sql.md#next-slice-complete-the-existing-composition-profile)
+Its [current completion slice](05-typed-composition-and-sql.md#next-slice-complete-the-existing-composition-profile)
 finishes isolated execution and whole-input ROW specialization before further
 runtime-dependent language expansion.
 
@@ -179,7 +179,7 @@ protocol, memory and compiled-case test types, plus native database execution.
 Transit contains no compiler snapshot or dependency on transitc.
 
 Standalone manifests pin the deterministic five-package pure source archive at
-Transit `f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`, with both Zig content hash and
+Transit `5d13883116f5d9b8ef748625b47108a7ef9b3212`, with both Zig content hash and
 Nix SHA256. The comparison binary remains frozen at
 `e7434306334e3692c6f3e123cba0d278fa412196`; the compatible compiled-case host is
 selected separately by the `transit` flake input. The

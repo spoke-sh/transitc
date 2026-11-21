@@ -55,3 +55,12 @@ establish that every older failure had that cause. Final qualification must run
 without overlapping storage-heavy proofs; the aggregate composition runner itself
 executes each independent phase sequentially. No timeout, authority check, lease
 or durability setting has been relaxed, and no speculative runtime fix is claimed.
+
+The five original failed case requests were then replayed once each, sequentially,
+against the unchanged uninstrumented Nix host. Typed-Queue, flat encoding,
+generated dynamic dispatch, cardinality and refinement assertions all passed in
+13.58, 14.96, 18.54, 14.21 and 22.53 seconds respectively. The
+[direct-control schedule](results/composition-completion/direct-controls/summary.json)
+retains every result and I/O pressure samples; no case was retried inside that
+schedule. These controls support the storage-latency diagnosis and preserve the
+original SQL, but do not replace the required complete candidate schedules.

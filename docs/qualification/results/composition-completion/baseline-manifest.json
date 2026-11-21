@@ -88,6 +88,30 @@
     {
       "path": "low-io/syscalls.txt",
       "sha256": "21697d5bc085144c532b84f9d465dc9154e31f3b8b6cef29987a4f6dae349939"
+    },
+    {
+      "path": "direct-controls/application-cardinality.json",
+      "sha256": "1204c84cde4b4f930e075e08cd78c200b1be80f2e00de66c62a6034a7f2bc58c"
+    },
+    {
+      "path": "direct-controls/application-dynamic-dispatch.json",
+      "sha256": "cfa62945e6a0a7e105039e29ae5b304b152d7de0769dad6691063188e80163b4"
+    },
+    {
+      "path": "direct-controls/application-refinements.json",
+      "sha256": "3df09876aaa52001e726254408bb8e345fb28eb57c17b288e27a6723589b455c"
+    },
+    {
+      "path": "direct-controls/application-typed-queue.json",
+      "sha256": "6d72a6baeee864ea9d53aec22cd7e5ea406dee23f1f56877e4ca7e7f1ef46fc3"
+    },
+    {
+      "path": "direct-controls/application-variant-encoding.json",
+      "sha256": "6f56087576fcd52f3203a73125be49a704f5d1878464a2883e5016d13338e42e"
+    },
+    {
+      "path": "direct-controls/summary.json",
+      "sha256": "724b56214852c917c43b2bc2833aae9ef07af6b7a14cc96d1c7c39b4e1220e47"
     }
   ]
 }
