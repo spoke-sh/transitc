@@ -1419,7 +1419,7 @@
   },
   {
     "name": "numeric-source-scalar-fixture",
-    "source": "CREATE MODULE Exact(large NUMERIC(38,9), minimum NUMERIC(38,9)) AS BEGIN\n  CREATE PUBLIC TABLE exact_values (id BIGINT PRIMARY KEY, amount NUMERIC(38, 9), payload JSON, span INTERVAL);\n  INSERT INTO exact_values VALUES\n    (1, $large, JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', INTERVAL(1, -2, 3)),\n    (2, $minimum, JSON 'null', INTERVAL(-2147483648, 2147483647, -9223372036854775808)),\n    (3, NULL, NULL, NULL);\nEND;\nCREATE MODULE Setup() AS BEGIN\n  USE Exact(NUMERIC(38,9) '9007199254740993.123456789', NUMERIC(38,9) '-99999999999999999999999999999.999999999');\nEND;\nCREATE TARGET default AS BEGIN USE Setup(); END;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'exact decimal JSON and interval components' USING MODULES (Setup()) AS BEGIN\n    ASSERT ROWS (SELECT id, amount, payload, span FROM exact_values) EQUAL (\n      (1, 9007199254740993.123456789, JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', INTERVAL(1, -2, 3)),\n      (2, -99999999999999999999999999999.999999999, JSON 'null', INTERVAL(-2147483648, 2147483647, -9223372036854775808)),\n      (3, NULL, NULL, NULL)\n    );\n  END;\nEND;\n",
+    "source": "CREATE MODULE Exact(large NUMERIC(38,9), minimum NUMERIC(38,9), payload JSON, json_null JSON, normal INTERVAL, extreme INTERVAL) AS BEGIN\n  CREATE PUBLIC TABLE exact_values (id BIGINT PRIMARY KEY, amount NUMERIC(38, 9), payload JSON, span INTERVAL);\n  INSERT INTO exact_values VALUES\n    (1, $large, $payload, $normal),\n    (2, $minimum, $json_null, $extreme),\n    (3, NULL, NULL, NULL);\nEND;\nCREATE MODULE Setup() AS BEGIN\n  USE Exact(NUMERIC(38,9) '9007199254740993.123456789', NUMERIC(38,9) '-99999999999999999999999999999.999999999', JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', JSON 'null', INTERVAL(1, -2, 3), INTERVAL(-2147483648, 2147483647, -9223372036854775808));\nEND;\nCREATE TARGET default AS BEGIN USE Setup(); END;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'exact decimal JSON and interval components' USING MODULES (Setup()) AS BEGIN\n    ASSERT ROWS (SELECT id, amount, payload, span FROM exact_values) EQUAL (\n      (1, 9007199254740993.123456789, JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', INTERVAL(1, -2, 3)),\n      (2, -99999999999999999999999999999.999999999, JSON 'null', INTERVAL(-2147483648, 2147483647, -9223372036854775808)),\n      (3, NULL, NULL, NULL)\n    );\n  END;\nEND;\n",
     "parse": true,
     "compile": "test_suite"
   },
@@ -1492,6 +1492,51 @@
   {
     "name": "callable-imported-prototype-parameter",
     "source": "IMPORT steps FROM 'steps.transit';\nCREATE PUBLIC MODULE Pipeline(command PROCEDURE OF steps.Store, accepted IDENTIFIER, events IDENTIFIER, requests IDENTIFIER, route IDENTIFIER, lease TEXT) AS BEGIN\n  CREATE PUBLIC TABLE $accepted (id BIGINT PRIMARY KEY);\n  CREATE PUBLIC STREAM $events (id BIGINT NOT NULL);\n  CREATE PUBLIC QUEUE $requests (id BIGINT NOT NULL, allowed BOOLEAN NOT NULL) WITH (lease_duration = $lease, max_lease_duration = $lease);\n  CREATE PUBLIC DATAFLOW $route FROM QUEUE $requests AS request AS BEGIN\n    BEGIN ATOMIC\n      LET saved = CALL command($accepted, $events, request.id, request.allowed);\n      REQUIRE saved = request.id ELSE 'WrongReturn';\n    END;\n  END;\n  AUTHORIZE DATAFLOW $route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW $route;\nEND;\n",
+    "parse": true
+  },
+  {
+    "name": "lossless-parameters",
+    "source": "CREATE MODULE Exact(large NUMERIC(38,9), minimum NUMERIC(38,9), payload JSON, json_null JSON, normal INTERVAL, extreme INTERVAL) AS BEGIN\n  CREATE PUBLIC TABLE exact_values (id BIGINT PRIMARY KEY, amount NUMERIC(38, 9), payload JSON, span INTERVAL);\n  INSERT INTO exact_values VALUES\n    (1, $large, $payload, $normal),\n    (2, $minimum, $json_null, $extreme),\n    (3, NULL, NULL, NULL);\nEND;\nCREATE MODULE Setup() AS BEGIN\n  USE Exact(NUMERIC(38,9) '9007199254740993.123456789', NUMERIC(38,9) '-99999999999999999999999999999.999999999', JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', JSON 'null', INTERVAL(1, -2, 3), INTERVAL(-2147483648, 2147483647, -9223372036854775808));\nEND;\nCREATE TARGET default AS BEGIN USE Setup(); END;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'exact decimal JSON and interval components' USING MODULES (Setup()) AS BEGIN\n    ASSERT ROWS (SELECT id, amount, payload, span FROM exact_values) EQUAL (\n      (1, 9007199254740993.123456789, JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', INTERVAL(1, -2, 3)),\n      (2, -99999999999999999999999999999.999999999, JSON 'null', INTERVAL(-2147483648, 2147483647, -9223372036854775808)),\n      (3, NULL, NULL, NULL)\n    );\n  END;\nEND;\n",
+    "parse": true
+  },
+  {
+    "name": "lossless-domains",
+    "source": "CREATE DOMAIN Document AS JSON IDENTITY 'example.document'; CREATE DOMAIN Elapsed AS INTERVAL IDENTITY 'example.elapsed'; CREATE MODULE Put(d Document, e Elapsed, t TYPE) AS BEGIN CREATE PUBLIC TABLE samples(id BIGINT PRIMARY KEY,payload $t,elapsed INTERVAL); INSERT INTO samples VALUES(1,$d,$e); END; CREATE TARGET default AS BEGIN USE Put(Document(JSON '{\"wide\":9007199254740993}'),Elapsed(INTERVAL(-2147483648,2147483647,-9223372036854775808)),TYPE Document); END;",
+    "parse": true
+  },
+  {
+    "name": "lossless-context-names",
+    "source": "CREATE MODULE Json(interval JSON) AS BEGIN END; CREATE TARGET default AS BEGIN USE Json(JSON 'null'); END;",
+    "parse": true
+  },
+  {
+    "name": "interval-too-large",
+    "source": "CREATE TARGET default AS BEGIN USE Put(INTERVAL(2147483648,0,0)); END;",
+    "parse": false
+  },
+  {
+    "name": "interval-bad-arity",
+    "source": "CREATE TARGET default AS BEGIN USE Put(INTERVAL(1,2)); END;",
+    "parse": false
+  },
+  {
+    "name": "interval-fraction",
+    "source": "CREATE TARGET default AS BEGIN USE Put(INTERVAL(1,2,3.5)); END;",
+    "parse": false
+  },
+  {
+    "name": "json-malformed-semantic",
+    "source": "CREATE TARGET default AS BEGIN USE Put(JSON '{'); END;",
+    "parse": true
+  },
+  {
+    "name": "json-helper-fixture",
+    "source": "CREATE FUNCTION Identity(payload JSON, unused BIGINT) RETURNS JSON AS BEGIN RETURN payload; END;\nCREATE PROCEDURE Save(events STREAM(id BIGINT NOT NULL, number BIGINT, text TEXT, payload JSON), id BIGINT, payload JSON)\nEFFECTS (PRODUCE events)\nREQUIRES payload IS NOT NULL ELSE 'SqlNull'\nAS BEGIN ATOMIC\n  LET number = JSON_INTEGER(payload, '$.number');\n  LET text = JSON_VALUE(payload, '$.value');\n  PRODUCE INTO events VALUES (id, number, text, payload);\nEND;\nCREATE MODULE Setup(lease TEXT) AS BEGIN\n  CREATE PUBLIC STREAM json_events(id BIGINT NOT NULL, number BIGINT, text TEXT, payload JSON);\n  CREATE PUBLIC QUEUE json_requests(id BIGINT NOT NULL, payload JSON) WITH(lease_duration=$lease,max_lease_duration=$lease);\n  CREATE PUBLIC DATAFLOW json_route FROM QUEUE json_requests AS request AS BEGIN\n    BEGIN ATOMIC CALL Save(json_events, request.id, Identity(request.payload, 1)); END;\n  END;\n  AUTHORIZE DATAFLOW json_route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW json_route;\nEND;\nCREATE TARGET default AS BEGIN USE Setup('120s'); END;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'exact JSON extraction' USING MODULES (Setup('30s')) AS BEGIN\n    ENQUEUE INTO json_requests VALUES(1, JSON '{\"number\":9007199254740993,\"value\":false}');\n    ASSERT WORKFLOW NAME 'json_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, number, text, payload FROM json_events) EQUAL ((1,9007199254740993,'false',JSON '{\"number\":9007199254740993,\"value\":false}'));\n  END;\n  TEST 'JSON null is a value' USING MODULES (Setup('30s')) AS BEGIN\n    ENQUEUE INTO json_requests VALUES(2, JSON 'null');\n    ASSERT WORKFLOW NAME 'json_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, number, text, payload FROM json_events) EQUAL ((2,NULL,NULL,JSON 'null'));\n  END;\nEND;\n",
+    "parse": true
+  },
+  {
+    "name": "numeric-operators-fixture",
+    "source": "CREATE MODULE Setup() AS BEGIN\n  CREATE PUBLIC TABLE numbers(id BIGINT PRIMARY KEY, amount NUMERIC(20,3));\n  INSERT INTO numbers VALUES(1,9007199254740.125),(2,NULL);\nEND;\nCREATE TARGET default AS BEGIN\n  USE Setup();\n  SELECT DECIMAL_ADD(amount,amount,20,3,REJECT) AS doubled FROM numbers;\n  SELECT DECIMAL_RESCALE(amount,20,2,HALF_EVEN) AS rounded FROM numbers;\nEND;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'exact operations' USING MODULES(Setup()) AS BEGIN\n    ASSERT ROWS(SELECT DECIMAL_ADD(amount,amount,20,3,REJECT) AS doubled FROM numbers) EQUAL ((18014398509480.250),(NULL));\n    ASSERT ROWS(SELECT DECIMAL_RESCALE(amount,20,2,HALF_EVEN) AS rounded FROM numbers) EQUAL ((9007199254740.12),(NULL));\n  END;\nEND;\n",
     "parse": true
   }
 ]

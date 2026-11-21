@@ -59,7 +59,7 @@ AS BEGIN
 END;
 ```
 
-Parameters are `BIGINT`, `TEXT`, `BOOLEAN`, `UUID`, `TIMESTAMPTZ`, `DATE`, `NUMERIC(p,s)`, `BINARY`,
+Parameters are `BIGINT`, `TEXT`, `BOOLEAN`, `UUID`, `TIMESTAMPTZ`, `DATE`, `NUMERIC(p,s)`, `JSON`, `INTERVAL`, `BINARY`,
 `IDENTIFIER`, `TYPE`, `SCHEMA_BINDING`,
 `ROW(field kind, ...)`, `MODULE interface_name`, `MODULE [OF] constructor_name`,
 named domains/variants or exact `TABLE(...)`, `STREAM(...)` and `QUEUE(...)`
@@ -122,8 +122,8 @@ remains the default cache location unless `--out` is passed on the CLI.
 Compile-time expressions
 include parameter references, module and instance references, `ROW(field => expr, ...)`
 literals and `.field` projections, `SCHEMA_BINDING('name')`, signed integer/text/Boolean
-literals, `NUMERIC(p,s) 'decimal'`, `DATE 'YYYY-MM-DD'`, `UUID '...'`, `TIMESTAMPTZ '...'` / `TIMESTAMP '...'` and `X'...'` binary
-literals, `NAME 'identifier'`, `TYPE BIGINT|TEXT|BOOLEAN|UUID|TIMESTAMPTZ|DATE|BINARY`, `TYPE NUMERIC(p,s)`, named type operands and constructors, parentheses, checked
+literals, `NUMERIC(p,s) 'decimal'`, `DATE 'YYYY-MM-DD'`, `JSON 'text'`, `INTERVAL(months,days,nanos)`, `UUID '...'`, `TIMESTAMPTZ '...'` / `TIMESTAMP '...'` and `X'...'` binary
+literals, `NAME 'identifier'`, `TYPE BIGINT|TEXT|BOOLEAN|UUID|TIMESTAMPTZ|DATE|JSON|INTERVAL|BINARY`, `TYPE NUMERIC(p,s)`, named type operands and constructors, parentheses, checked
 integer `+`, `-`, `*`, comparisons and Boolean AND/OR/NOT. Conditional bodies use
 `IF expression THEN ... [ELSE ...] END IF;`. Conditions must be Boolean.
 Expressions have no ambient environment, time, random, database or effect access.
@@ -357,7 +357,7 @@ CREATE PUBLIC DOMAIN SiteId AS BIGINT IDENTITY 'example.site-id';
 CREATE PUBLIC VARIANT Target AS (Machine(id MachineId), Site(id SiteId));
 ```
 
-A domain wraps BIGINT, TEXT, BOOLEAN, UUID, TIMESTAMPTZ, DATE, NUMERIC(p,s) or BINARY. Its identity is 1–128 UTF-8 bytes,
+A domain wraps BIGINT, TEXT, BOOLEAN, UUID, TIMESTAMPTZ, DATE, NUMERIC(p,s), JSON, INTERVAL or BINARY. Its identity is 1–128 UTF-8 bytes,
 compared exactly; its definition fixes the base type. Import the original public
 declaration to share a domain. Independent declarations with the same identity
 reject, even with equal base types. Paths, aliases and physical representations
@@ -392,7 +392,7 @@ export without re-instantiation. An instance has at most 64 unique exports.
 A typed Table parameter can also forward its existing handle through `EXPORT TABLE rows AS alias;`.
 A parameter such as `rows TABLE(id MachineId PRIMARY KEY)` requires an exact
 ordered column/key/nullability/collation signature. Signature columns use the
-admitted source scalar types (`BIGINT`, `TEXT`, `BOOLEAN`, `UUID`, `TIMESTAMPTZ`, `DATE`, `NUMERIC(p,s)`, `BINARY`) or nominal domains, with optional NULL/NOT NULL, PRIMARY KEY
+admitted source scalar types (`BIGINT`, `TEXT`, `BOOLEAN`, `UUID`, `TIMESTAMPTZ`, `DATE`, `NUMERIC(p,s)`, `JSON`, `INTERVAL`, `BINARY`) or nominal domains, with optional NULL/NOT NULL, PRIMARY KEY
 and COLLATE clauses. Omitted collation matches the native `none` descriptor;
 explicit collation must match exactly. Runtime schema limits also apply. Defaults, CHECK constraints
 and other semantic column options cannot be hidden by a smaller signature.
@@ -900,3 +900,35 @@ parameter/result types, resource operations and ordered validation clauses.
 Guard/procedure arguments require explicit `EFFECTS` lists, checked against the
 complete inlined body. See [callable composition](application-source/CALLABLES_V1.md)
 for binding, authority, purity and atomicity boundaries.
+
+### Lossless JSON and INTERVAL source values
+
+`JSON 'text'`, `INTERVAL(months, days, nanos)`, their source parameters, TYPE
+operands and nominal domain bases preserve their native descriptors. JSON parsing
+uses the shared bounded parser: 65,536 bytes, depth 16, 4,096 tokens, 256 fields
+per object, valid UTF-8 and unique decoded keys. Numbers remain lexical text;
+SQL quoting is applied to the validated payload. JSON null is a value, distinct
+from SQL NULL. Intervals contain signed i32 months/days and signed i64 nanoseconds,
+with no normalization or implicit microsecond-duration conversion.
+
+Neither type admits source equality, ordering, arithmetic or extraction, including
+through a nominal domain. Hashing source argument bytes/components records build
+identity; it does not confer a runtime JSON hash or equality trait. Whitespace or
+key-order changes can therefore change a source binding identity even when a
+runtime consumer would observe the same JSON object.
+
+Concrete Table/Stream/Queue values and Table domain annotations use the ordinary
+SQL binder. Symbolic Table parameters in compile-time MATCH remain refused with
+`UnsupportedComparison` by the pinned prepared-parameter owner; no witness value
+or unselected-arm check is fabricated. INTERVAL helpers/program values remain
+refused by the native schema owner.
+
+JSON runtime values can pass through typed helpers and native JSON_INTEGER /
+JSON_VALUE calls. These native projections intentionally return SQL NULL for both
+missing members and JSON null. JSON_INTEGER accepts only exact signed i64 integer
+tokens; fractions, exponents, strings and containers refuse. JSON_VALUE returns
+string, number-lexeme or boolean text, and refuses containers. These operations do
+not establish row absence or preserve all source cell states. JSON literals from
+source parameters cannot be inserted into a program expression: the pinned
+program grammar has no JSON literal. Feed ordinary JSON through a resource input
+or native JSON_OBJECT instead. Current runtime authority still applies.

@@ -239,6 +239,11 @@ fn expr(self: Self, value: *s.Expr, depth: usize, parent: u8, right: bool) anyer
             try self.w.writeAll("TIMESTAMP ");
             try self.string(v);
         },
+        .json => |v| {
+            try self.w.writeAll("JSON ");
+            try self.string(v);
+        },
+        .interval => |v| try self.w.print("INTERVAL({d}, {d}, {d})", .{ v.months, v.days, v.nanos }),
         .date => |v| {
             try self.w.writeAll("DATE ");
             try self.string(v);
@@ -498,6 +503,8 @@ fn scalarName(value: s.ScalarType) []const u8 {
         .uuid => "UUID",
         .timestamptz => "TIMESTAMPTZ",
         .date => "DATE",
+        .json => "JSON",
+        .interval => "INTERVAL",
         .numeric => unreachable,
         .binary => "BINARY",
     };
@@ -510,6 +517,8 @@ fn kind(self: Self, value: s.Kind) anyerror!void {
         .uuid => try self.w.writeAll("UUID"),
         .timestamptz => try self.w.writeAll("TIMESTAMPTZ"),
         .date => try self.w.writeAll("DATE"),
+        .json => try self.w.writeAll("JSON"),
+        .interval => try self.w.writeAll("INTERVAL"),
         .numeric => |d| try self.numericType(d),
         .binary => try self.w.writeAll("BINARY"),
         .identifier => try self.w.writeAll("IDENTIFIER"),

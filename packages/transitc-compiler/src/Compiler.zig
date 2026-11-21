@@ -659,7 +659,7 @@ fn argumentDepth(self: *Self, file: usize, kind: s.Kind, value: Value, depth: us
             if (std.meta.activeTag(value) != @field(std.meta.Tag(Value), @tagName(tag))) return error.SourceTypeMismatch;
             try types.signature(self.graph, file, columns, @field(value, @tagName(tag)), &self.context);
         },
-        .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .binary => {
+        .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary => {
             if (!types.Scalar.eql(try types.field(self.graph, file, kind), value.scalar() orelse return error.SourceTypeMismatch)) return error.SourceTypeMismatch;
         },
         .callable => |v| {
@@ -1473,6 +1473,15 @@ fn expression(self: *Self, file: usize, expr: *const s.Expr, bindings: []const B
             const atom = try f.Types.Semantics.bind(value.text, kind.physical());
             break :blk .{ .numeric = .{ .type = value.type, .coefficient = atom.decimal } };
         },
+        .json => |value| blk: {
+            var parsed = f.Types.Json.parse(self.a, value, .{}) catch |err| switch (err) {
+                error.OutOfMemory, error.DuplicateField, error.InvalidUtf8, error.JsonByteBudgetExceeded, error.JsonDepthExceeded, error.JsonTokenBudgetExceeded, error.JsonFieldBudgetExceeded => return err,
+                else => return error.InvalidJson,
+            };
+            parsed.deinit();
+            break :blk .{ .json = value };
+        },
+        .interval => |value| .{ .interval = value },
         .numeric_type => |value| .{ .type = try types.numericScalar(value) },
         .bytes => |value| blk: {
             if (value.len % 2 != 0) {
@@ -1541,6 +1550,7 @@ fn expression(self: *Self, file: usize, expr: *const s.Expr, bindings: []const B
             const right = try self.expression(file, value.right, bindings, depth + 1);
             const left_type = left.scalar() orelse return error.SourceTypeMismatch;
             if (!types.Scalar.eql(left_type, right.scalar() orelse return error.SourceTypeMismatch)) return error.SourceTypeMismatch;
+            if (left_type.base == .json or left_type.base == .interval) return error.SourceTypeMismatch;
             if (left_type.domain != null) {
                 if (value.op != .equal and value.op != .not_equal) return error.SourceTypeMismatch;
                 if (left == .symbolic or right == .symbolic) break :blk .{ .symbolic = .{ .base = .boolean } };
@@ -1549,6 +1559,7 @@ fn expression(self: *Self, file: usize, expr: *const s.Expr, bindings: []const B
                 const equal = switch (l) {
                     .integer => |v| v == r.integer,
                     .numeric => |v| v.coefficient == r.numeric.coefficient,
+                    .json, .interval => unreachable,
                     .boolean => |v| v == r.boolean,
                     .text => |v| std.mem.eql(u8, v, r.text),
                     .uuid => |v| std.mem.eql(u8, &(f.Types.Semantics.bind(v, .uuid) catch unreachable).uuid, &(f.Types.Semantics.bind(r.uuid, .uuid) catch unreachable).uuid),
@@ -1935,6 +1946,11 @@ pub fn writeValue(writer: *BoundedBuffer, value: Value) !void {
     switch (value) {
         .integer => |number| try writer.print("{d}", .{number}),
         .numeric => |number| try @import("SourceNumeric.zig").write(writer, number),
+        .interval => |v| try writer.print("INTERVAL({d}, {d}, {d})", .{ v.months, v.days, v.nanos }),
+        .json => |v| {
+            try writer.writeAll("JSON ");
+            try quoted(writer, v, '\'');
+        },
         .boolean => |boolean| try writer.writeAll(if (boolean) "TRUE" else "FALSE"),
         .text => |text| try quoted(writer, text, '\''),
         .uuid => |v| {
@@ -1961,6 +1977,8 @@ pub fn writeValue(writer: *BoundedBuffer, value: Value) !void {
             .uuid => "UUID",
             .timestamptz => "TIMESTAMPTZ",
             .date => "DATE",
+            .json => "JSON",
+            .interval => "INTERVAL",
             .numeric => unreachable,
             .binary => "BINARY",
         }),

@@ -72,6 +72,9 @@
       "packages/transitc-compiler/src/format_test.zig": [
         "transit_sql_frontend"
       ],
+      "packages/transitc-compiler/src/lossless_test.zig": [
+        "transit_protocol"
+      ],
       "packages/transitc-compiler/src/migration_test.zig": [
         "transit_protocol"
       ],

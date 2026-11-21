@@ -31,6 +31,7 @@ pub fn validate(graph: Graph, file: usize, def: s.Definition) !void {
     for ([_][]const s.Refinement{ def.preconditions, def.postconditions }, 0..) |clauses, phase| {
         for (clauses) |clause| for (clause.terms) |term| {
             const left = try scalar(graph, file, def, term.left, phase == 1);
+            if (term.right != null and (left.base == .json or left.base == .interval)) return error.UnsupportedRefinementPredicate;
             if (term.right) |right| switch (right) {
                 .integer => {
                     if (left.base != .bigint or left.domain != null) return error.UnsupportedRefinementPredicate;

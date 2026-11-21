@@ -18,6 +18,7 @@ test {
     _ = @import("program_test.zig");
     _ = @import("dynamic_test.zig");
     _ = @import("scalar_test.zig");
+    _ = @import("lossless_test.zig");
     _ = @import("cardinality_test.zig");
     _ = @import("refinement_test.zig");
     _ = @import("callable_test.zig");

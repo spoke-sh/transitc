@@ -66,6 +66,43 @@ allow same-domain equality and inequality. Source arithmetic and implicit
 rescaling are unavailable. SQL functions with explicit rounding policies are a
 separate runtime surface, not a source conversion.
 
+## JSON documents and SQL intervals
+
+```sql
+CREATE DOMAIN Payload AS JSON IDENTITY 'example.payload';
+CREATE DOMAIN Elapsed AS INTERVAL IDENTITY 'example.elapsed';
+CREATE MODULE Archive(jt TYPE, it TYPE, data Payload, elapsed Elapsed) AS BEGIN
+  CREATE PUBLIC TABLE archive (id BIGINT PRIMARY KEY, payload $jt NOT NULL, elapsed $it NOT NULL);
+  INSERT INTO archive VALUES (1, $data, $elapsed);
+END;
+CREATE TARGET default AS BEGIN
+  USE Archive(TYPE Payload, TYPE Elapsed,
+    Payload(JSON '{"wide":9007199254740993,"value":null}'),
+    Elapsed(INTERVAL(1, -2, 3)));
+END;
+```
+
+Build in an empty directory. The number retains every digit; JSON null remains a
+JSON value. Change the payload to `JSON '{"value":1,"value":2}'`: compilation
+fails with `DuplicateField`. Restore unique keys to correct it. Escaped spellings
+of the same key also count as duplicates. JSON is bounded to 65,536 bytes, depth
+16, 4,096 tokens and 256 fields per object.
+
+An interval has signed 32-bit month/day components and a signed 64-bit nanosecond
+component. Change the month to `2147483648`: it fails with `Overflow`; restore `1`.
+The compiler does not normalize months into days or intervals into a total
+number of seconds. JSON and intervals have no source comparison or arithmetic
+operators, including when wrapped in domains. Pass concrete values to modules;
+symbolic Table operands in compile-time MATCH await native prepared-type support.
+
+Typed JSON helpers can transport resource input values and use the existing
+native JSON_INTEGER / JSON_VALUE operations. JSON_INTEGER accepts exact i64 integer
+tokens without a decimal point or exponent. JSON_VALUE returns text for strings,
+number lexemes and booleans. Both return SQL NULL for a missing member or JSON
+null; retain the original payload when that distinction matters. Containers and
+incompatible numeric conversions refuse. A JSON source literal cannot be spliced
+into a program expression; feed it through a Queue or use native JSON_OBJECT.
+
 ## Check the surface before composing
 
 | Value | Source parameters/domains | Ordered programs and helpers |
@@ -73,7 +110,8 @@ separate runtime surface, not a source conversion.
 | BIGINT, TEXT, BOOLEAN, UUID, TIMESTAMPTZ, BINARY | Supported | Supported public-data subset |
 | DATE | Supported | Not yet supported by Transit |
 | NUMERIC(p,s) | Supported with exact descriptors | Not yet supported by Transit |
-| JSON, INTERVAL | Not yet admitted as source parameter types | Separate qualification required |
+| JSON | Supported, lossless bounded JSON | Runtime arguments/results and native extraction; no program literal |
+| INTERVAL | Supported, three signed components | Not yet supported by Transit |
 | Runtime variants | Closed record decoding with `MATCH` | See [runtime variants](runtime-variants.md) |
 
 Ordinary SQL supports more descriptors than this source parameter set. Parser
@@ -84,7 +122,7 @@ scalar equality, and native UNION values cannot yet enter ordered programs.
 ## Ordinary SQL literals
 
 NUMERIC, JSON and INTERVAL can be used directly in Table declarations and
-literals. JSON and INTERVAL do not yet have source parameter or domain types.
+literals, as well as the concrete source forms above.
 
 ```sql
 CREATE PUBLIC TABLE values_example (id BIGINT PRIMARY KEY, amount NUMERIC(38,9), payload JSON, span INTERVAL);
@@ -100,5 +138,5 @@ Run `transitc test -f tests/fixtures/application-sql-scalars/build.transit` for
 exact values and boundary cases. The installed checks compare an independent SQL
 oracle, including reordered JSON keys, and preserve values after restart. The
 qualified query is direct projection: the combined `ORDER BY` query is refused by
-Transit's relational profile. This fixture does not qualify JSON extraction,
-decimal rounding operations or interval ordering.
+Transit's relational profile. The separate `application-json-helpers` fixture covers native program extraction.
+Decimal rounding operations and interval ordering remain separate surfaces.

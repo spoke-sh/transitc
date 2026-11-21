@@ -92,7 +92,7 @@ pub fn validateAll(compiler: *Compiler) !void {
         for (def.parameters) |param| {
             compiler.context = .{ .name = param.name };
             switch (param.kind) {
-                .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .binary => {},
+                .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary => {},
                 .named => |name| {
                     const ref = try graph.resolve(file_idx, name);
                     if (graph.getDefinition(ref).kind != .domain) return error.InvalidParameterType;
@@ -188,7 +188,7 @@ fn validateHelperRowFields(graph: Graph, file: usize, fields: []const s.Paramete
     if (depth >= 16) return error.SourceDepthLimit;
     for (fields) |field| {
         switch (field.kind) {
-            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .binary => {},
+            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary => {},
             .named => |name| {
                 const ref = try graph.resolve(file, name);
                 if (graph.getDefinition(ref).kind != .domain) return error.InvalidParameterType;
@@ -212,7 +212,7 @@ fn buildHelperRowParam(scratch: std.mem.Allocator, out_alloc: std.mem.Allocator,
     const expected_fields = try out_alloc.alloc(Annotations.RowField, fields.len);
     for (fields, 0..) |field, idx| {
         switch (field.kind) {
-            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .binary, .named => {
+            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary, .named => {
                 const scalar_ty = try parameterScalar(graph, file, field.kind);
                 struct_fields[idx] = .{ .name = field.name, .type = scalar_ty.physical(), .nullable = false };
                 domain_fields[idx] = .{ .name = field.name, .domain = scalar_ty.domain };
@@ -405,7 +405,7 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
 
     for (def.parameters) |param| {
         switch (param.kind) {
-            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .binary, .named => {
+            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary, .named => {
                 const scalar_ty = try parameterScalar(graph, ref.file, param.kind);
                 try in_cols.append(scratch, .{
                     .id = in_cols.items.len + 1,
@@ -505,7 +505,7 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
     };
     for (def.parameters) |param| {
         switch (param.kind) {
-            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .binary, .named, .row => {
+            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary, .named, .row => {
                 const hygienic = try lowerer.freshHygienic(param.name);
                 try env.symbols.append(scratch, .{ .original = param.name, .emitted = hygienic });
                 try lowerer.emitFixed("LET", origin_base);
@@ -714,6 +714,8 @@ fn parameterScalar(graph: Graph, file: usize, kind: s.Kind) !types.Scalar {
         .uuid => .{ .base = .uuid },
         .timestamptz => .{ .base = .timestamptz },
         .date => .{ .base = .date },
+        .json => .{ .base = .json },
+        .interval => .{ .base = .interval },
         .numeric => |d| try types.numericScalar(d),
         .binary => .{ .base = .binary },
         .named => |name| try types.domain(graph, try graph.resolve(file, name)),
@@ -1815,7 +1817,7 @@ fn inlineHelperCall(self: *Self, caller_env: *Env, tokens: []const s.Token, i: *
                     try callee_env.symbols.append(self.scratch, .{ .original = param.name, .emitted = hygienic });
                 }
             },
-            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .binary, .named => {
+            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary, .named => {
                 const expected_scalar = try parameterScalar(self.compiler.graph, callee_ref.file, param.kind);
                 const hygienic = try self.freshHygienic(param.name);
                 const mark = self.beginHoistScope();
@@ -2049,8 +2051,9 @@ fn emitValueHole(self: *Self, env: *const Env, tokens: []const s.Token, i: *usiz
         self.setError(env, dollar_tok.start);
         return error.UnknownSourceOperand;
     };
+    if (value.scalar()) |scalar_| if (scalar_.base == .json and value != .symbolic) return error.ProgramTypeMismatch;
     switch (value) {
-        .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .binary, .nominal => {},
+        .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary, .nominal => {},
         .symbolic => if (!self.compiler.symbolic) return error.InvalidSourceOperand,
         .table, .stream, .queue, .identifier => {
             self.setError(env, dollar_tok.start);
@@ -2216,7 +2219,7 @@ fn expandFunctionCall(self: *Self, caller_env: *const Env, resolved_callee: Reso
             .call = caller_env.call,
         };
         const uses = countParamUses(callee_text, expr_tokens, param.name);
-        const duplicate_branch = ret_scalar.domain != null or ret_scalar.base == .uuid or ret_scalar.base == .timestamptz or ret_scalar.base == .binary;
+        const duplicate_branch = ret_scalar.domain != null or ret_scalar.base == .uuid or ret_scalar.base == .timestamptz or ret_scalar.base == .binary or ret_scalar.base == .json;
         const effective_uses = if (has_unused and duplicate_branch and !self.in_queue_predicate) uses * 2 else uses;
         const caller_text = self.compiler.graph.sources[caller_env.file].text;
         if (param.kind == .row and arg_tokens.len >= 3 and tokenWord(caller_text, arg_tokens[0], "ROW") and tokenSymbol(caller_text, arg_tokens[1], '(')) {
@@ -2317,7 +2320,7 @@ fn expandFunctionCall(self: *Self, caller_env: *const Env, resolved_callee: Reso
             try self.emitFixed("IS NULL AND", call_origin);
         }
         try self.emitFixed("FALSE THEN", call_origin);
-        if (ret_scalar.domain != null or ret_scalar.base == .uuid or ret_scalar.base == .timestamptz or ret_scalar.base == .binary) {
+        if (ret_scalar.domain != null or ret_scalar.base == .uuid or ret_scalar.base == .timestamptz or ret_scalar.base == .binary or ret_scalar.base == .json) {
             try self.emitFixed("(", call_origin);
             var dup_cursor: usize = 0;
             try self.lowerExpression(&fn_env, expr_tokens, &dup_cursor, 0, false, depth + 1);
@@ -2327,7 +2330,7 @@ fn expandFunctionCall(self: *Self, caller_env: *const Env, resolved_callee: Reso
                 .bigint => "0",
                 .text => "''",
                 .boolean => "FALSE",
-                .uuid, .timestamptz, .date, .numeric, .binary => unreachable,
+                .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary => unreachable,
             }, call_origin);
         }
         try self.emitFixed("ELSE (", call_origin);

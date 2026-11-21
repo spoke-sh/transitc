@@ -19,6 +19,8 @@ pub const Scalar = struct {
             .uuid => "UUID",
             .timestamptz => "TIMESTAMPTZ",
             .date => "DATE",
+            .json => "JSON",
+            .interval => "INTERVAL",
             .numeric => "NUMERIC",
             .binary => "BINARY",
         };
@@ -31,6 +33,8 @@ pub const Scalar = struct {
             .uuid => .uuid,
             .timestamptz => .{ .timestamp = .utc },
             .date => .date,
+            .json => .json,
+            .interval => .interval,
             .numeric => .{ .decimal = self.numeric.? },
             .binary => .binary,
         };
@@ -45,7 +49,7 @@ pub const Scalar = struct {
     }
 };
 pub const Numeric = struct { coefficient: i128, type: s.NumericType };
-pub const Primitive = union(enum) { integer: i64, text: []const u8, boolean: bool, uuid: []const u8, timestamptz: []const u8, date: []const u8, numeric: Numeric, binary: []const u8 };
+pub const Primitive = union(enum) { integer: i64, text: []const u8, boolean: bool, uuid: []const u8, timestamptz: []const u8, date: []const u8, json: []const u8, interval: s.Interval, numeric: Numeric, binary: []const u8 };
 pub const FieldDomain = struct { name: []const u8, domain: ?Graph.Ref = null, fields: []const FieldDomain = &.{} };
 pub const SchemaBinding = struct { logical: []const u8, concrete: []const u8 };
 pub const ReferenceTable = struct { table: *const Table, columns: []const []const u8 };
@@ -106,6 +110,8 @@ pub const Value = union(enum) {
     uuid: []const u8,
     timestamptz: []const u8,
     date: []const u8,
+    json: []const u8,
+    interval: s.Interval,
     numeric: Numeric,
     binary: []const u8,
     identifier: []const u8,
@@ -130,6 +136,8 @@ pub const Value = union(enum) {
             .uuid => .{ .base = .uuid },
             .timestamptz => .{ .base = .timestamptz },
             .date => .{ .base = .date },
+            .json => .{ .base = .json },
+            .interval => .{ .base = .interval },
             .numeric => |v| .{ .base = .numeric, .numeric = v.type },
             .binary => .{ .base = .binary },
             .nominal => |v| v.type,
@@ -145,6 +153,8 @@ pub const Value = union(enum) {
             .uuid => |v| .{ .uuid = v },
             .timestamptz => |v| .{ .timestamptz = v },
             .date => |v| .{ .date = v },
+            .json => |v| .{ .json = v },
+            .interval => |v| .{ .interval = v },
             .numeric => |v| .{ .numeric = v },
             .binary => |v| .{ .binary = v },
             .nominal => |v| v.value,
@@ -179,6 +189,8 @@ pub fn field(graph: Graph, file: usize, kind: s.Kind) !Scalar {
         .uuid => .{ .base = .uuid },
         .timestamptz => .{ .base = .timestamptz },
         .date => .{ .base = .date },
+        .json => .{ .base = .json },
+        .interval => .{ .base = .interval },
         .numeric => |d| try numericScalar(d),
         .binary => .{ .base = .binary },
         .named => |name| try domain(graph, try graph.resolve(file, name)),
@@ -248,7 +260,14 @@ pub fn hashValue(value: Value, graph: Graph, into: *std.crypto.hash.sha2.Sha256,
             into.update(&bytes);
         },
         .boolean => |v| into.update(&.{@intFromBool(v)}),
-        .text, .uuid, .timestamptz, .date, .binary, .identifier, .schema_binding => |v| Graph.hashPart(into, v),
+        .interval => |v| {
+            var bytes: [16]u8 = undefined;
+            std.mem.writeInt(i32, bytes[0..4], v.months, .little);
+            std.mem.writeInt(i32, bytes[4..8], v.days, .little);
+            std.mem.writeInt(i64, bytes[8..16], v.nanos, .little);
+            into.update(&bytes);
+        },
+        .text, .uuid, .timestamptz, .date, .json, .binary, .identifier, .schema_binding => |v| Graph.hashPart(into, v),
         .type, .symbolic => |v| v.hash(graph, into),
         .nominal => |v| {
             v.type.hash(graph, into);

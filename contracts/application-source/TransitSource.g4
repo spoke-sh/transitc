@@ -44,14 +44,16 @@ functionBody: RETURN programExpression SEMI | programInstruction+;
 parameters: LPAREN (parameter (COMMA parameter)*)? RPAREN;
 rowParameters: LPAREN parameter (COMMA parameter)* RPAREN;
 parameter: sourceName parameterKind;
-parameterKind: BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | numericSourceType | IDENTIFIER_KIND | TYPE | SCHEMA_BINDING
+parameterKind: BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | JSON | INTERVAL | BINARY | numericSourceType | IDENTIFIER_KIND | TYPE | SCHEMA_BINDING
     | MODULE OF? sourceQualifiedName
     | callableParameter
     | ROW rowParameters
     | (TABLE | STREAM | QUEUE) LPAREN signatureColumn (COMMA signatureColumn)* RPAREN | sourceParameterName;
 callableParameter: (FUNCTION | GUARD | PROCEDURE) OF sourceQualifiedName;
 numericSourceType: NUMERIC LPAREN INTEGER COMMA INTEGER RPAREN;
-sourceBaseType: BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | numericSourceType;
+sourceInterval: INTERVAL LPAREN sourceIntervalPart COMMA sourceIntervalPart COMMA sourceIntervalPart RPAREN;
+sourceIntervalPart: MINUS? INTEGER;
+sourceBaseType: BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | JSON | INTERVAL | BINARY | numericSourceType;
 sourceParameterName: parameterHead (DOT sourceName (DOT sourceName)?)?
     | sourceBaseType DOT sourceName (DOT sourceName)?;
 parameterHead: referenceTypeHead | TRUE | FALSE | NOT;
@@ -101,6 +103,8 @@ sourceUnary: MINUS sourceUnary | NOT sourceUnary | sourceAtom;
 sourceAtom: INTEGER | STRING | TRUE | FALSE | NAME STRING
     | UUID STRING
     | (TIMESTAMPTZ | TIMESTAMP) STRING
+    | JSON STRING
+    | sourceInterval
     | DATE STRING
     | numericSourceType STRING
     | X STRING
@@ -108,6 +112,7 @@ sourceAtom: INTEGER | STRING | TRUE | FALSE | NAME STRING
     | SCHEMA_BINDING (DOT sourceName (DOT sourceName)? (LPAREN callArguments? RPAREN)?)?
     | ROW LPAREN namedArgument (COMMA namedArgument)* RPAREN
     | ROW (DOT sourceName (DOT sourceName)? (LPAREN callArguments? RPAREN)?)?
+    | INTERVAL (DOT sourceName (DOT sourceName)? (LPAREN callArguments? RPAREN)?)?
     | TYPE sourceType | LPAREN expression RPAREN
     | plainReferenceHead (DOT sourceName (DOT sourceName)?)? (LPAREN callArguments? RPAREN)?;
 
@@ -168,7 +173,7 @@ programPrimary: (LPAREN programExpression RPAREN | valueHole | NULL_ | TRUE | FA
     | CAST LPAREN programExpression AS TEXT RPAREN
     | ROW programArguments | programAtomName (DOT programName programArguments | programArguments)?) (DOT programName)*;
 programName: sourceName | QUOTED_IDENTIFIER;
-programAtomName: typeWordOrdinary | DATE | STREAM | QUEUE | STRUCT | UNION | LIST | ARRAY | MAP | RANGE | MULTIRANGE | VECTOR
+programAtomName: typeWordOrdinary | JSON | INTERVAL | DATE | STREAM | QUEUE | STRUCT | UNION | LIST | ARRAY | MAP | RANGE | MULTIRANGE | VECTOR
     | DOUBLE | CHARACTER | BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | BINARY | IDENTIFIER_KIND | SCHEMA_BINDING | MODULE | TABLE | QUOTED_IDENTIFIER;
 sourceSelect: SELECT selection FROM qualifiedName sourceTableAlias? whereClause? limitClause?
     | SELECT aggregateSelection FROM LPAREN SELECT projection FROM qualifiedName sourceTableAlias?
@@ -241,13 +246,13 @@ checkHole: DOLLAR sourceName;
 sourceName: referenceHead | TYPE | TRUE | FALSE | NOT;
 sourceNameWithoutModule: referenceHeadWithoutModule | TYPE | TRUE | FALSE | NOT;
 referenceHead: referenceHeadWithoutModule | MODULE;
-referenceHeadWithoutModule: plainReferenceHeadWithoutModule | ROW | SCHEMA_BINDING;
+referenceHeadWithoutModule: plainReferenceHeadWithoutModule | ROW | SCHEMA_BINDING | INTERVAL;
 plainReferenceHead: plainReferenceHeadWithoutModule | MODULE;
-plainReferenceHeadWithoutModule: plainReferenceTypeHead | BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | IDENTIFIER_KIND | TABLE;
+plainReferenceHeadWithoutModule: plainReferenceTypeHead | BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | JSON | BINARY | IDENTIFIER_KIND | TABLE;
 referenceTypeHead: plainReferenceTypeHead | ROW;
 plainReferenceTypeHead: typeWord | STRUCT | UNION | LIST | ARRAY | MAP | RANGE | MULTIRANGE | VECTOR
     | DOUBLE | CHARACTER;
-sourceWord: typeWord | BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | IDENTIFIER_KIND | SCHEMA_BINDING | MODULE | TABLE;
+sourceWord: JSON | INTERVAL | typeWord | BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | IDENTIFIER_KIND | SCHEMA_BINDING | MODULE | TABLE;
 typeWord: typeWordWithoutLogs | STREAM | QUEUE;
 typeWordWithoutLogs: typeWordOrdinary | NULL_ | CASE | CAST;
 typeWordOrdinary: EFFECTS | REQUIRES | ENSURES | NUMERIC | ONE | LEASE_DURATION | MAX_LEASE_DURATION | IDENTIFIER | MIGRATION | MIGRATIONS | EMPTY | VERSION | FOR | AT | DECIMAL_ADD | DECIMAL_SUBTRACT | DECIMAL_MULTIPLY | DECIMAL_DIVIDE
@@ -268,7 +273,7 @@ typeWordOrdinary: EFFECTS | REQUIRES | ENSURES | NUMERIC | ONE | LEASE_DURATION 
     | ALTER | DROP | ADD | COLUMN | RENAME | RESTRICT | DEFAULT | PRIMARY | COLLATE | ROUNDING
     | METRIC | TIMEZONE | TZDB | TZIF | UTF8_BINARY | ASCII_CI | EBCDIC_CP037 | EBCDIC_037_PAD
     | EBCDIC_1047_NOPAD | KEY | PUT | GET | KEYS | ABSENT | PRESENT | IF | EXISTS | DATA | OPTIONAL
-    | WITHOUT | ZONE | X | TIME | TIMESTAMP | JSON | INTERVAL | PRECISION | VARYING
+    | WITHOUT | ZONE | X | TIME | TIMESTAMP | PRECISION | VARYING
     | INSERT | UPDATE | DELETE | SET | VALUES | CREATE | CONNECTION | CONNECTIONS | SOURCE | SOURCES
     | SINK | SINKS | TABLES | DOCUMENT | KV | TO | FROM | INTO | WITH | GRANT | REVOKE | ON
     | SHOW | STORAGE | DESCRIBE | SECRET | AS | OF | FOR | SNAPSHOT | PROJECTING | CURRENT

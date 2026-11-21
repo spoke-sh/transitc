@@ -173,8 +173,9 @@ fn checkExpected(self: *Self, expected: Expected, name: []const u8, actual: Valu
                 .boolean => .boolean,
                 .uuid => .uuid,
                 .timestamptz => .timestamp,
-                .date, .numeric => return error.ProgramTypeMismatch,
+                .date, .numeric, .interval => return error.ProgramTypeMismatch,
                 .binary => .binary,
+                .json => .json,
             };
             if (physical_.kind != .null and physical_.kind != want_kind) {
                 self.context.* = .{ .offset = offset, .name = name, .expected = want_scalar.label(self.graph), .actual = @tagName(physical_.kind) };

@@ -216,6 +216,12 @@ def parse(source):
                 value = {'integer': -int(child.getText())}
             else:
                 value = {'unary': {'negative': bool(ctx.MINUS()), 'operand': expr(child)}}
+        elif ctx.sourceInterval():
+            values = [int(part.getText()) for part in ctx.sourceInterval().sourceIntervalPart()]
+            for v, bits in zip(values, (32, 32, 64)):
+                if not -(2**(bits - 1)) <= v < 2**(bits - 1):
+                    raise Refusal(span(ctx)['start'], 'interval component bound')
+            value = {'interval': dict(zip(('months', 'days', 'nanos'), values))}
         elif ctx.numericSourceType():
             value = {'numeric': {'type': numeric(ctx.numericSourceType()), 'text': string(ctx.STRING())}}
         elif ctx.INTEGER():
@@ -226,6 +232,8 @@ def parse(source):
             value = {'uuid': string(ctx.STRING())}
         elif (ctx.TIMESTAMPTZ() or ctx.TIMESTAMP()) and ctx.STRING():
             value = {'timestamptz': string(ctx.STRING())}
+        elif ctx.JSON() and ctx.STRING():
+            value = {'json': string(ctx.STRING())}
         elif ctx.DATE() and ctx.STRING():
             value = {'date': string(ctx.STRING())}
         elif ctx.X() and ctx.STRING():
@@ -243,7 +251,7 @@ def parse(source):
             value = {'boolean': bool(ctx.TRUE())}
         elif ctx.STRING():
             value = {'text': string(ctx.STRING())}
-        elif ctx.plainReferenceHead() or ctx.SCHEMA_BINDING() or ctx.ROW():
+        elif ctx.plainReferenceHead() or ctx.SCHEMA_BINDING() or ctx.ROW() or ctx.INTERVAL():
             value = {'construct': call_parts(ctx, ctx.callArguments())} if ctx.LPAREN() else {'reference': name(ctx)}
         else:
             value = expr(ctx.expression())['value']

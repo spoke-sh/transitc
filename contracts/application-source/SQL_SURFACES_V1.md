@@ -10,8 +10,8 @@ compiler comparison remains at `e7434306334e3692c6f3e123cba0d278fa412196`.
 | BIGINT, TEXT, BOOLEAN, UUID, TIMESTAMPTZ, BINARY | Admitted | Qualified existing profile | Qualified public-data profile | Shared typed codecs | Existing bounded Table diff rules |
 | DATE | Admitted, exact Gregorian day | Qualified DATE fixture | Refused by pinned schema/value owner | Exact DATE and SQL NULL fixture | Existing Table creation/add-column rules; no new conversion policy |
 | NUMERIC | Explicit precision/scale literals, parameters and domain bases | Qualified native Table literal/projection fixture | Refused by pinned schema/value owner | Exact scalar and SQL NULL fixture | Creation/add-column descriptor tests; conversion changes refuse |
-| JSON | Not admitted as a source parameter or domain base | Qualified native Table literal/projection fixture | Native kind exists; source helper type not admitted | Exact scalar and SQL NULL fixture | Creation/add-column descriptor tests; conversion changes refuse |
-| INTERVAL | Not admitted as a source parameter or domain base | Qualified native Table literal/projection fixture | Native SQL interval unavailable; microsecond duration is a different type | Exact scalar and SQL NULL fixture | Creation/add-column descriptor tests; conversion changes refuse |
+| JSON | Lossless literals, parameters and domains; no comparison traits | Native Table literal/projection fixture | Typed runtime arguments/results and native extraction; program literals unavailable | Exact scalar and SQL NULL fixture | Creation/add-column descriptor tests; conversion changes refuse |
+| INTERVAL | Exact signed month/day/nanosecond components, parameters and domains | Qualified native Table literal/projection fixture | Native SQL interval unavailable; microsecond duration is a different type | Exact scalar and SQL NULL fixture | Creation/add-column descriptor tests; conversion changes refuse |
 | Runtime variant record | Explicit `MATCH operand AS Variant`; closed scalar/domain payload profile | Ordinary STRUCT with required tag and nullable arm records | Qualified decoder and ordered IF lowering | Exact effects and refusals in dispatch fixture | No log/program replacement policy |
 | Native UNION | Compile-time source variants are separate | Queue DDL probe accepts descriptor | Consuming program refuses `ProgramTypeMismatch` | No native program-value admission | Not qualified |
 | Views | Not admitted | `CREATE VIEW` probe refuses `UnsupportedStatement` | Upstream dependency | Not available | Not available |
@@ -22,7 +22,7 @@ Every newly advertised surface needs an independent SQL comparison.
 The NUMERIC/JSON/INTERVAL fixture qualifies direct Table projection. Adding
 ORDER BY to the combined projection routes it through a native relational
 profile that refuses `UnsupportedRelationalType`; this is retained negative
-evidence. JSON extraction and equality, numeric arithmetic/rounding operations
+evidence. JSON equality, numeric arithmetic/rounding operations
 and interval arithmetic/ordering are not qualified by a literal round trip.
 NUMERIC literals must fit their declared precision and scale exactly; inexact
 scale refuses `Inexact` and overflow refuses `Overflow`. Duplicate JSON keys
@@ -54,3 +54,20 @@ surfaces. Source identity hashing includes precision, scale and coefficient; it
 does not change the hashing of preexisting types. The independent decimal checker
 uses Python Decimal, and the installed scalar fixture compares source parameters
 with independently authored ordinary SQL and exact wire coefficients.
+
+## JSON and interval boundaries
+
+The [source contract](../APPLICATION_SOURCE_V1.md#lossless-json-and-interval-source-values)
+specifies exact bounds, decoded duplicate-key refusal and safe literal emission.
+Concrete source parameters are compared with the same independent Table SQL and
+wire cells used for literal qualification. Native prepared Table parameter binding
+for these two types refuses `UnsupportedComparison`; compile-time MATCH does not
+bypass that boundary. INTERVAL ordered-program values remain unavailable.
+
+`application-json-helpers` separately checks JSON argument/result transport and
+native JSON_INTEGER/JSON_VALUE extraction, including lossless wide integers,
+JSON null versus SQL NULL, missing fields and invalid numeric conversion. Missing
+members and JSON null both project to SQL NULL. Original JSON transport retains
+the distinction; the projection deliberately does not. Program JSON literal holes
+refuse before publication. Runtime qualification results, including any deadlines,
+are recorded separately from compiler admission in the milestone qualification.

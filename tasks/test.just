@@ -58,6 +58,7 @@ integration: _build
     python3 -B tests/runner/launch.py tests/integration/scalar_surfaces.py zig-out/bin/transitc
     python3 -B tests/runner/launch.py tests/integration/cardinality.py zig-out/bin/transitc
     python3 -B tests/runner/launch.py tests/integration/sql_scalars.py zig-out/bin/transitc
+    python3 -B tests/runner/launch.py tests/integration/json_helpers.py zig-out/bin/transitc
     python3 -B tests/runner/launch.py tests/integration/refinements.py zig-out/bin/transitc
     python3 -B tests/runner/launch.py tests/integration/callables.py zig-out/bin/transitc
 

@@ -9,7 +9,7 @@ The profile includes typed modules and interfaces, constructors, nominal domains
 and variants, recursive bounded composition, child build modules, declared targets,
 concrete schema binding, restricted reference exports, typed SQL holes, ordered
 Queue programs and pure function/guard/atomic procedure lowering. Scalars include
-UUID, TIMESTAMPTZ, DATE, NUMERIC(p,s) and BINARY. DATE and NUMERIC currently target ordinary SQL resources
+UUID, TIMESTAMPTZ, DATE, NUMERIC(p,s), JSON, INTERVAL and BINARY. DATE and NUMERIC currently target ordinary SQL resources
 and queries; ordered programs and helpers reject it. Helpers support ROW parameters. Reference handles
 do not escalate privileges. NOT ENFORCED foreign keys retain catalog dependencies.
 
@@ -38,7 +38,7 @@ Runtime assertions, isolation and completion are provided by Transit's test host
 not by the standalone CLI. Finite grammar/type comparisons and Lean laws retain
 explicit premises; they are not an unbounded compiler correctness proof.
 
-The [typed values guide](../guides/typed-values.md) describes exact DATE/NUMERIC values and the per-surface support matrix.
+The [typed values guide](../guides/typed-values.md) describes exact DATE/NUMERIC values, lossless JSON and signed interval components and the per-surface support matrix.
 
 Use [ONE and OPTIONAL reads](../guides/query-results.md) to distinguish query cardinality from nullable fields.
 

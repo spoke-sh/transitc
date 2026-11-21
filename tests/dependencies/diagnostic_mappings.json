@@ -967,6 +967,30 @@
         "EffectContractMismatch": {
           "code": "application.source.type",
           "category": "binding"
+        },
+        "InvalidJson": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "JsonByteBudgetExceeded": {
+          "code": "application.source.limit",
+          "category": "limit"
+        },
+        "JsonDepthExceeded": {
+          "code": "application.source.limit",
+          "category": "limit"
+        },
+        "JsonTokenBudgetExceeded": {
+          "code": "application.source.limit",
+          "category": "limit"
+        },
+        "JsonFieldBudgetExceeded": {
+          "code": "application.source.limit",
+          "category": "limit"
+        },
+        "UnsupportedComparison": {
+          "code": "application.source.unsupported",
+          "category": "unsupported"
         }
       }
     }
