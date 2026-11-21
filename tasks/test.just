@@ -24,6 +24,14 @@ workspace: _build
 examples: _build
     python3 -B tests/examples.py zig-out/bin/transitc
 
+# Check documentation coverage, CLI parity and automation/dependency examples.
+documentation: _build
+    python3 -B tests/documentation.py zig-out/bin/transitc
+
+# Check release promotion identity and corruption refusals.
+release:
+    python3 -B tests/release.py
+
 # Exercise transitc build and its application/migration fixtures.
 build-command: _build
     python3 -B tests/runner/launch.py tests/integration/build_command.py zig-out/bin/transitc

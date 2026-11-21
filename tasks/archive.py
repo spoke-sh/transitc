@@ -50,12 +50,18 @@ def smoke(binary, version, revision):
         assert missing["cases"][0]["error_code"] == "TestRuntimeUnavailable", missing
 
 
-def portable(data):
+def portable(binary):
+    data = binary.read_bytes()
     if data[:4] == b'\x7fELF':
         assert data[4:6] == b'\x02\x01', 'expected 64-bit little-endian ELF'
         offset = struct.unpack_from('<Q', data, 32)[0]
         size, count = struct.unpack_from('<HH', data, 54)
         assert all(struct.unpack_from('<I', data, offset + i * size)[0] != 3 for i in range(count)), 'ELF interpreter makes archive non-portable'
+    elif platform.system() == 'Darwin':
+        libraries = subprocess.check_output(['otool', '-L', str(binary)], text=True).splitlines()[1:]
+        assert all(line.strip().startswith(('/usr/lib/', '/System/Library/')) for line in libraries), libraries
+    else:
+        raise ValueError('unexpected executable format')
 
 
 def main():
@@ -73,7 +79,7 @@ def main():
         subprocess.run(['zig', 'build', '-Doptimize=ReleaseSafe', '-Dcpu=baseline', f'-Dtarget={target}',
                         f'-Drevision={revision}', '-Dtest-runtime=transit', '--prefix', str(prefix)], cwd=ROOT, check=True)
         binary = prefix / 'bin/transitc'
-        portable(binary.read_bytes())
+        portable(binary)
         smoke(binary, version, revision)
         lock = json.loads((ROOT / 'flake.lock').read_text())
         manifest = {'version': version, 'revision': revision, 'target': target,

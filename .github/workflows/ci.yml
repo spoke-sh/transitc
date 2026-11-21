@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   compiler:
     runs-on: ubuntu-latest
@@ -18,9 +22,9 @@ jobs:
         run: nix flake check --print-build-logs
       - name: Execute source grammar and typed correspondence checks
         run: nix build .#checks.x86_64-linux.source --no-link --print-build-logs
-      - run: nix develop --command just check
+      - run: nix develop --command just check test::release
       - run: nix develop --command just test::clean-build
-      - run: nix develop --command just test::fmt test::workspace test::examples test::integration test::build-command test::command
+      - run: nix develop --command just test::fmt test::documentation test::workspace test::examples test::integration test::build-command test::command
   handbook:
     runs-on: ubuntu-latest
     steps:
@@ -68,7 +72,7 @@ jobs:
       - name: Build and execute the installed portable archive
         run: nix develop .#toolchain --command python3 tasks/archive.py --output .cache/release
       - name: Check formatter on the native host
-        run: nix develop .#toolchain --command just test::fmt
+        run: nix develop .#toolchain --command just test::fmt test::documentation
       - name: Sign build provenance for archive bytes
         id: provenance
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
