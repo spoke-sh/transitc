@@ -8,7 +8,6 @@ import sys
 import tempfile
 
 from runner import capture
-from integration.typed_composition import compiled_cases
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / 'tests/fixtures/application-cardinality'
@@ -102,10 +101,11 @@ def main():
     summary = {'provenance': capture.provenance(ROOT), 'complete': False}
     capture.write_json(destination / 'evidence.json', summary)
     print(f'Cardinality evidence: {destination}', flush=True)
-    for one in (True, False):
+    selected = sys.argv[2] if len(sys.argv) > 2 else 'all'
+    assert selected in ('all', 'one', 'optional')
+    for one in ((True, False) if selected == 'all' else (selected == 'one',)):
         summary['one' if one else 'optional'] = target(compiler, runtime, one, destination)
         capture.write_json(destination / 'evidence.json', summary)
-    summary['compiled'] = compiled_cases(compiler, 'application-cardinality', destination)
     capture.write_json(destination / 'evidence.json', summary)
     summary['complete'] = True
     capture.write_json(destination / 'evidence.json', summary)

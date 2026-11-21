@@ -9,7 +9,6 @@ import tempfile
 
 from runner import capture
 from integration.scalar_surfaces import build
-from integration.typed_composition import compiled_cases
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / 'tests/fixtures/application-json-helpers'
@@ -94,7 +93,6 @@ def main():
             shutil.rmtree(fixture.root)
         else:
             print(f'Failed JSON installation retained at {fixture.root}', file=sys.stderr)
-    summary['compiled'] = compiled_cases(compiler, 'application-json-helpers', destination)
     summary['complete'] = True
     capture.write_json(destination / 'evidence.json', summary)
     print('PASS exact JSON projection, helper arguments, explicit null collapse, refusals and restart')

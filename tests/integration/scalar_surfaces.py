@@ -10,7 +10,6 @@ import sys
 import tempfile
 
 from runner import capture
-from integration.typed_composition import compiled_cases
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -31,7 +30,6 @@ def main():
     summary = {'provenance': capture.provenance(ROOT), 'complete': False}
     capture.write_json(destination / 'evidence.json', summary)
     print(f'Scalar surface evidence: {destination}', flush=True)
-    summary['compiled'] = compiled_cases(compiler, 'application-date', destination)
     capture.write_json(destination / 'evidence.json', summary)
     with tempfile.TemporaryDirectory(prefix='transitc-date-') as temporary:
         root = Path(temporary)

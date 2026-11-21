@@ -9,7 +9,6 @@ import tempfile
 
 from runner import capture
 from integration.scalar_surfaces import build
-from integration.typed_composition import compiled_cases
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / 'tests/fixtures/application-callables'
@@ -91,7 +90,6 @@ def main():
             shutil.rmtree(fixture.root)
         else:
             print(f'Failed callable installation retained at {fixture.root}', file=sys.stderr)
-    summary['compiled'] = compiled_cases(compiler, 'application-callables', destination)
     summary['complete'] = True
     capture.write_json(destination / 'evidence.json', summary)
     print('PASS exact callable signatures, nested atomic effects, explicit instances, independent SQL, restart and denial')

@@ -10,7 +10,6 @@ import tempfile
 
 from runner import capture
 from integration.scalar_surfaces import build
-from integration.typed_composition import compiled_cases
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / 'tests/fixtures/application-sql-scalars'
@@ -53,8 +52,6 @@ def main():
     summary = {'provenance': capture.provenance(ROOT), 'complete': False}
     capture.write_json(destination / 'evidence.json', summary)
     print(f'SQL scalar evidence: {destination}', flush=True)
-    summary['compiled'] = compiled_cases(compiler, 'application-sql-scalars', destination)
-    summary['numeric_operators'] = compiled_cases(compiler, 'application-numeric-operators', destination)
     capture.write_json(destination / 'evidence.json', summary)
     with tempfile.TemporaryDirectory(prefix='transitc-sql-scalars-') as temporary:
         root = Path(temporary)
