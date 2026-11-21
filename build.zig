@@ -5,7 +5,6 @@ pub fn build(b: *std.Build) void {
     const workspace_dep = b.dependency("transitc_workspace", .{ .target = target, .optimize = optimize });
     const workspace = workspace_dep.module("transitc_workspace");
     const compiler = workspace_dep.module("transitc_compiler");
-    workspace.addImport("transit_compiler", compiler);
     b.modules.put(b.allocator, "transitc_compiler", compiler) catch @panic("out of memory");
     b.modules.put(b.allocator, "transitc_workspace", workspace) catch @panic("out of memory");
     const options = b.addOptions();

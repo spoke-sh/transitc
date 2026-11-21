@@ -23,9 +23,7 @@ Never rewrite accepted history to hide an identity mismatch.
 A migration target requires an explicit basis and database/schema identity:
 
 ```sql
-CREATE MIGRATION TARGET default FROM EMPTY
-FOR DATABASE 'transit' SCHEMA 'public' VERSION '0001' NAME 'tables'
-AS BEGIN
+CREATE MIGRATION TARGET default FROM EMPTY FOR DATABASE 'transit' SCHEMA 'public' VERSION '0001' NAME 'tables' AS BEGIN
   CREATE PUBLIC TABLE items (id BIGINT PRIMARY KEY);
 END;
 ```

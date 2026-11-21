@@ -8,6 +8,10 @@ _default:
 unit:
     zig build test
 
+# Build a source copy with empty dependency and compiler caches (requires host Git).
+clean-build:
+    python3 -B tests/clean_build.py
+
 # Check source formatting, comment preservation, and atomic file updates.
 fmt: _build
     python3 -B tests/integration/format_command.py zig-out/bin/transitc

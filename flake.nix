@@ -90,7 +90,6 @@
               (pkgs.python3.withPackages (ps: [ ps.antlr4-python3-runtime ]))
               pkgs.antlr4
               pkgs.lean4
-              pkgs.git
               testRuntime
             ];
             TRANSIT_UPSTREAM_BIN = "${upstreamTransit}/bin/transit";
