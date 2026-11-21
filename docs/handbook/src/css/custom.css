@@ -27,3 +27,9 @@
   --ifm-navbar-background-color: #14191e;
   --ifm-font-color-base: #e6e7e5;
 }
+
+/* Inline links must remain recognizable without color perception. */
+.markdown a:not(.hash-link) {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}

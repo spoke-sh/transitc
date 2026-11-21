@@ -19,3 +19,7 @@ build:
 # Typecheck and build the handbook.
 check:
     npm run docs:check
+
+# Check the built site in Chromium; use the docs-browser Nix shell locally.
+browser: build
+    npm run browser --workspace @transitc/handbook

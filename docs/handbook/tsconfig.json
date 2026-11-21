@@ -13,6 +13,6 @@
     "resolveJsonModule": true,
     "types": ["node", "@docusaurus/module-type-aliases"]
   },
-  "include": ["*.ts"],
+  "include": ["*.ts", "browser/**/*.ts"],
   "exclude": ["node_modules", "dist", ".docusaurus"]
 }

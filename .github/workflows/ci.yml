@@ -3,6 +3,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -11,8 +12,8 @@ jobs:
   compiler:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v31
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7 # v31
       - name: Check compiler, source verification and upstream parity
         run: nix flake check --print-build-logs
       - name: Execute source grammar and typed correspondence checks
@@ -23,8 +24,80 @@ jobs:
   handbook:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v31
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7 # v31
       - run: nix develop .#docs --command just docs::install
       - run: nix develop .#docs --command just docs::check
+      - run: nix develop .#docs --command npm exec --workspace @transitc/handbook -- playwright install --with-deps chromium
+      - run: nix develop .#docs --command just docs::browser
       - run: nix develop .#docs --command env TRANSITC_DOCS_BASE_URL=/ just docs::build
+      - run: nix develop .#docs --command env TRANSITC_DOCS_BASE_URL=/ npm run browser --workspace @transitc/handbook
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: handbook-browser-evidence
+          path: |
+            .cache/handbook-browser-*/
+            .cache/handbook-report-*/
+          include-hidden-files: true
+  native:
+    name: Native ${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            target: x86_64-linux-musl
+          - runner: ubuntu-24.04-arm
+            target: aarch64-linux-musl
+          - runner: macos-15-intel
+            target: x86_64-macos
+          - runner: macos-15
+            target: aarch64-macos
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7 # v31
+      - name: Native clean build, unit tests and public embedding API
+        run: nix develop .#toolchain --command just test::clean-build
+      - name: Build and execute the installed portable archive
+        run: nix develop .#toolchain --command python3 tasks/archive.py --output .cache/release
+      - name: Check formatter on the native host
+        run: nix develop .#toolchain --command just test::fmt
+      - name: Sign build provenance for archive bytes
+        id: provenance
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: .cache/release/*.tar.gz
+      - name: Verify signatures and source identity
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUNDLE_PATH: ${{ steps.provenance.outputs.bundle-path }}
+        run: |
+          cp "$BUNDLE_PATH" .cache/release/provenance.jsonl
+          for archive in .cache/release/*.tar.gz; do
+            gh attestation verify "$archive" --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/ci.yml" \
+              --source-digest "$GITHUB_SHA" --deny-self-hosted-runners
+            cp "$archive" "$RUNNER_TEMP/tampered.tar.gz"
+            printf 'corruption' >> "$RUNNER_TEMP/tampered.tar.gz"
+            if gh attestation verify "$RUNNER_TEMP/tampered.tar.gz" --repo "$GITHUB_REPOSITORY" \
+                --bundle .cache/release/provenance.jsonl; then
+              echo '::error::Modified archive unexpectedly verified'
+              exit 1
+            fi
+          done
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: transitc-${{ matrix.target }}
+          path: .cache/release/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30

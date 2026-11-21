@@ -82,6 +82,21 @@
           common = [ pkgs.just ];
         in
         {
+          toolchain = pkgs.mkShell {
+            packages = common ++ [
+              zig
+              pkgs.python3
+              pkgs.nixfmt
+            ];
+            buildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.stdenv.cc.libc ];
+          };
+          docs-browser = pkgs.mkShellNoCC {
+            packages = common ++ [
+              pkgs.nodejs_24
+              pkgs.chromium
+            ];
+            CHROMIUM_EXECUTABLE = "${pkgs.chromium}/bin/chromium";
+          };
           default = pkgs.mkShell {
             packages = common ++ [
               zig

@@ -21,7 +21,7 @@ def main():
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(original, destination)
         env = dict(os.environ, ZIG_GLOBAL_CACHE_DIR=str(root / "global"),
-                   ZIG_LOCAL_CACHE_DIR=str(root / "local"), ZIG_LOCAL_PKG_DIR=str(root / "packages"))
+                   ZIG_LOCAL_CACHE_DIR=str(root / "local"), ZIG_LOCAL_PKG_DIR="zig-pkg")
         for step in ("check", "test"):
             subprocess.run(["zig", "build", step], cwd=source, env=env, check=True)
     print("PASS clean source build, unit tests and embedding consumer with empty Zig caches")
