@@ -1,4 +1,4 @@
-CREATE QUEUE dynamic_requests (id BIGINT NOT NULL, tag TEXT NOT NULL, machine_id BIGINT, site_id BIGINT, reject BOOLEAN NOT NULL);
+CREATE QUEUE dynamic_requests (id BIGINT NOT NULL, tag TEXT NOT NULL, machine_id BIGINT, site_id BIGINT, reject BOOLEAN NOT NULL) WITH (lease_duration = '120s', max_lease_duration = '120s');
 CREATE TABLE dynamic_machines (id BIGINT PRIMARY KEY);
 CREATE TABLE dynamic_sites (id BIGINT PRIMARY KEY);
 CREATE TABLE dynamic_accepted (id BIGINT PRIMARY KEY, tag TEXT NOT NULL, resource_id BIGINT NOT NULL);

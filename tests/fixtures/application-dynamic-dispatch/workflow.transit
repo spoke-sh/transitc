@@ -1,0 +1,23 @@
+IMPORT ids FROM 'types.transit';
+CREATE PUBLIC MODULE Routing() AS BEGIN
+  CREATE PUBLIC DATAFLOW dynamic_route FROM QUEUE dynamic_requests AS request AS BEGIN
+    BEGIN ATOMIC
+      MATCH request.target AS ids.Target
+        WHEN ids.Target.Machine(machine_id) THEN
+          LET found = SELECT id FROM dynamic_machines WHERE id = machine_id;
+          REQUIRE found IS NOT NULL ELSE 'MissingMachine';
+          INSERT INTO dynamic_accepted_machines VALUES (request.id, machine_id) ON CONFLICT (id) DO ASSERT SAME ROW;
+          REQUIRE NOT request.reject ELSE 'RejectedAfterWrite';
+          PRODUCE INTO dynamic_events VALUES (request.id, 'machine');
+        WHEN ids.Target.Site(site_id) THEN
+          LET found = SELECT id FROM dynamic_sites WHERE id = site_id;
+          REQUIRE found IS NOT NULL ELSE 'MissingSite';
+          INSERT INTO dynamic_accepted_sites VALUES (request.id, site_id) ON CONFLICT (id) DO ASSERT SAME ROW;
+          REQUIRE NOT request.reject ELSE 'RejectedAfterWrite';
+          PRODUCE INTO dynamic_events VALUES (request.id, 'site');
+      END MATCH;
+    END;
+  END;
+  AUTHORIZE DATAFLOW dynamic_route AS ROLE CURRENT_ROLE;
+  ACTIVATE DATAFLOW dynamic_route;
+END;

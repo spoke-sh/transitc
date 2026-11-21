@@ -308,6 +308,11 @@ fn visitCallGraph(compiler: *Compiler, base_offsets: []const usize, visited: []u
     const tokens = def.program.?.tokens;
     var i: usize = 0;
     while (i < tokens.len) : (i += 1) {
+        if (std.mem.indexOfScalar(u32, def.program.?.match_arms, tokens[i].start) != null) {
+            // The structural parser identified a pattern, not a callable.
+            while (i < tokens.len and !tokenWord(text, tokens[i], "THEN")) : (i += 1) {}
+            continue;
+        }
         if (def.kind != .function and tokenWord(text, tokens[i], "CHECK") and i + 1 < tokens.len and tokenWord(text, tokens[i + 1], "GUARD")) {
             const call_offset = tokens[i].start;
             i += 2;
@@ -656,6 +661,7 @@ pub fn lowerProgram(
 fn hasHelperCalls(graph: Graph, file: usize, bindings: []const types.Binding, text: []const u8, tokens: []const s.Token) bool {
     var i: usize = 0;
     while (i < tokens.len) : (i += 1) {
+        if (tokenWord(text, tokens[i], "MATCH")) return true;
         if (tokenWord(text, tokens[i], "CHECK") and i + 1 < tokens.len and tokenWord(text, tokens[i + 1], "GUARD")) return true;
         if (tokenWord(text, tokens[i], "CALL") and i + 1 < tokens.len and tokens[i + 1].kind == .word) {
             const after = if (i + 3 < tokens.len and tokenSymbol(text, tokens[i + 2], '.')) i + 4 else i + 2;
@@ -1042,9 +1048,13 @@ fn lowerGuardProgram(self: *Self, env: *Env, prog: s.Template.Syntax, depth: usi
 fn lowerBlock(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic: bool, depth: usize) anyerror!void {
     if (depth > self.compiler.limits.depth) return error.SourceDepthLimit;
     const text = self.compiler.graph.sources[env.file].text;
-    while (i.* < tokens.len and !tokenWord(text, tokens[i.*], "END") and !tokenWord(text, tokens[i.*], "ELSE") and !tokenWord(text, tokens[i.*], "ON")) {
+    while (i.* < tokens.len and !tokenWord(text, tokens[i.*], "END") and !tokenWord(text, tokens[i.*], "ELSE") and !tokenWord(text, tokens[i.*], "ON") and !tokenWord(text, tokens[i.*], "WHEN")) {
         try self.compiler.tick();
         const start_tok = tokens[i.*];
+        if (tokenWord(text, start_tok, "MATCH")) {
+            try self.lowerMatch(env, tokens, i, atomic, depth + 1);
+            continue;
+        }
         if (tokenWord(text, start_tok, "CHECK")) {
             i.* += 2; // CHECK GUARD
             try self.inlineHelperCall(env, tokens, i, .guard, atomic, start_tok.start, depth + 1, null);
@@ -1229,6 +1239,125 @@ fn lowerBlock(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic
         self.hoist = null;
         try self.applyHoist(mark, &hoisted);
     }
+}
+
+fn matchName(self: *Self, env: *const Env, tokens: []const s.Token, i: *usize) !s.Name {
+    const text = self.compiler.graph.sources[env.file].text;
+    var parts: [3][]const u8 = undefined;
+    var count: usize = 0;
+    while (true) {
+        if (i.* >= tokens.len or tokens[i.*].kind != .word or count == parts.len) return error.InvalidSourceName;
+        parts[count] = try self.decodeProgramName(text, tokens[i.*]);
+        count += 1;
+        i.* += 1;
+        if (i.* >= tokens.len or !tokenSymbol(text, tokens[i.*], '.')) break;
+        i.* += 1;
+    }
+    return switch (count) {
+        1 => .{ .member = parts[0] },
+        2 => .{ .qualifier = parts[0], .member = parts[1] },
+        3 => .{ .qualifier = parts[0], .member = parts[1], .constructor = parts[2] },
+        else => unreachable,
+    };
+}
+
+fn matchField(self: *Self, binding: []const u8, field: []const u8, origin_: Operands.Origin) !void {
+    try self.emitQuotedRaw(binding, origin_);
+    try self.emitFixed(".", origin_);
+    try self.emitQuotedRaw(field, origin_);
+}
+
+fn lowerMatch(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic: bool, depth: usize) anyerror!void {
+    const text = self.compiler.graph.sources[env.file].text;
+    const origin_ = self.makeOrigin(env, tokens[i.*].start);
+    self.setError(env, tokens[i.*].start);
+    i.* += 1;
+    const value = try self.freshHygienic("variant");
+    try self.emitFixed("LET", origin_);
+    try self.emitQuotedRaw(value, origin_);
+    try self.emitFixed("=", origin_);
+    try self.lowerExpression(env, tokens, i, 0, false, depth + 1);
+    try self.emitFixed(";", origin_);
+    if (i.* >= tokens.len or !tokenWord(text, tokens[i.*], "AS")) return error.InvalidSourceSyntax;
+    i.* += 1;
+    const ref = try self.compiler.graph.resolve(env.file, try self.matchName(env, tokens, i));
+    const definition = self.compiler.graph.getDefinition(ref);
+    if (definition.kind != .variant) return error.InvalidVariantConstructor;
+    try self.obligations.append(self.output, .{ .target = .{ .binding = value }, .expected = .{ .variant = ref }, .name = definition.name });
+
+    // Immutable input, evaluated once. Inactive payloads must be NULL and the
+    // selected record must be present. Its scalar fields are descriptor-checked.
+    try self.emitFixed("REQUIRE", origin_);
+    try self.emitQuotedRaw(value, origin_);
+    try self.emitFixed("IS NOT NULL AND (", origin_);
+    for (definition.constructors, 0..) |constructor, arm_index| {
+        try self.compiler.tick();
+        if (arm_index != 0) try self.emitFixed("OR", origin_);
+        try self.emitFixed("(", origin_);
+        try self.matchField(value, "tag", origin_);
+        try self.emitFixed("=", origin_);
+        try self.emitFixed(try std.fmt.allocPrint(self.scratch, "'{s}'", .{constructor.name}), origin_);
+        for (definition.constructors, 0..) |other, other_index| {
+            try self.compiler.tick();
+            try self.emitFixed("AND", origin_);
+            try self.matchField(value, other.name, origin_);
+            try self.emitFixed(if (arm_index == other_index) "IS NOT NULL" else "IS NULL", origin_);
+        }
+        try self.emitFixed(")", origin_);
+    }
+    try self.emitFixed(") ELSE 'InvalidVariant';", origin_);
+
+    var seen: [64]bool = @splat(false);
+    var count: usize = 0;
+    while (i.* < tokens.len and tokenWord(text, tokens[i.*], "WHEN")) {
+        self.setError(env, tokens[i.*].start);
+        i.* += 1;
+        const selected = try types.constructor(self.compiler.graph, env.file, try self.matchName(env, tokens, i));
+        if (!std.meta.eql(selected.definition, ref)) return error.SourceTypeMismatch;
+        if (seen[selected.index]) return error.DuplicateSourceMatchArm;
+        seen[selected.index] = true;
+        count += 1;
+        const constructor = definition.constructors[selected.index];
+        const saved = env.symbols.items.len;
+        try self.emitFixed("IF", origin_);
+        try self.matchField(value, "tag", origin_);
+        try self.emitFixed("=", origin_);
+        try self.emitFixed(try std.fmt.allocPrint(self.scratch, "'{s}' THEN", .{constructor.name}), origin_);
+        if (i.* >= tokens.len or !tokenSymbol(text, tokens[i.*], '(')) return error.InvalidSourceSyntax;
+        i.* += 1;
+        var field_index: usize = 0;
+        while (i.* < tokens.len and !tokenSymbol(text, tokens[i.*], ')')) {
+            if (field_index == constructor.fields.len) return error.SourceArgumentCount;
+            const binder = tokens[i.*];
+            const name = try self.decodeProgramName(text, binder);
+            for (env.symbols.items) |symbol| if (std.mem.eql(u8, symbol.original, name)) return error.DuplicateProgramVariable;
+            for (env.bindings) |binding| if (std.mem.eql(u8, binding.name, name)) return error.DuplicateSourceName;
+            for (env.fn_params) |parameter| if (std.mem.eql(u8, parameter.name, name)) return error.DuplicateSourceName;
+            for (env.row_vars) |row| if (std.mem.eql(u8, row.original, name)) return error.DuplicateSourceName;
+            for (self.compiler.graph.files[env.file].imports) |import| if (std.mem.eql(u8, import.alias, name)) return error.DuplicateSourceName;
+            const local = try self.freshHygienic(name);
+            try self.emitFixed("LET", origin_);
+            try self.emitQuotedRaw(local, origin_);
+            try self.emitFixed("=", origin_);
+            try self.matchField(value, constructor.name, origin_);
+            try self.emitFixed(".", origin_);
+            try self.emitQuotedRaw(constructor.fields[field_index].name, origin_);
+            try self.emitFixed(";", origin_);
+            try env.symbols.append(self.scratch, .{ .original = name, .emitted = local });
+            field_index += 1;
+            i.* += 1;
+            if (i.* < tokens.len and tokenSymbol(text, tokens[i.*], ',')) i.* += 1 else break;
+        }
+        if (field_index != constructor.fields.len) return error.SourceArgumentCount;
+        if (i.* + 1 >= tokens.len or !tokenSymbol(text, tokens[i.*], ')') or !tokenWord(text, tokens[i.* + 1], "THEN")) return error.InvalidSourceSyntax;
+        i.* += 2;
+        try self.lowerBlock(env, tokens, i, atomic, depth + 1);
+        env.symbols.shrinkRetainingCapacity(saved);
+        try self.emitFixed("END IF;", origin_);
+    }
+    if (count != definition.constructors.len) return error.NonExhaustiveSourceMatch;
+    if (i.* + 2 >= tokens.len or !tokenWord(text, tokens[i.*], "END") or !tokenWord(text, tokens[i.* + 1], "MATCH") or !tokenSymbol(text, tokens[i.* + 2], ';')) return error.InvalidSourceSyntax;
+    i.* += 3;
 }
 
 const HoistMark = struct { writer: usize, sites: usize, origins: usize, obligations: usize };

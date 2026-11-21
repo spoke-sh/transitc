@@ -104,12 +104,15 @@ sourceAtom: INTEGER | STRING | TRUE | FALSE | NAME STRING
 // Delivered public resource profile, with syntax before schema binding.
 tableTemplate: simpleTemplate | sourceProgram;
 simpleTemplate: CREATE SCHEMA identifier
-    | CREATE PUBLIC (TABLE | STREAM | QUEUE) qualifiedName LPAREN tableElement (COMMA tableElement)* RPAREN
+    | CREATE PUBLIC (TABLE | STREAM) qualifiedName LPAREN tableElement (COMMA tableElement)* RPAREN
+    | CREATE PUBLIC QUEUE qualifiedName LPAREN tableElement (COMMA tableElement)* RPAREN
+        (WITH LPAREN queueLeaseOption (COMMA queueLeaseOption)* RPAREN)?
     | PRODUCE INTO streamOperand (LPAREN identifier (COMMA identifier)* RPAREN)? VALUES mutationRow (COMMA mutationRow)*
     | ENQUEUE INTO queueOperand (LPAREN identifier (COMMA identifier)* RPAREN)? VALUES mutationRow (COMMA mutationRow)*
     | sourceProgramControl
     | CONSUME (STAR | columnReference outputAlias? (COMMA columnReference outputAlias?)*) FROM streamOperand (AS identifier)? whereClause? limitClause?
     | mutationStatement | sourceSelect;
+queueLeaseOption: (LEASE_DURATION | MAX_LEASE_DURATION) EQ sourceString;
 streamOperand: streamHole | plainIdentifier (DOT identifier)?;
 queueOperand: queueHole | plainIdentifier (DOT identifier)?;
 streamHole: DOLLAR sourceName;
@@ -131,10 +134,12 @@ programInstruction
     | CHECK GUARD helperName programArguments SEMI
     | CALL helperName programArguments SEMI
     | BEGIN ATOMIC programBlock END SEMI
+    | MATCH programExpression AS sourceQualifiedName programMatchArm+ END MATCH SEMI
     | IF programExpression THEN programBlock (ELSE programBlock)? END IF SEMI
     | INSERT INTO tableOperand VALUES programArguments ON CONFLICT LPAREN programName (COMMA programName)* RPAREN DO ASSERT SAME ROW SEMI
     | PRODUCE INTO programStream VALUES programArguments SEMI
     | ENQUEUE INTO programQueue VALUES programArguments SEMI;
+programMatchArm: WHEN sourceQualifiedName LPAREN (programName (COMMA programName)*)? RPAREN THEN programBlock;
 helperName: sourceName (DOT sourceName)?;
 programSelect: SELECT (STAR | programName (COMMA programName)*) FROM tableOperand (WHERE programExpression)?;
 programArguments: LPAREN (programExpression (COMMA programExpression)*)? RPAREN;
@@ -196,7 +201,7 @@ plainColumnIdentifier: settingIdentifier | STREAMS | QUEUES | SNAPSHOT | CURRENT
     | DATAFLOW | REVISION | AUTHORIZE | ACTIVATE | SUSPEND | RESUME | REFRESH | RETIRE | sourceKeyword;
 plainIdentifier: plainColumnIdentifier | CONSTRAINT | CHECK | FOREIGN | REFERENCES;
 identifier: identifierHole | plainIdentifier;
-sourceKeyword: MIGRATION | MIGRATIONS | EMPTY | VERSION | DOMAIN | VARIANT | IDENTITY | EXPORT | MATCH | WHEN | USING | IMPORT | DEPENDENCY | SUBDIRECTORY | PACKAGE | FILE | MODULE | INTERFACE | FUNCTION | GUARD | PROCEDURE | RETURNS | RETURN | CALL | TARGET | TEST | TESTS | SUITE | SUITES | SQL | USE | MODULES | ASSERT | ROWS | COMMAND | STATEMENT | EQUAL | MATCHED | CHANGED | FAILS | END | THEN | ELSE | NAME | BIGINT | TEXT | BOOLEAN | TIMESTAMPTZ | IDENTIFIER_KIND | SCHEMA_BINDING | DECLARE | BIND | VIEW | PROFILE | REFERENCE | LET | REQUIRE | ATOMIC | DO | SAME | FAILURE | CASE | CAST | WORKFLOW | COMPLETED | REFUSED | WITHIN | OBSERVATIONS;
+sourceKeyword: LEASE_DURATION | MAX_LEASE_DURATION | MIGRATION | MIGRATIONS | EMPTY | VERSION | DOMAIN | VARIANT | IDENTITY | EXPORT | MATCH | WHEN | USING | IMPORT | DEPENDENCY | SUBDIRECTORY | PACKAGE | FILE | MODULE | INTERFACE | FUNCTION | GUARD | PROCEDURE | RETURNS | RETURN | CALL | TARGET | TEST | TESTS | SUITE | SUITES | SQL | USE | MODULES | ASSERT | ROWS | COMMAND | STATEMENT | EQUAL | MATCHED | CHANGED | FAILS | END | THEN | ELSE | NAME | BIGINT | TEXT | BOOLEAN | TIMESTAMPTZ | IDENTIFIER_KIND | SCHEMA_BINDING | DECLARE | BIND | VIEW | PROFILE | REFERENCE | LET | REQUIRE | ATOMIC | DO | SAME | FAILURE | CASE | CAST | WORKFLOW | COMPLETED | REFUSED | WITHIN | OBSERVATIONS;
 // Keep the inherited logical type/literal productions; holes extend their sites.
 dataType: typeHole | sourceDataType;
 sourceDataType
@@ -235,7 +240,7 @@ plainReferenceTypeHead: typeWord | STRUCT | UNION | LIST | ARRAY | MAP | RANGE |
 sourceWord: typeWord | BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | BINARY | IDENTIFIER_KIND | SCHEMA_BINDING | MODULE | TABLE;
 typeWord: typeWordWithoutLogs | STREAM | QUEUE;
 typeWordWithoutLogs: typeWordOrdinary | NULL_ | CASE | CAST;
-typeWordOrdinary: IDENTIFIER | MIGRATION | MIGRATIONS | EMPTY | VERSION | FOR | AT | DECIMAL_ADD | DECIMAL_SUBTRACT | DECIMAL_MULTIPLY | DECIMAL_DIVIDE
+typeWordOrdinary: LEASE_DURATION | MAX_LEASE_DURATION | IDENTIFIER | MIGRATION | MIGRATIONS | EMPTY | VERSION | FOR | AT | DECIMAL_ADD | DECIMAL_SUBTRACT | DECIMAL_MULTIPLY | DECIMAL_DIVIDE
     | DECIMAL_RESCALE | RANGE_OVERLAPS | RANGE_CONTAINS | RANGE_ADJACENT | RANGE_COMPARE
     | VECTOR_DISTANCE | TIME_BUCKET | LOCAL_TO_UTC | DATAFLOW | REVISION | AUTHORIZE | ACTIVATE
     | SUSPEND | RESUME | REFRESH | RETIRE | BEGIN | CONSTRAINT | CHECK | FOREIGN | REFERENCES
@@ -339,3 +344,6 @@ VIEW: 'VIEW';
 PROFILE: 'PROFILE';
 REFERENCE: 'REFERENCE';
 FAT_ARROW: '=>';
+
+LEASE_DURATION: 'LEASE_DURATION';
+MAX_LEASE_DURATION: 'MAX_LEASE_DURATION';

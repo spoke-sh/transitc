@@ -53,6 +53,21 @@ pub const Table = struct {
     encapsulated: bool = false,
     kind: ResourceKind = .table,
     log: ?f.LogDdl.Configured = null,
+    /// Preserve the frozen default-policy identity while distinguishing the
+    /// admitted Queue lease overrides using bound (millisecond) values.
+    pub fn hashLogPolicy(self: Table, into: *std.crypto.hash.sha2.Sha256) void {
+        const log = self.log orelse return;
+        if (self.kind != .queue) return;
+        const policy = log.configuration.policy.queue;
+        const defaults = f.LogDdl.defaults(.queue).policy.queue;
+        if (policy.lease_ms == defaults.lease_ms and policy.maximum_lease_ms == defaults.maximum_lease_ms) return;
+        Graph.hashPart(into, "transit.source.queue-lease.v1");
+        var bytes: [8]u8 = undefined;
+        std.mem.writeInt(u64, &bytes, policy.lease_ms, .little);
+        into.update(&bytes);
+        std.mem.writeInt(u64, &bytes, policy.maximum_lease_ms, .little);
+        into.update(&bytes);
+    }
     pub fn value(self: *const Table) Value {
         return switch (self.kind) {
             .table => .{ .table = self },
@@ -234,6 +249,7 @@ pub fn hashValue(value: Value, graph: Graph, into: *std.crypto.hash.sha2.Sha256,
             Graph.hashPart(into, table.schema_name);
             Graph.hashPart(into, table.name);
             into.update(&try table.schema.fingerprint());
+            table.hashLogPolicy(into);
             for (table.schema.columns, table.domains) |column, ref| {
                 Graph.hashPart(into, column.name);
                 if (ref) |d| (try domain(graph, d)).hash(graph, into) else Graph.hashPart(into, "raw");

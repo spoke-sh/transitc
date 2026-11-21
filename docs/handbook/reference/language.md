@@ -17,6 +17,12 @@ against an independently built catalog. Parser acceptance does not imply runtime
 support outside the exact supported target profile. Compilation grants no rights.
 The SQL grammar remains Transit-owned and pinned separately for verification.
 
+Runtime `MATCH value AS Variant` validates a closed tagged record and exposes
+nominal payloads in exhaustive ordered-program arms. See the
+[runtime variant guide](../guides/runtime-variants.md) for encoding, input
+refusals and runnable tests. Compile-time `MATCH value` keeps its existing
+specialization behavior.
+
 Default compiler limits are 256 files, 16 MiB aggregate source, depth 64,
 100,000 work units, 64 MiB compiler memory and 8 MiB SQL output. Statement-specific
 SQL limits and individual syntax bounds also apply. The CLI workspace has a

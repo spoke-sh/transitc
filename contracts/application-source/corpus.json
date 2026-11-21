@@ -1181,5 +1181,63 @@
     "name": "guard-requires-and-row-helper-parameters",
     "source": "CREATE DOMAIN OrgId AS UUID IDENTITY 'platform.org_id'; CREATE GUARD tenancy.require_scope(scope ROW(id UUID, org_id OrgId, rev BIGINT), expected_org OrgId, min_rev BIGINT) AS REQUIRE scope IS NOT NULL ELSE 'MissingScope', REQUIRE scope.org_id = expected_org AND scope.rev >= min_rev ELSE 'ForbiddenScope'; CREATE FUNCTION tenancy.next_rev(scope ROW(id UUID, rev BIGINT)) RETURNS BIGINT AS BEGIN RETURN scope.rev + 1; END; CREATE PROCEDURE networking.record_audit(audits TABLE(id UUID PRIMARY KEY, org_id OrgId NOT NULL, payload BINARY NOT NULL, recorded_at TIMESTAMPTZ NOT NULL), item ROW(id UUID, org_id OrgId), payload BINARY, recorded_at TIMESTAMPTZ) AS BEGIN ATOMIC INSERT INTO audits VALUES (item.id, item.org_id, payload, recorded_at) ON CONFLICT (id) DO ASSERT SAME ROW; END;",
     "parse": true
+  },
+  {
+    "name": "runtime-match-record",
+    "source": "CREATE VARIANT Target AS (Machine(id BIGINT), Site(id BIGINT)); CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE requests (target STRUCT(tag TEXT NOT NULL, machine STRUCT(id BIGINT NOT NULL), site STRUCT(id BIGINT NOT NULL)) NOT NULL); CREATE PUBLIC DATAFLOW process FROM QUEUE requests AS request AS BEGIN MATCH request.target AS Target WHEN Target.Machine(machine_id) THEN REQUIRE machine_id = 7 ELSE 'WrongMachine'; WHEN Target.Site(site_id) THEN REQUIRE site_id = 7 ELSE 'WrongSite'; END MATCH; END; END;",
+    "parse": true,
+    "compile": "build"
+  },
+  {
+    "name": "runtime-match-exhaustiveness",
+    "source": "CREATE VARIANT Target AS (Machine(id BIGINT), Site(id BIGINT)); CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE requests (target STRUCT(tag TEXT NOT NULL, machine STRUCT(id BIGINT NOT NULL), site STRUCT(id BIGINT NOT NULL)) NOT NULL); CREATE PUBLIC DATAFLOW process FROM QUEUE requests AS request AS BEGIN MATCH request.target AS Target WHEN Target.Machine(machine_id) THEN REQUIRE machine_id = 7 ELSE 'WrongMachine'; END MATCH; END; END;",
+    "parse": true,
+    "compile": "build",
+    "error": "NonExhaustiveSourceMatch"
+  },
+  {
+    "name": "runtime-match-unselected-syntax",
+    "source": "CREATE VARIANT Target AS (Machine(id BIGINT), Site(id BIGINT)); CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE requests (target STRUCT(tag TEXT NOT NULL, machine STRUCT(id BIGINT NOT NULL), site STRUCT(id BIGINT NOT NULL)) NOT NULL); CREATE PUBLIC DATAFLOW process FROM QUEUE requests AS request AS BEGIN MATCH request.target AS Target WHEN Target.Machine(machine_id) THEN REQUIRE machine_id = 7 ELSE 'WrongMachine'; WHEN Target.Site(site_id) THEN SELECT broken; END MATCH; END; END;",
+    "parse": false
+  },
+  {
+    "name": "runtime-match-missing-as",
+    "source": "CREATE VARIANT Target AS (Machine(id BIGINT), Site(id BIGINT)); CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE requests (target STRUCT(tag TEXT NOT NULL, machine STRUCT(id BIGINT NOT NULL), site STRUCT(id BIGINT NOT NULL)) NOT NULL); CREATE PUBLIC DATAFLOW process FROM QUEUE requests AS request AS BEGIN MATCH request.target Target WHEN Target.Machine(machine_id) THEN REQUIRE machine_id = 7 ELSE 'WrongMachine'; WHEN Target.Site(site_id) THEN REQUIRE site_id = 7 ELSE 'WrongSite'; END MATCH; END; END;",
+    "parse": false
+  },
+  {
+    "name": "queue-lease-options",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE work (id BIGINT NOT NULL) WITH (lease_duration = '120s', max_lease_duration = '120s'); END;",
+    "parse": true,
+    "compile": "build"
+  },
+  {
+    "name": "queue-lease-invalid-policy",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE work (id BIGINT NOT NULL) WITH (lease_duration = '120s'); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "InvalidQueuePolicy"
+  },
+  {
+    "name": "queue-lease-duplicate",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE work (id BIGINT NOT NULL) WITH (lease_duration = '30s', lease_duration = '30s'); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "DuplicateLogOption"
+  },
+  {
+    "name": "queue-lease-unknown-option",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE work (id BIGINT NOT NULL) WITH (retention = '1d'); END;",
+    "parse": false
+  },
+  {
+    "name": "queue-lease-non-string",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE work (id BIGINT NOT NULL) WITH (lease_duration = 120); END;",
+    "parse": false
+  },
+  {
+    "name": "table-lease-refused",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE items (id BIGINT) WITH (lease_duration = '120s'); END;",
+    "parse": false
   }
 ]

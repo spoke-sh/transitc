@@ -28,6 +28,9 @@ pub const RowField = struct {
 pub const Expected = union(enum) {
     scalar: types.Scalar,
     row: []const RowField,
+    /// Decoder input owned by runtime MATCH lowering. Its hygienic binding is
+    /// inaccessible to source; payload aliases are introduced after validation.
+    variant: Graph.Ref,
 };
 pub const Obligation = struct {
     target: union(enum) {
@@ -158,6 +161,7 @@ fn project(self: *Self, value: Value, physical_: a.Types.Value, depth: usize) an
 }
 fn checkExpected(self: *Self, expected: Expected, name: []const u8, actual: Value, physical_: a.Types.Value, offset: usize) anyerror!void {
     switch (expected) {
+        .variant => |ref| _ = try self.variantRecord(ref, actual, physical_, offset),
         .scalar => |want_scalar| {
             const want_kind: a.Types.Kind = switch (want_scalar.base) {
                 .bigint => .integer,
@@ -198,6 +202,41 @@ fn checkExpected(self: *Self, expected: Expected, name: []const u8, actual: Valu
             }
         },
     }
+}
+fn variantRecord(self: *Self, ref: Graph.Ref, actual: Value, physical_: a.Types.Value, offset: usize) !Value {
+    const definition = self.graph.getDefinition(ref);
+    self.context.* = .{ .offset = offset, .name = definition.name, .expected = "variant record with tag and one nullable record per constructor", .actual = @tagName(physical_.kind) };
+    if (physical_.kind != .record or physical_.fields.len != definition.constructors.len + 1 or actual.domain != null) return error.ProgramTypeMismatch;
+    const tag = physicalField(physical_, "tag") orelse return error.ProgramTypeMismatch;
+    if (tag.kind != .text or tag.nullable or nominal(field(actual, "tag"))) return error.ProgramTypeMismatch;
+    const fields = try self.scratch.alloc(Named, definition.constructors.len + 1);
+    fields[0] = .{ .name = "tag", .value = .{} };
+    for (definition.constructors, fields[1..]) |constructor, *result| {
+        try self.tick();
+        if (std.mem.eql(u8, constructor.name, "tag")) return error.ProgramTypeMismatch;
+        const arm = physicalField(physical_, constructor.name) orelse return error.ProgramTypeMismatch;
+        if (arm.kind != .record or !arm.nullable or arm.fields.len != constructor.fields.len) return error.ProgramTypeMismatch;
+        const payload = try self.scratch.alloc(Named, constructor.fields.len);
+        for (constructor.fields, payload) |parameter, *item| {
+            try self.tick();
+            const scalar = try types.field(self.graph, ref.file, parameter.kind);
+            const physical_field = physicalField(arm, parameter.name) orelse return error.ProgramTypeMismatch;
+            if (physical_field.nullable) return error.ProgramTypeMismatch;
+            const annotation = field(field(actual, constructor.name), parameter.name);
+            if (annotation.domain != null and !std.meta.eql(annotation.domain, scalar.domain)) return error.SourceDomainMismatch;
+            // The closed record descriptor validates physical payload types;
+            // MATCH validates tag/presence before exposing the nominal aliases.
+            try self.checkExpected(.{ .scalar = .{ .base = scalar.base } }, parameter.name, .{}, physical_field, offset);
+            if (nominal(annotation) and annotation.domain == null) return error.SourceDomainMismatch;
+            item.* = .{ .name = parameter.name, .value = .{ .domain = scalar.domain } };
+        }
+        result.* = .{ .name = constructor.name, .value = .{ .fields = payload } };
+    }
+    return .{ .fields = fields };
+}
+fn physicalField(value: a.Types.Value, name: []const u8) ?a.Types.Value {
+    for (value.fields) |item| if (std.mem.eql(u8, item.name, name)) return item.value;
+    return null;
 }
 fn checkObligation(self: *Self, ob: Obligation, actual: Value, physical_: a.Types.Value, offset: usize) !void {
     return self.checkExpected(ob.expected, ob.name, actual, physical_, offset);
@@ -319,7 +358,7 @@ fn block(self: *Self, instructions: []const a.Instruction) anyerror!void {
         const offset = instruction.span.start;
         switch (instruction.value) {
             .let => |binding| {
-                const value = switch (binding.value) {
+                var value = switch (binding.value) {
                     .expression => |input| try self.expression(input),
                     .select => |input| try self.select(input),
                     else => return error.ApplicationHostUnavailable,
@@ -328,7 +367,9 @@ fn block(self: *Self, instructions: []const a.Instruction) anyerror!void {
                 for (self.obligations, 0..) |ob, idx| if (ob.target == .binding and std.mem.eql(u8, ob.target.binding, binding.name)) {
                     self.obligation_used[idx] = true;
                     const err_offset = if (binding.value == .expression) binding.value.expression.span.start else offset;
-                    try self.checkObligation(ob, value, phys, err_offset);
+                    if (ob.expected == .variant) {
+                        value = try self.variantRecord(ob.expected.variant, value, phys, err_offset);
+                    } else try self.checkObligation(ob, value, phys, err_offset);
                 };
                 try self.symbols.append(self.scratch, .{ .name = binding.name, .value = value });
                 try self.node(id, offset, "binding", value);

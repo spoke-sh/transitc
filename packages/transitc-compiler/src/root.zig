@@ -16,6 +16,7 @@ test {
     _ = @import("format_test.zig");
     _ = @import("resource_test.zig");
     _ = @import("program_test.zig");
+    _ = @import("dynamic_test.zig");
     _ = @import("migration_test.zig");
     _ = SourceDiagnostic;
 }

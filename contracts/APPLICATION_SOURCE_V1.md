@@ -334,9 +334,12 @@ without establishing a complete artifact.
 
 ## Typed source specialization
 
-Nominal domains, closed variants and Table instance exports are compile-time
-forms. They provide source type checking and do not install runtime domain types,
-validate external IDs, grant access or dispatch on live request values.
+Nominal domains, variant constructors and Table instance exports are source
+forms. They provide source type checking and do not install runtime domain types
+or grant access. Compile-time matching specializes a concrete constructor. The
+separate [runtime MATCH profile](application-source/DYNAMIC_VARIANTS_V1.md) validates
+a closed ordinary record and dispatches within an ordered program; it does not
+authenticate the origin of raw scalar IDs.
 
 ```text
 CREATE PUBLIC DOMAIN MachineId AS BIGINT IDENTITY 'example.machine-id';

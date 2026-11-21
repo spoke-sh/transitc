@@ -19,3 +19,6 @@ Queue but rejects its ordered program with `ProgramTypeMismatch`, and rejects
 not qualify either execution surface. Native union dispatch and view DDL need
 upstream work. The scalar tag/payload probe establishes the ordinary runtime
 operations used by the nested-record encoding of runtime source MATCH.
+
+Both declarations use an explicit 120-second Queue lease for the installed
+durable journey. Test case and suite timeouts retain their existing bounds.

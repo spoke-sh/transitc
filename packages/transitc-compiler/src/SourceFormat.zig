@@ -151,6 +151,10 @@ fn sql(self: Self, value: s.Template.Syntax) void {
         const open = self.index(body.open);
         self.block(open, self.index(body.close), self.marks[open].depth);
     }
+    for (value.blocks) |body| if (body.match) {
+        // The last arm closes at END MATCH but owns only its body indentation.
+        self.marks[self.index(body.close)].depth = self.marks[self.index(body.open)].depth;
+    };
     // DDL column lists use a space after the resource name.
     if (switch (value.kind) {
         .create, .create_stream, .create_queue => true,
