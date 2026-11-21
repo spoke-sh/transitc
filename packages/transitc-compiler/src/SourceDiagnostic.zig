@@ -192,6 +192,8 @@ pub const Report = struct {
                 error.DuplicateProgramVariable, error.DuplicateProgramField, error.DuplicateProgramResource => self.setHeadline("duplicate name in program scope", .{}),
                 error.MissingRequiredField, error.NullNotAllowed => self.setHeadline("required non-null column is missing or NULL", .{}),
                 error.InvalidRowWidth => self.setHeadline("row value count does not match target column count", .{}),
+                error.Inexact => self.setHeadline("decimal literal cannot fit the declared scale exactly", .{}),
+                error.DuplicateField => self.setHeadline("duplicate field in logical value or descriptor", .{}),
                 error.LiteralOutOfRange, error.Overflow => self.setHeadline("numeric literal is out of range for target type", .{}),
                 error.MissingSourceLock => {
                     self.setHeadline("missing 'transit.lock' for declared dependencies", .{});
@@ -533,6 +535,8 @@ const families = std.StaticStringMap(Family).initComptime(.{
     .{ "InvalidBuildBudget", .internal },
     .{ "InvalidCompilerIdentity", .internal },
     .{ "Overflow", .type },
+    .{ "Inexact", .type },
+    .{ "DuplicateField", .type },
     .{ "ReadFailed", .io },
     .{ "WriteFailed", .output },
     .{ "PathAlreadyExists", .output },

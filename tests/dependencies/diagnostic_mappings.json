@@ -919,6 +919,14 @@
         "OptionalRowRequiresPresence": {
           "code": "application.source.type",
           "category": "binding"
+        },
+        "Inexact": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "DuplicateField": {
+          "code": "application.source.type",
+          "category": "binding"
         }
       }
     }

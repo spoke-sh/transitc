@@ -51,3 +51,25 @@ Ordinary SQL supports more descriptors than this source parameter set. Parser
 acceptance alone does not establish runtime support. In particular, an SQL
 INTERVAL is not the program helper's microsecond duration, JSON does not gain
 scalar equality, and native UNION values cannot yet enter ordered programs.
+
+## Ordinary SQL literals
+
+NUMERIC, JSON and INTERVAL can be used directly in Table declarations and
+literals. They do not yet have source parameter or domain types.
+
+```sql
+CREATE PUBLIC TABLE values_example (id BIGINT PRIMARY KEY, amount NUMERIC(38,9), payload JSON, span INTERVAL);
+INSERT INTO values_example VALUES (1, 9007199254740993.123456789, JSON '{"value":null}', INTERVAL(1,-2,3));
+```
+
+NUMERIC retains exact decimal coefficients. A literal with extra nonzero scale
+digits fails with `Inexact`; supply an exactly representable value. Duplicate
+JSON keys fail with `DuplicateField`; remove the duplicate key. JSON null remains
+distinct from SQL NULL. INTERVAL keeps months, days and nanoseconds separately.
+
+Run `transitc test -f tests/fixtures/application-sql-scalars/build.transit` for
+exact values and boundary cases. The installed checks compare an independent SQL
+oracle, including reordered JSON keys, and preserve values after restart. The
+qualified query is direct projection: the combined `ORDER BY` query is refused by
+Transit's relational profile. This fixture does not qualify JSON extraction,
+decimal rounding operations or interval ordering.

@@ -1347,5 +1347,40 @@
     "parse": true,
     "compile": "build",
     "error": "SourceDomainMismatch"
+  },
+  {
+    "name": "exact-sql-scalars",
+    "source": "CREATE MODULE Setup() AS BEGIN\n  CREATE PUBLIC TABLE exact_values (id BIGINT PRIMARY KEY, amount NUMERIC(38, 9), payload JSON, span INTERVAL);\n  INSERT INTO exact_values VALUES\n    (1, 9007199254740993.123456789, JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', INTERVAL(1, -2, 3)),\n    (2, -99999999999999999999999999999.999999999, JSON 'null', INTERVAL(-2147483648, 2147483647, -9223372036854775808)),\n    (3, NULL, NULL, NULL);\nEND;\nCREATE TARGET default AS BEGIN USE Setup(); END;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'exact decimal JSON and interval components' USING MODULES (Setup()) AS BEGIN\n    ASSERT ROWS (SELECT id, amount, payload, span FROM exact_values) EQUAL (\n      (1, 9007199254740993.123456789, JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', INTERVAL(1, -2, 3)),\n      (2, -99999999999999999999999999999.999999999, JSON 'null', INTERVAL(-2147483648, 2147483647, -9223372036854775808)),\n      (3, NULL, NULL, NULL)\n    );\n  END;\nEND;\n",
+    "parse": true,
+    "compile": "test_suite",
+    "cases": 1
+  },
+  {
+    "name": "sql-scalar-decimal-overflow",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE t (id BIGINT PRIMARY KEY, amount NUMERIC(5,2)); INSERT INTO t VALUES (1, 1000.00); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "Overflow"
+  },
+  {
+    "name": "sql-scalar-decimal-scale",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE t (id BIGINT PRIMARY KEY, amount NUMERIC(5,2)); INSERT INTO t VALUES (1, 1.001); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "Inexact"
+  },
+  {
+    "name": "sql-scalar-json-duplicate",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE t (id BIGINT PRIMARY KEY, payload JSON); INSERT INTO t VALUES (1, JSON '{\"a\":1,\"a\":2}' ); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "DuplicateField"
+  },
+  {
+    "name": "sql-scalar-interval-overflow",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE t (id BIGINT PRIMARY KEY, span INTERVAL); INSERT INTO t VALUES (1, INTERVAL(2147483648,0,0)); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "Overflow"
   }
 ]

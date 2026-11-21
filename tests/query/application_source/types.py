@@ -169,6 +169,9 @@ def main():
             'lean_executable': capture.identity(Path(shutil.which('lean')).resolve()),
             'inputs': {path: capture.identity(ROOT / path) for path in (
                 'tests/query/application_source/types.py', 'tests/query/application_source/program_types.py', 'tests/query/application_source/driver.zig',
+                'tests/query/application_source/dynamic_types.py', 'tests/query/application_source/scalar_types.py',
+                'tests/query/application_source/cardinality_types.py', 'tests/query/application_source/symbolic_program_types.py',
+                'tests/fixtures/application-symbolic-program/build.transit', 'packages/transitc-compiler/src/SymbolicProgram.zig',
                 'packages/transitc-compiler/src/Compiler.zig', 'packages/transitc-compiler/src/Graph.zig', 'packages/transitc-compiler/src/ProgramLowering.zig', 'packages/transitc-compiler/src/Syntax.zig',
                 'packages/transitc-compiler/src/SourceTypes.zig', 'packages/transitc-compiler/src/ProgramAnnotations.zig', 'packages/transitc-compiler/src/TypedOperands.zig')}}
     capture.write_json(destination / 'evidence.json', meta)

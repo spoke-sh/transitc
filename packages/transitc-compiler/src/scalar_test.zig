@@ -59,3 +59,20 @@ fn allocations(allocator: std.mem.Allocator) !void {
 test "DATE allocation failures never return a partial product" {
     try std.testing.checkAllAllocationFailures(std.testing.allocator, allocations, .{});
 }
+test "ordinary scalar refusals retain input diagnostics instead of internal failures" {
+    const cases = .{
+        .{ "amount NUMERIC(5,2)", "1000.00", error.Overflow },
+        .{ "amount NUMERIC(5,2)", "1.001", error.Inexact },
+        .{ "payload JSON", "JSON '{\"a\":1,\"a\":2}'", error.DuplicateField },
+        .{ "span INTERVAL", "INTERVAL(2147483648,0,0)", error.Overflow },
+    };
+    inline for (cases) |case| {
+        const text = try std.fmt.allocPrint(std.testing.allocator, "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE t (id BIGINT PRIMARY KEY, {s}); INSERT INTO t VALUES (1, {s}); END;", .{ case[0], case[1] });
+        defer std.testing.allocator.free(text);
+        var diagnostic: ?p.Diagnostic = null;
+        try std.testing.expectError(case[2], c.compile(std.testing.allocator, &.{.{ .path = "build.transit", .text = text }}, .{ .compiler_revision = "test" }, &diagnostic));
+        try std.testing.expectEqualStrings("application.source.type", diagnostic.?.code.slice());
+        try std.testing.expectEqual(.not_submitted, diagnostic.?.outcome);
+        try std.testing.expect(diagnostic.?.location != null);
+    }
+}
