@@ -164,6 +164,7 @@ pub const Report = struct {
                 else
                     self.setHeadline("nominal source domains do not match", .{}),
                 error.DuplicateDomainIdentity => self.setHeadline("duplicate nominal domain identity string", .{}),
+                error.OptionalRowRequiresPresence => self.setHeadline("optional row needs a whole-row presence check before projection or a helper call", .{}),
                 error.InvalidDomainIdentity => self.setHeadline("domain identity must be 1..128 valid UTF-8 bytes", .{}),
                 error.SourceTypeMismatch, error.ProgramTypeMismatch => if (context.expected != null and context.actual != null)
                     (if (context.name) |n| self.setHeadline("type mismatch for '{s}': expected '{s}', found '{s}'", .{ n, context.expected.?, context.actual.? }) else self.setHeadline("type mismatch: expected '{s}', found '{s}'", .{ context.expected.?, context.actual.? }))
@@ -367,6 +368,7 @@ const families = std.StaticStringMap(Family).initComptime(.{
     .{ "InvalidSourceTypeOperand", .type },
     .{ "SourceTableBindingMismatch", .type },
     .{ "ProgramTypeMismatch", .type },
+    .{ "OptionalRowRequiresPresence", .type },
     .{ "ProgramNullabilityMismatch", .type },
     .{ "ProgramResourceKindMismatch", .type },
     .{ "ProgramArgumentMismatch", .type },

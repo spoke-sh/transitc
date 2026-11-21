@@ -778,7 +778,12 @@ fn programBlock(self: *Self, atomic: bool, mode: BlockMode) anyerror!void {
         const start = self.at();
         if (self.take("LET")) {
             try self.programName();
+            const cardinality = self.take("ONE") or self.take("OPTIONAL");
             try self.require("=");
+            if (cardinality and !self.is("SELECT")) {
+                self.failExpected("'SELECT' after result cardinality");
+                return self.invalid();
+            }
             if (self.take("CALL")) {
                 if (mode == .guard) {
                     self.location.* = start;

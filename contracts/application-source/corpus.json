@@ -1298,5 +1298,40 @@
     "parse": true,
     "compile": "build",
     "error": "ProgramTypeMismatch"
+  },
+  {
+    "name": "query-cardinality-cases",
+    "source": "CREATE MODULE RouteOne() AS BEGIN\n    CREATE PUBLIC DATAFLOW cardinality_route FROM QUEUE cardinality_requests AS request AS BEGIN\n      BEGIN ATOMIC\n        LET found ONE = SELECT note FROM cardinality_rows WHERE lookup = request.lookup;\n        PRODUCE INTO cardinality_events VALUES (request.id, 'present', found.note);\n        REQUIRE NOT request.reject ELSE 'LateRefusal';\n      END;\n    END;\nEND;\nCREATE MODULE RouteOptional() AS BEGIN\n    CREATE PUBLIC DATAFLOW cardinality_route FROM QUEUE cardinality_requests AS request AS BEGIN\n      BEGIN ATOMIC\n        LET found OPTIONAL = SELECT note FROM cardinality_rows WHERE lookup = request.lookup;\n        IF found IS NULL THEN\n          PRODUCE INTO cardinality_events VALUES (request.id, 'absent', NULL);\n        ELSE\n          PRODUCE INTO cardinality_events VALUES (request.id, 'present', found.note);\n        END IF;\n        REQUIRE NOT request.reject ELSE 'LateRefusal';\n      END;\n    END;\nEND;\nCREATE MODULE Pipeline(require_one BOOLEAN, lease TEXT) AS BEGIN\n  CREATE PUBLIC QUEUE cardinality_requests (id BIGINT NOT NULL, lookup TEXT NOT NULL, reject BOOLEAN NOT NULL) WITH (lease_duration = $lease, max_lease_duration = $lease);\n  CREATE PUBLIC TABLE cardinality_rows (id BIGINT PRIMARY KEY, lookup TEXT NOT NULL, note TEXT);\n  CREATE PUBLIC STREAM cardinality_events (id BIGINT NOT NULL, presence TEXT NOT NULL, note TEXT);\n  INSERT INTO cardinality_rows VALUES (1, 'single', NULL), (2, 'duplicate', 'a'), (3, 'duplicate', 'b');\n  IF require_one THEN USE RouteOne(); ELSE USE RouteOptional(); END IF;\n  AUTHORIZE DATAFLOW cardinality_route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW cardinality_route;\nEND;\nCREATE TARGET default AS BEGIN USE Pipeline(TRUE, '120s'); END;\nCREATE TARGET optional AS BEGIN USE Pipeline(FALSE, '120s'); END;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'one present NULL' USING MODULES (Pipeline(TRUE, '30s')) AS BEGIN\n    ENQUEUE INTO cardinality_requests VALUES (1, 'single', FALSE);\n    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ((1, 'present', NULL));\n  END;\n  TEST 'one absent' USING MODULES (Pipeline(TRUE, '30s')) AS BEGIN\n    ENQUEUE INTO cardinality_requests VALUES (1, 'missing', FALSE);\n    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ();\n  END;\n  TEST 'one multiple' USING MODULES (Pipeline(TRUE, '30s')) AS BEGIN\n    ENQUEUE INTO cardinality_requests VALUES (1, 'duplicate', FALSE);\n    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ();\n  END;\n  TEST 'one rollback' USING MODULES (Pipeline(TRUE, '30s')) AS BEGIN\n    ENQUEUE INTO cardinality_requests VALUES (1, 'single', TRUE);\n    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ();\n  END;\n  TEST 'optional present NULL' USING MODULES (Pipeline(FALSE, '30s')) AS BEGIN\n    ENQUEUE INTO cardinality_requests VALUES (1, 'single', FALSE);\n    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ((1, 'present', NULL));\n  END;\n  TEST 'optional absent' USING MODULES (Pipeline(FALSE, '30s')) AS BEGIN\n    ENQUEUE INTO cardinality_requests VALUES (1, 'missing', FALSE);\n    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ((1, 'absent', NULL));\n  END;\n  TEST 'optional multiple' USING MODULES (Pipeline(FALSE, '30s')) AS BEGIN\n    ENQUEUE INTO cardinality_requests VALUES (1, 'duplicate', FALSE);\n    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ();\n  END;\n  TEST 'optional rollback' USING MODULES (Pipeline(FALSE, '30s')) AS BEGIN\n    ENQUEUE INTO cardinality_requests VALUES (1, 'single', TRUE);\n    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ();\n  END;\nEND;\n",
+    "parse": true,
+    "compile": "test_suite"
+  },
+  {
+    "name": "cardinality-one",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE items (id BIGINT); CREATE PUBLIC QUEUE jobs (id BIGINT NOT NULL); CREATE PUBLIC DATAFLOW p FROM QUEUE jobs AS request AS BEGIN LET found ONE = SELECT id FROM items; REQUIRE found.id IS NOT NULL ELSE 'Null'; END; END;",
+    "parse": true,
+    "compile": "build"
+  },
+  {
+    "name": "cardinality-optional-refused",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE items (id BIGINT); CREATE PUBLIC QUEUE jobs (id BIGINT NOT NULL); CREATE PUBLIC DATAFLOW p FROM QUEUE jobs AS request AS BEGIN LET found OPTIONAL = SELECT id FROM items; REQUIRE found.id IS NOT NULL ELSE 'Null'; END; END;",
+    "parse": true,
+    "compile": "build",
+    "error": "OptionalRowRequiresPresence"
+  },
+  {
+    "name": "cardinality-optional-narrowed",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE items (id BIGINT); CREATE PUBLIC QUEUE jobs (id BIGINT NOT NULL); CREATE PUBLIC DATAFLOW p FROM QUEUE jobs AS request AS BEGIN LET found OPTIONAL = SELECT id FROM items; REQUIRE found IS NOT NULL ELSE 'Absent'; REQUIRE found.id IS NOT NULL ELSE 'Null'; END; END;",
+    "parse": true,
+    "compile": "build"
+  },
+  {
+    "name": "cardinality-optional-scalar",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE items (id BIGINT); CREATE PUBLIC QUEUE jobs (id BIGINT NOT NULL); CREATE PUBLIC DATAFLOW p FROM QUEUE jobs AS request AS BEGIN LET found OPTIONAL = 7; END; END;",
+    "parse": false
+  },
+  {
+    "name": "cardinality-many-refused",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE items (id BIGINT); CREATE PUBLIC QUEUE jobs (id BIGINT NOT NULL); CREATE PUBLIC DATAFLOW p FROM QUEUE jobs AS request AS BEGIN LET found MANY = SELECT id FROM items; END; END;",
+    "parse": false
   }
 ]

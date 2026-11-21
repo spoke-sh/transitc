@@ -915,6 +915,10 @@
         "PathAlreadyExists": {
           "code": "application.source.output",
           "category": "unavailable"
+        },
+        "OptionalRowRequiresPresence": {
+          "code": "application.source.type",
+          "category": "binding"
         }
       }
     }

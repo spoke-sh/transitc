@@ -37,3 +37,5 @@ not by the standalone CLI. Finite grammar/type comparisons and Lean laws retain
 explicit premises; they are not an unbounded compiler correctness proof.
 
 The [typed values guide](../guides/typed-values.md) describes DATE boundaries and the per-surface support matrix.
+
+Use [ONE and OPTIONAL reads](../guides/query-results.md) to distinguish query cardinality from nullable fields.

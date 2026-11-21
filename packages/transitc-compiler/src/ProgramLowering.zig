@@ -662,6 +662,7 @@ fn hasHelperCalls(graph: Graph, file: usize, bindings: []const types.Binding, te
     var i: usize = 0;
     while (i < tokens.len) : (i += 1) {
         if (tokenWord(text, tokens[i], "MATCH")) return true;
+        if (tokenWord(text, tokens[i], "LET") and i + 2 < tokens.len and (tokenWord(text, tokens[i + 2], "ONE") or tokenWord(text, tokens[i + 2], "OPTIONAL"))) return true;
         if (tokenWord(text, tokens[i], "CHECK") and i + 1 < tokens.len and tokenWord(text, tokens[i + 1], "GUARD")) return true;
         if (tokenWord(text, tokens[i], "CALL") and i + 1 < tokens.len and tokens[i + 1].kind == .word) {
             const after = if (i + 3 < tokens.len and tokenSymbol(text, tokens[i + 2], '.')) i + 4 else i + 2;
@@ -1155,6 +1156,8 @@ fn lowerBlock(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic
             const var_tok = tokens[i.*];
             i.* += 1;
             const decoded = try self.decodeProgramName(text, var_tok);
+            const cardinality: ?Annotations.Cardinality = if (i.* < tokens.len and tokenWord(text, tokens[i.*], "ONE")) .one else if (i.* < tokens.len and tokenWord(text, tokens[i.*], "OPTIONAL")) .optional else null;
+            if (cardinality != null) i.* += 1;
             var new_hygienic: ?[]const u8 = null;
             if (env.rename_locals) {
                 for (env.symbols.items) |sym| if (std.mem.eql(u8, sym.original, decoded)) {
@@ -1168,6 +1171,7 @@ fn lowerBlock(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic
                 try self.emitOriginalToken(env, text, tokens, i.* - 1);
             }
             try self.requireEmitSymbol(env, tokens, i, "=");
+            if (cardinality != null and (i.* >= tokens.len or !tokenWord(text, tokens[i.*], "SELECT"))) return error.InvalidSourceTemplate;
             if (i.* < tokens.len and tokenWord(text, tokens[i.*], "SELECT")) {
                 try self.requireEmitWord(env, tokens, i, "SELECT");
                 if (tokenSymbol(text, tokens[i.*], '*')) {
@@ -1191,6 +1195,24 @@ fn lowerBlock(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic
                 try self.lowerExpression(env, tokens, i, 0, true, depth + 1);
             }
             try self.requireEmitSymbol(env, tokens, i, ";");
+            if (cardinality) |selected| {
+                const origin_ = self.makeOrigin(env, var_tok.start);
+                if (selected == .one) {
+                    // Keep the optional read inaccessible until its ordered
+                    // whole-record presence check has succeeded.
+                    const read = new_hygienic.?;
+                    try self.emitFixed("REQUIRE", origin_);
+                    try self.emitQuotedRaw(read, origin_);
+                    try self.emitFixed("IS NOT NULL ELSE 'ExpectedOneRow'; LET", origin_);
+                    const narrowed = try self.freshHygienic(decoded);
+                    try self.emitQuotedRaw(narrowed, origin_);
+                    try self.emitFixed("=", origin_);
+                    try self.emitQuotedRaw(read, origin_);
+                    try self.emitFixed(";", origin_);
+                    new_hygienic = narrowed;
+                }
+                try self.obligations.append(self.output, .{ .target = .{ .binding = new_hygienic.? }, .expected = .{ .result = selected }, .name = decoded });
+            }
             if (new_hygienic) |h| try env.symbols.append(self.scratch, .{ .original = decoded, .emitted = h });
         } else if (tokenWord(text, start_tok, "REQUIRE")) {
             try self.requireEmitWord(env, tokens, i, "REQUIRE");

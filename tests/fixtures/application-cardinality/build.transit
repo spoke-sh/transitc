@@ -1,0 +1,75 @@
+CREATE MODULE RouteOne() AS BEGIN
+    CREATE PUBLIC DATAFLOW cardinality_route FROM QUEUE cardinality_requests AS request AS BEGIN
+      BEGIN ATOMIC
+        LET found ONE = SELECT note FROM cardinality_rows WHERE lookup = request.lookup;
+        PRODUCE INTO cardinality_events VALUES (request.id, 'present', found.note);
+        REQUIRE NOT request.reject ELSE 'LateRefusal';
+      END;
+    END;
+END;
+CREATE MODULE RouteOptional() AS BEGIN
+    CREATE PUBLIC DATAFLOW cardinality_route FROM QUEUE cardinality_requests AS request AS BEGIN
+      BEGIN ATOMIC
+        LET found OPTIONAL = SELECT note FROM cardinality_rows WHERE lookup = request.lookup;
+        IF found IS NULL THEN
+          PRODUCE INTO cardinality_events VALUES (request.id, 'absent', NULL);
+        ELSE
+          PRODUCE INTO cardinality_events VALUES (request.id, 'present', found.note);
+        END IF;
+        REQUIRE NOT request.reject ELSE 'LateRefusal';
+      END;
+    END;
+END;
+CREATE MODULE Pipeline(require_one BOOLEAN, lease TEXT) AS BEGIN
+  CREATE PUBLIC QUEUE cardinality_requests (id BIGINT NOT NULL, lookup TEXT NOT NULL, reject BOOLEAN NOT NULL) WITH (lease_duration = $lease, max_lease_duration = $lease);
+  CREATE PUBLIC TABLE cardinality_rows (id BIGINT PRIMARY KEY, lookup TEXT NOT NULL, note TEXT);
+  CREATE PUBLIC STREAM cardinality_events (id BIGINT NOT NULL, presence TEXT NOT NULL, note TEXT);
+  INSERT INTO cardinality_rows VALUES (1, 'single', NULL), (2, 'duplicate', 'a'), (3, 'duplicate', 'b');
+  IF require_one THEN USE RouteOne(); ELSE USE RouteOptional(); END IF;
+  AUTHORIZE DATAFLOW cardinality_route AS ROLE CURRENT_ROLE;
+  ACTIVATE DATAFLOW cardinality_route;
+END;
+CREATE TARGET default AS BEGIN USE Pipeline(TRUE, '120s'); END;
+CREATE TARGET optional AS BEGIN USE Pipeline(FALSE, '120s'); END;
+CREATE TEST TARGET tests AS BEGIN
+  TEST 'one present NULL' USING MODULES (Pipeline(TRUE, '30s')) AS BEGIN
+    ENQUEUE INTO cardinality_requests VALUES (1, 'single', FALSE);
+    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ((1, 'present', NULL));
+  END;
+  TEST 'one absent' USING MODULES (Pipeline(TRUE, '30s')) AS BEGIN
+    ENQUEUE INTO cardinality_requests VALUES (1, 'missing', FALSE);
+    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ();
+  END;
+  TEST 'one multiple' USING MODULES (Pipeline(TRUE, '30s')) AS BEGIN
+    ENQUEUE INTO cardinality_requests VALUES (1, 'duplicate', FALSE);
+    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ();
+  END;
+  TEST 'one rollback' USING MODULES (Pipeline(TRUE, '30s')) AS BEGIN
+    ENQUEUE INTO cardinality_requests VALUES (1, 'single', TRUE);
+    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ();
+  END;
+  TEST 'optional present NULL' USING MODULES (Pipeline(FALSE, '30s')) AS BEGIN
+    ENQUEUE INTO cardinality_requests VALUES (1, 'single', FALSE);
+    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ((1, 'present', NULL));
+  END;
+  TEST 'optional absent' USING MODULES (Pipeline(FALSE, '30s')) AS BEGIN
+    ENQUEUE INTO cardinality_requests VALUES (1, 'missing', FALSE);
+    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ((1, 'absent', NULL));
+  END;
+  TEST 'optional multiple' USING MODULES (Pipeline(FALSE, '30s')) AS BEGIN
+    ENQUEUE INTO cardinality_requests VALUES (1, 'duplicate', FALSE);
+    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ();
+  END;
+  TEST 'optional rollback' USING MODULES (Pipeline(FALSE, '30s')) AS BEGIN
+    ENQUEUE INTO cardinality_requests VALUES (1, 'single', TRUE);
+    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ();
+  END;
+END;

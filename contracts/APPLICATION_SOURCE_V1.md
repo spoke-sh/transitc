@@ -865,3 +865,10 @@ separate. Ordered program schemas/values and runtime helper parameters/returns
 still reject DATE through the pinned owner (`ProgramTypeMismatch`); a source DATE
 domain does not evade that restriction. Runtime MATCH therefore cannot decode a
 DATE payload. See the [surface matrix](application-source/SQL_SURFACES_V1.md).
+
+### Explicit query cardinality
+
+`LET result ONE = SELECT ...;` and `LET result OPTIONAL = SELECT ...;` add checked
+row-presence evidence. Their [contract](application-source/CARDINALITY_V1.md)
+defines ordered validation, guarded projection, nullable fields, branch-local
+refinement and the retained native cell-state/many-row boundaries.

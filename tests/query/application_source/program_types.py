@@ -45,7 +45,8 @@ def expected_nodes(case):
     optional = {**record, 'nullable': True, 'fields': record['fields'][:1]}
     boolean = dict(kind='boolean', nullable=False, domain=None, fields=[])
     def node(at, kind, type_, delta=0):
-        return dict(source_offset=text.index(at) + delta, kind=kind, type=type_)
+        return dict(source_offset=text.index(at) + delta, kind=kind, type=type_,
+                    cardinality='optional' if type_ is optional else None)
     nodes = [node('request.id;', 'name', record), node('request.id;', 'field', scalar(domain)),
              node('LET alias', 'binding', scalar(domain)),
              node('id = alias', 'name', scalar(domain)), node('alias;', 'name', scalar(domain)),
