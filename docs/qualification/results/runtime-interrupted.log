@@ -1,0 +1,25 @@
+zig build "-Dtest-runtime=${TRANSIT_TEST_RUNTIME:-transit}"
+python3 -B tests/runner/launch.py tests/integration/test_host_boundary.py zig-out/bin/transitc
+PASS compiled test host: source-free native assertions, 11 request refusals, 16 response/process refusals including late completion, missing/changed runtime, timeout and joined cleanup
+python3 -B tests/runner/launch.py tests/integration/test_command.py zig-out/bin/transitc
+Traceback (most recent call last):
+  File "/home/alex/workspace/spoke-sh/transitc/tests/runner/launch.py", line 23, in <module>
+    main()
+    ~~~~^^
+  File "/home/alex/workspace/spoke-sh/transitc/tests/runner/launch.py", line 19, in main
+    runpy.run_path(str(target), run_name="__main__")
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 294, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/alex/workspace/spoke-sh/transitc/tests/integration/test_command.py", line 54, in <module>
+    main()
+    ~~~~^^
+  File "/home/alex/workspace/spoke-sh/transitc/tests/integration/test_command.py", line 49, in main
+    suite.main()
+    ~~~~~~~~~~^^
+  File "/home/alex/workspace/spoke-sh/transitc/tests/integration/application_test.py", line 470, in main
+    assert wrong['cases'][0]['status'] == 'failed' and wrong['cases'][0]['observation']['failure'] == 'rows', wrong
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'format': 'transit_test_v1', 'definition': 'f311e893f8d2f4c21f426790172fadfebe7eb2364615eb1566c09f11d39bb0bb', 'compiler_revision': 'development', 'compiler_digest': 'c12d593105afdee1a79b8f9dbc405087a5e62486a56ca1613122c7bf30c2e35a', 'runtime': None, 'target': 'tests', 'input_digest': '3fec13744525cbedbadd47e0940420b87855dbea57dad96aa9f6b60329a236f5', 'sql_digest': 'a9e6da80ef87e2b09baa1c0e4f12cb576ed2981638e8f16bcce9256caf1cbf0b', 'complete': False, 'ok': False, 'compiler_peak_bytes': 6725854, 'cases': [{'name': 'commits and refusals', 'identity': 'cdf1cec09c5713cdef42f1a2b9c92f2877247bee452ad20dab246f5f6260d734', 'sql_digest': '39e89a76a60a760cb07b428fe788812800afdb9183552cf39d0ba6e10b72f223', 'location': {'source': 'root/build.transit', 'source_encoding': 'utf8', 'source_truncated': False, 'statement': None, 'offset': '454', 'length': '388', 'line': '15', 'byte_column': '3'}, 'status': 'failed', 'error_code': 'TestRuntimeUnavailable', 'observation': {'actions': 0, 'rows': 0, 'bytes': 0, 'operation': None, 'failure': None, 'resources': {'memory_peak_bytes': 0, 'storage_reserved_bytes': 0}}, 'action_location': None}, {'name': 'isolated empty pipeline', 'identity': '78a9e9fe4263b7e86b109f6ba4d6216fad6e59a4a5a7ec4738a7a5a435d4d2e1', 'sql_digest': '865487da4f149586eb174de8f247ec289c7d3e12b4fa20b6c6fe88392ba90ee3', 'location': {'source': 'root/build.transit', 'source_encoding': 'utf8', 'source_truncated': False, 'statement': None, 'offset': '845', 'length': '268', 'line': '21', 'byte_column': '3'}, 'status': 'not_run', 'error_code': None, 'observation': {'actions': 0, 'rows': 0, 'bytes': 0, 'operation': None, 'failure': None, 'resources': {'memory_peak_bytes': 0, 'storage_reserved_bytes': 0}}, 'action_location': None}], 'sources': [{'package': 'root', 'path': 'build.transit', 'digest': 'f278be6b40b7b93233703b36c9fbe69ea2f8aa4c979dad5cc07abdea4abde134'}, {'package': 'root', 'path': 'resources.transit', 'digest': '8de47bd179e8d065395937f255df0b20a26ecf4a7be4b6dad34956203d0635a4'}, {'package': 'root', 'path': 'workflow.transit', 'digest': 'c0bd15bda3ad1f0b6f6f35f71a29a4ac926205cd5afe8c80ad694ab85a79d748'}], 'dependencies': [], 'limits': {'cases': 128, 'actions': 1024, 'rows': 10000, 'result_bytes': 16777216, 'report_bytes': 1048576, 'case_ms': 30000, 'suite_ms': 300000, 'cleanup_ms': 5000, 'host_bytes': 268435456, 'storage_bytes': 268435456}}
+error: recipe `command` failed on line 42 with exit code 1

@@ -1,0 +1,71 @@
+zig build "-Dtest-runtime=${TRANSIT_TEST_RUNTIME:-transit}"
+python3 -B tests/runner/launch.py tests/workspace/build.py zig-out/bin/transitc
+compiler_journey
+typed_journey
+queue_journey
+typed_queue_journey
+modular_programs_journey
+migration_journey
+workspace_composition_journey
+multi_schema_platform_journey
+Workspace: offline/fetch/locks/overrides, diagnostics, publication and migration checks passed
+python3 -B tests/integration/upstream_transit.py
+Upstream: Transit 0.0.1 (git e7434306334e3692c6f3e123cba0d278fa412196; CLI contract 1)
+test_build_is_reproducible_and_records_provenance (__main__.UpstreamIntegration.test_build_is_reproducible_and_records_provenance) ... ok
+test_build_reuses_only_intact_artifacts (__main__.UpstreamIntegration.test_build_reuses_only_intact_artifacts) ... ok
+test_check_validates_without_publishing (__main__.UpstreamIntegration.test_check_validates_without_publishing) ... ok
+test_missing_entry_and_unknown_target_fail_without_artifacts (__main__.UpstreamIntegration.test_missing_entry_and_unknown_target_fail_without_artifacts) ... ok
+test_runtime_executes_cases_in_isolation (__main__.UpstreamIntegration.test_runtime_executes_cases_in_isolation) ... ok
+test_syntax_failure_has_a_source_location (__main__.UpstreamIntegration.test_syntax_failure_has_a_source_location) ... ok
+test_wrong_runtime_expectation_fails (__main__.UpstreamIntegration.test_wrong_runtime_expectation_fails) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 6.674s
+
+OK
+python3 -B tests/integration/parity.py
+PASS 12 upstream/transitc parity cases; only ['compiler_digest', 'compiler_revision', 'input_digest'] and the explicit dependency-command correction differ; human build/test/fetch guidance verified
+python3 -B tests/integration/execute_sql.py
+PASS transitc SQL executed source-free by pinned Transit, with terminal row coverage and retained restart
+python3 -B tests/runner/launch.py tests/integration/build_command.py zig-out/bin/transitc
+Application build: generated Table migration and recovery
+Application build: workspace module-instance DAG and delegated targets
+Application build: 6-schema reference exports, migrations and cross-schema dataflow
+Application build: generated ordinary fixture
+Application build: generated typed Queue fixture
+Application build: generated modular Queue fixture
+Application build: independent ordinary SQL oracle
+Application build: independent typed Queue SQL oracle
+Application build: independent modular Queue SQL oracle
+Application build: locked offline composition, source-free SQL, restart and revocation passed
+python3 -B tests/runner/launch.py tests/integration/test_host_boundary.py zig-out/bin/transitc
+PASS compiled test host: source-free native assertions, 11 request refusals, 16 response/process refusals including late completion, missing/changed runtime, timeout and joined cleanup
+python3 -B tests/runner/launch.py tests/integration/test_command.py zig-out/bin/transitc
+Traceback (most recent call last):
+  File "/home/alex/workspace/spoke-sh/transitc/tests/runner/launch.py", line 23, in <module>
+    main()
+    ~~~~^^
+  File "/home/alex/workspace/spoke-sh/transitc/tests/runner/launch.py", line 19, in main
+    runpy.run_path(str(target), run_name="__main__")
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 294, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/alex/workspace/spoke-sh/transitc/tests/integration/test_command.py", line 54, in <module>
+    main()
+    ~~~~^^
+  File "/home/alex/workspace/spoke-sh/transitc/tests/integration/test_command.py", line 49, in main
+    suite.main()
+    ~~~~~~~~~~^^
+  File "/home/alex/workspace/spoke-sh/transitc/tests/integration/application_test.py", line 656, in main
+    multi_schema_test_journey(cli, root)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/alex/workspace/spoke-sh/transitc/tests/integration/application_test.py", line 437, in multi_schema_test_journey
+    report = invoke(cli, ws, timeout=180)
+  File "/home/alex/workspace/spoke-sh/transitc/tests/integration/test_command.py", line 32, in invoke
+    report = original_invoke(*args, **kwargs)
+  File "/home/alex/workspace/spoke-sh/transitc/tests/integration/application_test.py", line 29, in invoke
+    assert result.returncode == expected, (args, result.returncode, result.stdout, result.stderr)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ((), 1, '{"format":"transit_test_v1","definition":"f311e893f8d2f4c21f426790172fadfebe7eb2364615eb1566c09f11d39bb0bb","compiler_revision":"development","compiler_digest":"2ba2df1a2f45ac85e04c05ee69ec1bcc9b4dd6eab00350f42e639f363306bd4b","runtime":{"revision":"f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6","executable_digest":[220,161,83,79,36,21,190,255,47,110,203,108,182,238,199,124,53,97,67,62,129,133,83,167,140,43,6,92,169,163,155,121]},"target":"tests","input_digest":"b9c3764f8771b04582d9a1f650c9243e8996bbc7056b279a4dad29166d328353","sql_digest":"96523ca25ce53bf74d3b2bb3816559c098b636090b866069a8db9eb37cbff446","complete":false,"ok":false,"compiler_peak_bytes":7337068,"cases":[{"name":"multi-schema reference exports and typed domains execute in isolated host","identity":"51269a1ee497eb28b80fc07ba2f12cef98c4194be58fe068b23c914debb507ee","sql_digest":"6d33d2509e75d0ccc906d898fc12c08db29140612d10e2d283b9a70aee349b67","location":{"source":"root/app/multi_schema.test.transit","source_encoding":"utf8","source_truncated":false,"statement":null,"offset":"719","length":"877","line":"8","byte_column":"1"},"status":"failed","error_code":"TestDeadline","observation":{"actions":17,"rows":0,"bytes":0,"operation":null,"failure":null,"resources":{"memory_peak_bytes":86492458,"storage_reserved_bytes":18142446}},"action_location":{"source":"root/app/multi_schema.test.transit","source_encoding":"utf8","source_truncated":false,"statement":null,"offset":"1184","length":"92","line":"12","byte_column":"3"}}],"sources":[{"package":"root","path":"app/build.transit","digest":"f332ccf151fe8fc2236b16e34648249aa5841b71ee047b0ae494e85f10713a75"},{"package":"root","path":"app/deployments/build.transit","digest":"90a3f23f3c076d723a853515bec7f8af63da662b864e39688715b65b8edb018e"},{"package":"root","path":"app/deployments/flow.transit","digest":"1b6e5b3ab22e7ef8bf6cd2c3ab17d36d21fc8c81ef3518b42ee3fc29e70ccd25"},{"package":"root","path":"app/multi_schema.test.transit","digest":"1f82d67a4f95c573cb67bba43c9e0a58baa5ec2ae4bf586e422dcecf255b7d81"},{"package":"root","path":"app/networking/build.transit","digest":"bed209d5fed065b77b537d42b711c1e58a9d18e5e5ec66f17c7015dc44531599"},{"package":"root","path":"app/networking/procedures.transit","digest":"dd4a0a3594b873083c94f7fb6f140616fb5c66ab561a2dc2af7f9f90d59fca08"},{"package":"root","path":"app/networking/state.transit","digest":"252524a28f8dc814b570bd2c86a2fe47bc0ee1893e1d84e8b380e6c9eb056808"},{"package":"root","path":"app/tenancy/build.transit","digest":"0152fd8650f7f14d2b66b3348b36fb2fdeb3d444d063088710926d734f6b8462"},{"package":"root","path":"app/tenancy/guards.transit","digest":"6ce65284286ef4ca967031efb4627d07cb90ecf6896aa7ddc9fdb3a797810d3d"},{"package":"root","path":"app/tenancy/state.transit","digest":"20a6263b5e447d31485d26d7a4ba1c593bb1ed099e9e910b1dc0857068d24fe2"},{"package":"root","path":"app/types.transit","digest":"8b06ee9115915bf794eafb7a6989f43b2e9ec09b28f66967bc269ac6f03f8f34"},{"package":"root","path":"build.transit","digest":"a9de42ac7da6c3cae1bacf15059550d88fc307e84d71fa578027500d6a01d910"}],"dependencies":[],"limits":{"cases":128,"actions":1024,"rows":10000,"result_bytes":16777216,"report_bytes":1048576,"case_ms":30000,"suite_ms":300000,"cleanup_ms":5000,"host_bytes":268435456,"storage_bytes":268435456}}\n', '')
+error: recipe `command` failed on line 34 with exit code 1

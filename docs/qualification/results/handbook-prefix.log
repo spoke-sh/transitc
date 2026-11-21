@@ -1,0 +1,120 @@
+npm run docs:check
+
+> docs:check
+> npm run typecheck --workspace @transitc/handbook && npm run docs:build
+
+
+> @transitc/handbook@0.0.0-dev typecheck
+> tsc --noEmit
+
+
+> docs:build
+> npm run build --workspace @transitc/handbook
+
+
+> @transitc/handbook@0.0.0-dev build
+> docusaurus build --out-dir dist
+
+[INFO] [en] Creating an optimized production build...
+[webpackbar] ℹ Compiling Client
+[webpackbar] ℹ Compiling Server
+[webpackbar] ✔ Server: Compiled successfully in 719.65ms
+[webpackbar] ✔ Client: Compiled successfully in 4.23s
+[SUCCESS] Generated static files in "dist".
+[INFO] Use `npm run serve` command to test your build locally.
+npm run docs:build
+
+> docs:build
+> npm run build --workspace @transitc/handbook
+
+
+> @transitc/handbook@0.0.0-dev build
+> docusaurus build --out-dir dist
+
+[INFO] [en] Creating an optimized production build...
+[webpackbar] ℹ Compiling Client
+[webpackbar] ℹ Compiling Server
+[webpackbar] ✔ Server: Compiled successfully in 643.46ms
+[webpackbar] ✔ Client: Compiled successfully in 841.10ms
+[SUCCESS] Generated static files in "dist".
+[INFO] Use `npm run serve` command to test your build locally.
+npm run browser --workspace @transitc/handbook
+
+> @transitc/handbook@0.0.0-dev browser
+> playwright test
+
+[WebServer] (node:3894417) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 60 tests using 2 workers
+
+(node:3894533) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3894532) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [desktop-light] › browser/handbook.spec.ts:18:7 › guides/automation: navigation, layout and accessibility (1.7s)
+  ✓   2 [desktop-dark] › browser/handbook.spec.ts:18:7 › guides/automation: navigation, layout and accessibility (1.8s)
+  ✓   3 [desktop-light] › browser/handbook.spec.ts:18:7 › guides/embedding: navigation, layout and accessibility (1.2s)
+  ✓   4 [desktop-dark] › browser/handbook.spec.ts:18:7 › guides/embedding: navigation, layout and accessibility (1.3s)
+  ✓   5 [desktop-light] › browser/handbook.spec.ts:18:7 › guides/formatting: navigation, layout and accessibility (1.3s)
+  ✓   6 [desktop-dark] › browser/handbook.spec.ts:18:7 › guides/formatting: navigation, layout and accessibility (1.4s)
+  ✓   7 [desktop-light] › browser/handbook.spec.ts:18:7 › guides/getting-started: navigation, layout and accessibility (1.2s)
+  ✓   8 [desktop-dark] › browser/handbook.spec.ts:18:7 › guides/getting-started: navigation, layout and accessibility (1.3s)
+  ✓   9 [desktop-light] › browser/handbook.spec.ts:18:7 › guides/installation: navigation, layout and accessibility (1.3s)
+  ✓  10 [desktop-dark] › browser/handbook.spec.ts:18:7 › guides/installation: navigation, layout and accessibility (1.4s)
+  ✓  11 [desktop-light] › browser/handbook.spec.ts:18:7 › home: navigation, layout and accessibility (1.0s)
+  ✓  12 [desktop-dark] › browser/handbook.spec.ts:18:7 › home: navigation, layout and accessibility (1.1s)
+  ✓  13 [desktop-light] › browser/handbook.spec.ts:18:7 › guides/source-workflow: navigation, layout and accessibility (1.6s)
+  ✓  14 [desktop-dark] › browser/handbook.spec.ts:18:7 › guides/source-workflow: navigation, layout and accessibility (1.8s)
+  ✓  15 [desktop-light] › browser/handbook.spec.ts:18:7 › guides/testing: navigation, layout and accessibility (1.3s)
+  ✓  16 [desktop-dark] › browser/handbook.spec.ts:18:7 › guides/testing: navigation, layout and accessibility (1.5s)
+  ✓  17 [desktop-light] › browser/handbook.spec.ts:18:7 › guides/troubleshooting: navigation, layout and accessibility (1.2s)
+  ✓  18 [desktop-dark] › browser/handbook.spec.ts:18:7 › guides/troubleshooting: navigation, layout and accessibility (1.3s)
+  ✓  19 [desktop-light] › browser/handbook.spec.ts:18:7 › reference/artifacts: navigation, layout and accessibility (1.4s)
+  ✓  20 [desktop-dark] › browser/handbook.spec.ts:18:7 › reference/artifacts: navigation, layout and accessibility (1.4s)
+  ✓  21 [desktop-light] › browser/handbook.spec.ts:18:7 › reference/cli: navigation, layout and accessibility (1.5s)
+  ✓  22 [desktop-dark] › browser/handbook.spec.ts:18:7 › reference/cli: navigation, layout and accessibility (1.5s)
+  ✓  23 [desktop-light] › browser/handbook.spec.ts:18:7 › reference/diagnostics: navigation, layout and accessibility (1.1s)
+  ✓  24 [desktop-dark] › browser/handbook.spec.ts:18:7 › reference/diagnostics: navigation, layout and accessibility (1.1s)
+  ✓  25 [desktop-light] › browser/handbook.spec.ts:18:7 › reference/language: navigation, layout and accessibility (1.1s)
+  ✓  26 [desktop-dark] › browser/handbook.spec.ts:18:7 › reference/language: navigation, layout and accessibility (1.1s)
+  ✓  27 [desktop-light] › browser/handbook.spec.ts:18:7 › internals/architecture: navigation, layout and accessibility (1.0s)
+  ✓  29 [desktop-light] › browser/handbook.spec.ts:39:5 › keyboard, responsive menu and theme controls (588ms)
+  ✓  28 [desktop-dark] › browser/handbook.spec.ts:18:7 › internals/architecture: navigation, layout and accessibility (1.1s)
+(node:3897359) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  30 [desktop-dark] › browser/handbook.spec.ts:39:5 › keyboard, responsive menu and theme controls (548ms)
+(node:3897526) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  31 [mobile-light] › browser/handbook.spec.ts:18:7 › guides/automation: navigation, layout and accessibility (1.5s)
+  ✓  32 [mobile-dark] › browser/handbook.spec.ts:18:7 › guides/automation: navigation, layout and accessibility (1.6s)
+  ✓  33 [mobile-light] › browser/handbook.spec.ts:18:7 › guides/embedding: navigation, layout and accessibility (1.1s)
+  ✓  34 [mobile-dark] › browser/handbook.spec.ts:18:7 › guides/embedding: navigation, layout and accessibility (1.2s)
+  ✓  35 [mobile-light] › browser/handbook.spec.ts:18:7 › guides/formatting: navigation, layout and accessibility (1.4s)
+  ✓  36 [mobile-dark] › browser/handbook.spec.ts:18:7 › guides/formatting: navigation, layout and accessibility (1.3s)
+  ✓  37 [mobile-light] › browser/handbook.spec.ts:18:7 › guides/getting-started: navigation, layout and accessibility (1.2s)
+  ✓  38 [mobile-dark] › browser/handbook.spec.ts:18:7 › guides/getting-started: navigation, layout and accessibility (1.2s)
+  ✓  39 [mobile-light] › browser/handbook.spec.ts:18:7 › guides/installation: navigation, layout and accessibility (1.4s)
+  ✓  40 [mobile-dark] › browser/handbook.spec.ts:18:7 › guides/installation: navigation, layout and accessibility (1.4s)
+  ✓  41 [mobile-light] › browser/handbook.spec.ts:18:7 › home: navigation, layout and accessibility (992ms)
+  ✓  42 [mobile-dark] › browser/handbook.spec.ts:18:7 › home: navigation, layout and accessibility (987ms)
+  ✓  43 [mobile-light] › browser/handbook.spec.ts:18:7 › guides/source-workflow: navigation, layout and accessibility (1.6s)
+  ✓  44 [mobile-dark] › browser/handbook.spec.ts:18:7 › guides/source-workflow: navigation, layout and accessibility (1.7s)
+  ✓  45 [mobile-light] › browser/handbook.spec.ts:18:7 › guides/testing: navigation, layout and accessibility (1.3s)
+  ✓  46 [mobile-dark] › browser/handbook.spec.ts:18:7 › guides/testing: navigation, layout and accessibility (1.4s)
+  ✓  47 [mobile-light] › browser/handbook.spec.ts:18:7 › guides/troubleshooting: navigation, layout and accessibility (1.1s)
+  ✓  48 [mobile-dark] › browser/handbook.spec.ts:18:7 › guides/troubleshooting: navigation, layout and accessibility (1.1s)
+  ✓  49 [mobile-light] › browser/handbook.spec.ts:18:7 › reference/artifacts: navigation, layout and accessibility (1.2s)
+  ✓  50 [mobile-dark] › browser/handbook.spec.ts:18:7 › reference/artifacts: navigation, layout and accessibility (1.3s)
+  ✓  51 [mobile-light] › browser/handbook.spec.ts:18:7 › reference/cli: navigation, layout and accessibility (1.3s)
+  ✓  53 [mobile-light] › browser/handbook.spec.ts:18:7 › reference/diagnostics: navigation, layout and accessibility (1.0s)
+  ✓  52 [mobile-dark] › browser/handbook.spec.ts:18:7 › reference/cli: navigation, layout and accessibility (1.3s)
+  ✓  54 [mobile-light] › browser/handbook.spec.ts:18:7 › reference/language: navigation, layout and accessibility (1.0s)
+  ✓  55 [mobile-dark] › browser/handbook.spec.ts:18:7 › reference/diagnostics: navigation, layout and accessibility (1.1s)
+  ✓  56 [mobile-light] › browser/handbook.spec.ts:18:7 › internals/architecture: navigation, layout and accessibility (976ms)
+  ✓  57 [mobile-dark] › browser/handbook.spec.ts:18:7 › reference/language: navigation, layout and accessibility (1.0s)
+  ✓  58 [mobile-light] › browser/handbook.spec.ts:39:5 › keyboard, responsive menu and theme controls (1.0s)
+  ✓  59 [mobile-dark] › browser/handbook.spec.ts:18:7 › internals/architecture: navigation, layout and accessibility (976ms)
+  ✓  60 [mobile-dark] › browser/handbook.spec.ts:39:5 › keyboard, responsive menu and theme controls (1.1s)
+
+  60 passed (42.0s)

@@ -20,6 +20,8 @@ contains a compatible Transit test host in its Nix closure. Build and formatting
 commands do not start the host. Zig is a build dependency, not an installation
 prerequisite for an already built executable. A checkout can also be built with
 `nix develop --command just build`; its executable is `zig-out/bin/transitc`.
+The complete Nix package and bundled test host are qualified on x86_64 Linux;
+the native compiler matrix below covers the standalone archives.
 
 The source toolchain is pinned to Zig `0.17.0-dev.2267+48abf1a34`. Use the flake's
 wrapper, including its Linux loader fixes, rather than substituting another Zig

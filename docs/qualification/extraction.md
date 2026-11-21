@@ -2,8 +2,8 @@
 
 This record closes the extraction foundation in milestones 3 and 4. It does not
 extend the source language or complete the feature work in milestones 5–10.
-Qualification is being collected on [PR #4](https://github.com/spoke-sh/transitc/pull/4);
-the roadmap remains In Progress until the required results below are recorded.
+The results collected in [PR #4](https://github.com/spoke-sh/transitc/pull/4)
+complete the foundation for the supported profile below.
 
 ## Reproduce the checks
 
@@ -49,12 +49,81 @@ development, and is not supplied by the development shell.
 
 ## Evidence
 
-Final CI/source identities and result links will be recorded here after the
-complete pipeline passes. Local checks so far include clean builds, compiler and
-workspace unit tests, all four handbook projects, formatter checks, workspace
-journeys, twelve old/new parity cases, seven unchanged upstream cases and emitted
-SQL execution with retained restart. These are distinct suites; upstream results
-are not labeled as transitc executions.
+The four native jobs in [run 44859572964](https://github.com/spoke-sh/transitc/actions/runs/44859572964)
+passed at branch revision `b650d0f0ad106b1c5b3a9919f2f554fe5ce097f7`, testing merge
+commit `02cfc59e446a9e28eb6d22f96ddbb6e66e52b189`. Each job executed clean-cache
+builds/unit tests, the embedding consumer, portable archive installation, formatter
+checks, runnable automation/dependency guides, signing, verification and tamper
+refusal. All four downloaded candidates were independently verified again with
+`gh attestation verify`, including the expected signer workflow and source digest.
+[Archive manifests](native-archives.json) retain exact binary/archive digests and
+job/artifact links.
+
+All four native jobs also passed in
+[run 44862769779](https://github.com/spoke-sh/transitc/actions/runs/44862769779)
+at branch revision `7aee57f4f988b114994848eadc37de6193b84a55`. The manifest record
+above deliberately retains the earlier candidates that were independently
+downloaded and verified, rather than assigning their digests to a newer build.
+
+| Native compiler host | Executed result |
+| --- | --- |
+| Ubuntu 24.04 x86_64, static musl archive | [Passed](https://github.com/spoke-sh/transitc/actions/runs/44859572964/job/136709690400) |
+| Ubuntu 24.04 ARM64, static musl archive | [Passed](https://github.com/spoke-sh/transitc/actions/runs/44859572964/job/136709690440) |
+| macOS 15 Intel, system-library archive | [Passed](https://github.com/spoke-sh/transitc/actions/runs/44859572964/job/136709690287) |
+| macOS 15 ARM64, system-library archive | [Passed](https://github.com/spoke-sh/transitc/actions/runs/44859572964/job/136709690396) |
+
+The local qualification host is x86_64 Linux, kernel `6.17.0-41-generic`.
+Sandboxed Nix package/install checks and independent source verification passed
+at `b650d0f0ad106b1c5b3a9919f2f554fe5ce097f7`. Source verification executed 192
+cases, 134 formatting roundtrips and 10 negative controls; typed correspondence
+executed 14 Lean laws, 136 finite equalities, 16 typed/SQL and 21 program
+comparisons, four refusals and 21 negative controls. The Nix check now retains raw
+comparison inputs, outputs and summaries, with a separate `source-revision` file
+because exported Nix sources have no `.git` metadata.
+
+The browser job in that run correctly rejected the new footer's unstyled source
+link. Commit `09a2256` added its underline. Strict TypeScript/build checks and all
+60 browser cases then passed locally at each hosting path (120 total). This is
+recorded as a correction, not a claim that the earlier browser job passed.
+Representative desktop/light and mobile/dark code screenshots were also inspected.
+The corrected [handbook CI job](https://github.com/spoke-sh/transitc/actions/runs/44862769779/job/136719701236)
+then passed both paths at branch revision `7aee57f4f988b114994848eadc37de6193b84a55`,
+including all 120 browser cases and uploaded reports.
+
+The local compiler reports `transitc 0.0.0-dev (development)` and executable SHA-256
+`2ba2df1a2f45ac85e04c05ee69ec1bcc9b4dd6eab00350f42e639f363306bd4b`.
+The runtime suite began at `6200fd0e945f68d28c706b9afbc6b79a9667dfc3`; compiler,
+workspace, CLI, root Zig build inputs and dependency/toolchain locks are unchanged
+between that revision and `7aee57f`. Later commits add packaging, documentation,
+qualification tooling and a test-case correction. This distinction preserves the actual recorded
+revisions rather than relabeling older runs as the final documentation commit.
+
+The initial runtime transcript records passing workspace journeys, seven unchanged
+upstream cases, twelve compiler parity cases, source-free SQL/restart and the full
+application-build schedule, including its independent ordinary-SQL oracles,
+migrations, multi-schema execution and credential revocation. Host-boundary checks
+passed eleven request refusals and sixteen response/process refusals, including
+late completion, unavailable/changed runtime, timeout and joined cleanup.
+
+That invocation then failed at the combined multi-schema application-test case's
+30-second deadline. Positive and nested-guard refusal paths passed independently;
+`7aee57f` separates them into fresh cases and checks empty published outputs on
+refusal. The focused corrected suite passed with the original limits and isolation
+controls. The ordinary installed-runtime build journey still checks successive
+successful and refused requests in one installation.
+
+The full application-test schedule then passed at `7aee57f`, including offline
+isolation, typed rows/counts, refusals, child/remote targets, resource limits,
+failure cleanup, both multi-schema cases and the independent installed-SQL oracle.
+It ran against a fixed copy of the compiler with the digest above. An intervening
+attempt was discarded after a concurrent documentation build replaced the shared
+local executable without its pinned host path; that setup failure is retained too.
+
+Local command transcripts and their SHA-256 hashes are retained in
+[`results/identities.json`](results/identities.json), including the failed initial
+run. Terminal escape sequences and trailing whitespace are removed from these text
+transcripts. Native job logs, provenance bundles and browser artifacts remain linked
+to their actual CI runs; they are not relabeled as evidence from later commits.
 
 The handbook's thirteen reader tasks map to pages and executable owners in
 [`tests/documentation.json`](../../tests/documentation.json). Its validator checks
@@ -75,6 +144,8 @@ The existing main-site deployment passed in
 at `67aed9cfebb3bdcb9a6d0eee10ba850ef3ff138a`, including checks of public routes at
 <https://spoke-sh.github.io/transitc/>. PRs build publication artifacts; only current
 `main` can deploy. This PR's new pages will become live after merge and publication.
+Its [publication build](https://github.com/spoke-sh/transitc/actions/runs/44862769700)
+passed at `7aee57f`.
 
 ## Signed candidates and releases
 
@@ -102,3 +173,6 @@ qualification of development candidates does not claim a stable release exists.
 - Inline links needed a non-color cue, mobile tables needed keyboard focus, and
   syntax highlighting needed readable contrast in both themes. Browser checks
   now protect these behaviors.
+- A combined multi-schema success/refusal scenario exceeded the fixed case
+  deadline. Separate cases preserve both expectations and add explicit empty
+  output checks on refusal without increasing runtime limits.

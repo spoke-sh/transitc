@@ -11,8 +11,8 @@ authorization, storage, migration application and durable execution stay upstrea
 | --- | --- | --- | --- |
 | 1 | [Repository bootstrap](01-repository-bootstrap.md) | Completed | None |
 | 2 | [Dependency boundaries](02-dependency-boundaries.md) | Completed | 1 |
-| 3 | [Compiler and CLI extraction](03-compiler-and-cli.md) | In Progress | 2 |
-| 4 | [Documentation and qualification](04-documentation-and-qualification.md) | In Progress | 3; documentation grows throughout |
+| 3 | [Compiler and CLI extraction](03-compiler-and-cli.md) | Completed | 2 |
+| 4 | [Documentation and qualification](04-documentation-and-qualification.md) | Completed | 3; documentation grows throughout |
 | 5 | [Typed composition and executable SQL](05-typed-composition-and-sql.md) | In Progress | 3; ordinary SQL contract for each new operation |
 | 6 | [Reproducible workspaces and developer tooling](06-workspaces-and-developer-tooling.md) | In Progress | 3; 5 for new source forms |
 | 7 | [Migration synthesis and definition evolution](07-migrations-and-definition-evolution.md) | In Progress | 3; admitted forms from 5 and per-kind Transit receipts; 8 for protected generations |
@@ -23,8 +23,9 @@ authorization, storage, migration application and durable execution stay upstrea
 Numbering is a reading/delivery sequence, not a requirement to finish every earlier
 milestone before starting independent work. In Progress includes an implemented
 foundation with unfinished acceptance criteria; it does not assert completion of
-the proposed units. This planning change completes no milestone and establishes
-no new runtime or performance evidence.
+the proposed units. The [extraction qualification](../qualification/extraction.md)
+records executed foundation checks separately from the expanded feature and
+performance work in milestones 5–10.
 
 ## Source and ownership
 
@@ -66,9 +67,10 @@ actual independent code/dependencies, not by a planning topic alone.
 
 ## Next implementation order
 
-1. Reconcile the support/bounds and outstanding qualification records against one
-   selected compiler/runtime pair. Preserve the completed bootstrap/dependency
-   milestones and the unfinished extraction/release criteria in 3/4.
+1. Use the qualified compiler/runtime pair and explicit support boundaries in the
+   [extraction record](../qualification/extraction.md) as the baseline. Keep its
+   clean-cache, native archive, compatibility and handbook gates passing as the
+   later milestones extend the supported profile.
 2. Review 5.1's dynamic SQL representation and 8.1's runtime privilege contract.
    Extend recursive-package/formatter/diagnostic evidence in 6 independently.
 3. Extend 7.1 per available runtime kind and measure 7.4 capacity without changing
@@ -173,5 +175,8 @@ Standalone manifests pin the deterministic five-package pure source archive at
 Transit `f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`, with both Zig content hash and
 Nix SHA256. The comparison binary remains frozen at
 `e7434306334e3692c6f3e123cba0d278fa412196`; the compatible compiled-case host is
-selected separately by the `transit` flake input. Final validation must cover the
-one-way cutover; previous embedded-consumer results do not qualify that change.
+selected separately by the `transit` flake input. The
+[one-way Transit cutover](https://github.com/spoke-sh/transit/pull/474) is merged.
+The [qualification record](../qualification/extraction.md) identifies standalone
+compiler, emitted-SQL and compiled-case host checks; previous embedded-consumer
+results are not substituted for that evidence.

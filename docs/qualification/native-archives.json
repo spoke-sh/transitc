@@ -1,0 +1,58 @@
+{
+  "ci_run": "https://github.com/spoke-sh/transitc/actions/runs/44859572964",
+  "branch_revision": "b650d0f0ad106b1c5b3a9919f2f554fe5ce097f7",
+  "archives": [
+    {
+      "binary_sha256": "4e2a79b4af059d92d56b7dc0f4e3e79b3dfd60b5723e27c23b6166c2d6ad4dd5",
+      "revision": "02cfc59e446a9e28eb6d22f96ddbb6e66e52b189",
+      "target": "aarch64-linux-musl",
+      "test_host_bundled": false,
+      "test_runtime_revision": "f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6",
+      "version": "0.0.0-dev",
+      "archive": "transitc-0.0.0-dev-02cfc59e446a-aarch64-linux-musl.tar.gz",
+      "archive_sha256": "793a6a7196e141de173eca5c00264551293f45d4315b3e3472c6df4b890a884e",
+      "signature_verified": true,
+      "job_url": "https://github.com/spoke-sh/transitc/actions/runs/44859572964/job/136709690440",
+      "artifact_url": "https://github.com/spoke-sh/transitc/actions/runs/44859572964/artifacts/14689222001"
+    },
+    {
+      "binary_sha256": "14d832ddec3707d89da63e33f7a2fe0bd9006f8907902a7abe789c2e4d3ff7f1",
+      "revision": "02cfc59e446a9e28eb6d22f96ddbb6e66e52b189",
+      "target": "aarch64-macos",
+      "test_host_bundled": false,
+      "test_runtime_revision": "f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6",
+      "version": "0.0.0-dev",
+      "archive": "transitc-0.0.0-dev-02cfc59e446a-aarch64-macos.tar.gz",
+      "archive_sha256": "848cfe5b6deb129d39d40c90b851388289693c4b3bc59e003cd991477c625348",
+      "signature_verified": true,
+      "job_url": "https://github.com/spoke-sh/transitc/actions/runs/44859572964/job/136709690396",
+      "artifact_url": "https://github.com/spoke-sh/transitc/actions/runs/44859572964/artifacts/14689587499"
+    },
+    {
+      "binary_sha256": "035a0a5338e050834393ed80571a3d2b6fbc83772c5a40860a102ceb2b5afb76",
+      "revision": "02cfc59e446a9e28eb6d22f96ddbb6e66e52b189",
+      "target": "x86_64-linux-musl",
+      "test_host_bundled": false,
+      "test_runtime_revision": "f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6",
+      "version": "0.0.0-dev",
+      "archive": "transitc-0.0.0-dev-02cfc59e446a-x86_64-linux-musl.tar.gz",
+      "archive_sha256": "7dc7181e8a717a259fe2a49e4edb7367facef926f7fbea01b192699f9474bbbe",
+      "signature_verified": true,
+      "job_url": "https://github.com/spoke-sh/transitc/actions/runs/44859572964/job/136709690400",
+      "artifact_url": "https://github.com/spoke-sh/transitc/actions/runs/44859572964/artifacts/14689102144"
+    },
+    {
+      "binary_sha256": "929f9d3b5898c3eb7896a6d0e4c48f21c1c7f97005e62236eaa42510951edd01",
+      "revision": "02cfc59e446a9e28eb6d22f96ddbb6e66e52b189",
+      "target": "x86_64-macos",
+      "test_host_bundled": false,
+      "test_runtime_revision": "f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6",
+      "version": "0.0.0-dev",
+      "archive": "transitc-0.0.0-dev-02cfc59e446a-x86_64-macos.tar.gz",
+      "archive_sha256": "9db44603554d1b3ee8155371bc019880d0cc961f8d2b89f3d34c09f8685170ef",
+      "signature_verified": true,
+      "job_url": "https://github.com/spoke-sh/transitc/actions/runs/44859572964/job/136709690287",
+      "artifact_url": "https://github.com/spoke-sh/transitc/actions/runs/44859572964/artifacts/14688978059"
+    }
+  ]
+}

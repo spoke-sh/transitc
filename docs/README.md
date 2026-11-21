@@ -10,6 +10,7 @@ compiler delivery plans, extraction history, decisions, status and acceptance cr
 | `handbook/reference/` | Current CLI, language source basis, diagnostics, and artifacts |
 | `handbook/internals/` | Architecture, invariants, and implementation reasoning |
 | `roadmap/` | Numbered delivery milestones and documentation coverage gates |
+| `qualification/` | Executed checks, supported hosts and signed candidate identities |
 | App/package READMEs | Component scope, public APIs and dependencies |
 | `tests/integration/` | Pinned upstream baseline, parity and runtime fixtures |
 | `contracts/` | Exact source contract, independent grammar and corpus |
@@ -18,5 +19,5 @@ This adopts Transit's documentation ownership structure, with a smaller
 Docusaurus project in `handbook/`. It does not copy unrelated database/runtime
 guides or mark Transit's roadmap as completed here. Read the
 [site guide](handbook/README.md) to develop the docs and the
-[documentation coverage plan](roadmap/04-documentation-and-qualification.md) for
-the user guides needed before a standalone compiler release.
+[documentation coverage plan](roadmap/04-documentation-and-qualification.md) and
+[qualification record](qualification/extraction.md) for the supported release foundation.
