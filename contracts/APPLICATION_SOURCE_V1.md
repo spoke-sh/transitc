@@ -891,3 +891,12 @@ Each clause lowers to an explicit runtime REQUIRE after single argument
 evaluation; postconditions validate the captured result before caller effects.
 See [bounded callable obligations](application-source/REFINEMENTS_V1.md) for the
 closed predicate grammar, limits, error order and atomic rollback contract.
+
+## Callable module arguments
+
+Direct module/interface parameters may use `FUNCTION OF`, `GUARD OF` or
+`PROCEDURE OF` followed by a checked helper prototype. Exact signatures retain
+parameter/result types, resource operations and ordered validation clauses.
+Guard/procedure arguments require explicit `EFFECTS` lists, checked against the
+complete inlined body. See [callable composition](application-source/CALLABLES_V1.md)
+for binding, authority, purity and atomicity boundaries.

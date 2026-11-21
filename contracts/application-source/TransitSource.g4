@@ -14,15 +14,17 @@ definition
         | DOMAIN sourceName AS sourceBaseType IDENTITY STRING
         | VARIANT sourceName AS LPAREN variantConstructor (COMMA variantConstructor)* RPAREN
         | INTERFACE sourceName parameters
-        | FUNCTION helperName parameters RETURNS sourceType precondition* postcondition* AS BEGIN ATOMIC? functionBody END
-        | GUARD helperName parameters precondition* postcondition* AS (BEGIN ATOMIC? programBlock END | guardRequires)
-        | PROCEDURE helperName parameters (RETURNS sourceType)? precondition* postcondition* AS BEGIN ATOMIC? procedureBody END
+        | FUNCTION helperName parameters RETURNS sourceType effectClause? precondition* postcondition* AS BEGIN ATOMIC? functionBody END
+        | GUARD helperName parameters effectClause? precondition* postcondition* AS (BEGIN ATOMIC? programBlock END | guardRequires)
+        | PROCEDURE helperName parameters (RETURNS sourceType)? effectClause? precondition* postcondition* AS BEGIN ATOMIC? procedureBody END
         | MIGRATION TARGET sourceName migrationClause AS BEGIN body END
         | TEST? TARGET sourceName AS BEGIN body END) SEMI
     | EXPORT (MODULE sourceName parameters AS BEGIN body END
         | TEST SUITE sourceName FROM STRING
         | TARGET sourceName exportTargetBody) SEMI
     ;
+effectClause: EFFECTS LPAREN (effect (COMMA effect)*)? RPAREN;
+effect: (READ | INSERT | PRODUCE | ENQUEUE) sourceName;
 precondition: REQUIRES refinementTerm (AND refinementTerm)* ELSE STRING;
 postcondition: ENSURES refinementTerm (AND refinementTerm)* ELSE STRING;
 refinementTerm: sourceName (IS NOT NULL_ | sourceComparisonOp (MINUS? INTEGER | sourceName));
@@ -44,8 +46,10 @@ rowParameters: LPAREN parameter (COMMA parameter)* RPAREN;
 parameter: sourceName parameterKind;
 parameterKind: BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | numericSourceType | IDENTIFIER_KIND | TYPE | SCHEMA_BINDING
     | MODULE OF? sourceQualifiedName
+    | callableParameter
     | ROW rowParameters
     | (TABLE | STREAM | QUEUE) LPAREN signatureColumn (COMMA signatureColumn)* RPAREN | sourceParameterName;
+callableParameter: (FUNCTION | GUARD | PROCEDURE) OF sourceQualifiedName;
 numericSourceType: NUMERIC LPAREN INTEGER COMMA INTEGER RPAREN;
 sourceBaseType: BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | numericSourceType;
 sourceParameterName: parameterHead (DOT sourceName (DOT sourceName)?)?
@@ -246,7 +250,7 @@ plainReferenceTypeHead: typeWord | STRUCT | UNION | LIST | ARRAY | MAP | RANGE |
 sourceWord: typeWord | BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | IDENTIFIER_KIND | SCHEMA_BINDING | MODULE | TABLE;
 typeWord: typeWordWithoutLogs | STREAM | QUEUE;
 typeWordWithoutLogs: typeWordOrdinary | NULL_ | CASE | CAST;
-typeWordOrdinary: REQUIRES | ENSURES | NUMERIC | ONE | LEASE_DURATION | MAX_LEASE_DURATION | IDENTIFIER | MIGRATION | MIGRATIONS | EMPTY | VERSION | FOR | AT | DECIMAL_ADD | DECIMAL_SUBTRACT | DECIMAL_MULTIPLY | DECIMAL_DIVIDE
+typeWordOrdinary: EFFECTS | REQUIRES | ENSURES | NUMERIC | ONE | LEASE_DURATION | MAX_LEASE_DURATION | IDENTIFIER | MIGRATION | MIGRATIONS | EMPTY | VERSION | FOR | AT | DECIMAL_ADD | DECIMAL_SUBTRACT | DECIMAL_MULTIPLY | DECIMAL_DIVIDE
     | DECIMAL_RESCALE | RANGE_OVERLAPS | RANGE_CONTAINS | RANGE_ADJACENT | RANGE_COMPARE
     | VECTOR_DISTANCE | TIME_BUCKET | LOCAL_TO_UTC | DATAFLOW | REVISION | AUTHORIZE | ACTIVATE
     | SUSPEND | RESUME | REFRESH | RETIRE | BEGIN | CONSTRAINT | CHECK | FOREIGN | REFERENCES
@@ -360,3 +364,5 @@ NUMERIC: 'NUMERIC';
 
 REQUIRES: 'REQUIRES';
 ENSURES: 'ENSURES';
+
+EFFECTS: 'EFFECTS';

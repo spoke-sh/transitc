@@ -558,6 +558,12 @@ fn checkTargetComposition(self: *Self, target_file: usize, err_span: s.Span, ins
 fn validateParameterKind(self: *Self, file: usize, kind: s.Kind, depth: usize) anyerror!void {
     if (depth >= self.limits.depth) return error.SourceDepthLimit;
     switch (kind) {
+        .callable => |value| {
+            const ref = try self.graph.resolveReported(file, value.signature, self.report);
+            const def = self.graph.getDefinition(ref);
+            if (!std.mem.eql(u8, @tagName(def.kind), @tagName(value.kind))) return error.InvalidCallableSignature;
+            if (value.kind != .function and def.effects == null) return error.MissingCallableContract;
+        },
         .module => |m_name| {
             const interface = try self.graph.resolve(file, m_name);
             if (self.graph.getDefinition(interface).kind != .interface) return error.InvalidModuleInterface;
@@ -566,7 +572,10 @@ fn validateParameterKind(self: *Self, file: usize, kind: s.Kind, depth: usize) a
             const ctor = try self.graph.resolveReported(file, m_name, self.report);
             if (self.graph.getDefinition(ctor).kind != .module) return error.NotModuleConstructor;
         },
-        .row => |fields| for (fields) |f_item| try self.validateParameterKind(file, f_item.kind, depth + 1),
+        .row => |fields| for (fields) |f_item| {
+            if (f_item.kind == .callable) return error.InvalidCallableSignature;
+            try self.validateParameterKind(file, f_item.kind, depth + 1);
+        },
         .numeric => |d| _ = try types.numericScalar(d),
         else => {},
     }
@@ -602,6 +611,10 @@ fn sameParameterKind(self: *Self, left_file: usize, left: s.Kind, right_file: us
     if (std.meta.activeTag(left) != std.meta.activeTag(right)) return error.ModuleInterfaceMismatch;
     switch (left) {
         .numeric => |d| if (!std.meta.eql(d, right.numeric)) return error.ModuleInterfaceMismatch,
+        .callable => |v| {
+            if (v.kind != right.callable.kind) return error.CallableSignatureMismatch;
+            try self.callableSignature(try self.graph.resolve(left_file, v.signature), try self.graph.resolve(right_file, right.callable.signature), depth + 1);
+        },
         .module => |m| try self.signature(try self.graph.resolve(left_file, m), try self.graph.resolve(right_file, right.module), depth),
         .module_of => |m| if (!std.meta.eql(try self.graph.resolve(left_file, m), try self.graph.resolve(right_file, right.module_of))) return error.ModuleInterfaceMismatch,
         .named => |n| if (!std.meta.eql(try self.graph.resolve(left_file, n), try self.graph.resolve(right_file, right.named))) return error.ModuleInterfaceMismatch,
@@ -648,6 +661,10 @@ fn argumentDepth(self: *Self, file: usize, kind: s.Kind, value: Value, depth: us
         },
         .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .binary => {
             if (!types.Scalar.eql(try types.field(self.graph, file, kind), value.scalar() orelse return error.SourceTypeMismatch)) return error.SourceTypeMismatch;
+        },
+        .callable => |v| {
+            if (value != .helper or value.helper.kind != v.kind) return error.CallableSignatureMismatch;
+            try self.callableSignature(try self.graph.resolve(file, v.signature), value.helper.ref, depth + 1);
         },
         .module => |name| {
             if (value != .module) return error.SourceTypeMismatch;
@@ -737,7 +754,7 @@ fn invoke(self: *Self, file: usize, span: s.Span, call: s.Call, bindings: []cons
             unreachable;
         } else i;
         const arg = call.arguments[arg_idx];
-        const value = evaluated_args[arg_idx];
+        var value = evaluated_args[arg_idx];
         self.file = file;
         self.offset = arg.span.start;
         self.span_end = arg.span.end;
@@ -753,6 +770,7 @@ fn invoke(self: *Self, file: usize, span: s.Span, call: s.Call, bindings: []cons
             return err;
         };
         self.context = .{};
+        if (parameter.kind == .callable) value.helper.contract = try self.graph.resolve(ref.file, parameter.kind.callable.signature);
         // Reached symbolic callees are checked for their declared scalar types.
         // This also checks both paths of recursive IF bodies before a recursive
         // edge is discharged by its signature, without guessing payload values.
@@ -1354,7 +1372,17 @@ fn reference(self: *Self, file: usize, name: s.Name, bindings: []const Binding) 
             return first;
         };
     }
-    return .{ .module = try self.resolve(file, name, bindings) };
+    const ref = try self.graph.resolveReported(file, name, self.report);
+    const def = self.graph.getDefinition(ref);
+    const helper_kind: ?types.HelperKind = switch (def.kind) {
+        .function => .function,
+        .guard => .guard,
+        .procedure => .procedure,
+        else => null,
+    };
+    if (helper_kind) |kind| return .{ .helper = .{ .kind = kind, .ref = ref, .owner = self.owner, .schemas = try self.a.dupe(types.SchemaBinding, self.activeSchemas()) } };
+    if (def.kind != .module) return error.NotModuleConstructor;
+    return .{ .module = ref };
 }
 fn construct(self: *Self, file: usize, call: s.Call, bindings: []const Binding, depth: usize) !Value {
     // An imported domain has two components; a local variant constructor also
@@ -1973,4 +2001,22 @@ pub fn locationSpan(source: Graph.Source, span: SourceDiagnostic.Span) p.Diagnos
 }
 pub fn project(err: anyerror, at: ?p.Diagnostic.Location, call: ?p.Diagnostic.Location, instance: ?[]const u8) p.Diagnostic {
     return @import("SourceDiagnostic.zig").project(err, at, call, instance);
+}
+
+fn callableSignature(self: *Self, expected: Graph.Ref, actual: Graph.Ref, depth: usize) anyerror!void {
+    try self.tick();
+    if (depth >= self.limits.depth) return error.SourceDepthLimit;
+    const want = self.graph.getDefinition(expected);
+    const got = self.graph.getDefinition(actual);
+    if (want.kind != got.kind or want.parameters.len != got.parameters.len) return error.CallableSignatureMismatch;
+    if (want.kind != .function and (want.effects == null or got.effects == null)) return error.MissingCallableContract;
+    for (want.parameters, got.parameters) |left, right| {
+        if (!std.mem.eql(u8, left.name, right.name)) return error.CallableSignatureMismatch;
+        try self.sameParameterKind(expected.file, left.kind, actual.file, right.kind, depth + 1);
+    }
+    if ((want.return_type == null) != (got.return_type == null)) return error.CallableSignatureMismatch;
+    if (want.return_type) |ret| if (!types.Scalar.eql(try types.resolve(self.graph, expected.file, ret), try types.resolve(self.graph, actual.file, got.return_type.?))) return error.CallableSignatureMismatch;
+    if (!@import("Effects.zig").same(want.effects orelse &.{}, got.effects orelse &.{}) or
+        !@import("Refinements.zig").same(want.preconditions, got.preconditions) or
+        !@import("Refinements.zig").same(want.postconditions, got.postconditions)) return error.CallableSignatureMismatch;
 }

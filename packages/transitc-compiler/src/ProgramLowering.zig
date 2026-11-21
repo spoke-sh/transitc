@@ -15,7 +15,7 @@ const Symbolic = @import("SymbolicProgram.zig");
 
 const CallOrigin = Operands.CallOrigin;
 const Symbol = struct { original: []const u8, emitted: []const u8 };
-const ResourceBinding = struct { name: []const u8, table: *const types.Table };
+const ResourceBinding = @import("Effects.zig").Binding;
 const ResolvedCallee = struct {
     ref: Graph.Ref,
     bindings: []const types.Binding = &.{},
@@ -88,6 +88,7 @@ pub fn validateAll(compiler: *Compiler) !void {
         compiler.offset = def.span.start;
         compiler.context = .{ .name = def.name };
         try @import("Refinements.zig").validate(graph, file_idx, def);
+        try @import("Effects.zig").validate(def);
         for (def.parameters) |param| {
             compiler.context = .{ .name = param.name };
             switch (param.kind) {
@@ -109,7 +110,7 @@ pub fn validateAll(compiler: *Compiler) !void {
                     if (def.kind != .procedure) return error.InvalidParameterType;
                     try validateSignatureColumns(graph, file_idx, cols, .queue);
                 },
-                .identifier, .type, .schema_binding, .module, .module_of => return error.InvalidParameterType,
+                .identifier, .type, .schema_binding, .module, .module_of, .callable => return error.InvalidParameterType,
             }
         }
         if (def.return_type) |return_type| {
@@ -556,14 +557,15 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
     const sql = lowerer.writer.bytes.items;
     var at: f.Sql.Location = .{ .offset = std.math.maxInt(usize) };
     const check_fn = struct {
-        fn run(comp: *Compiler, cat: *Catalog, raw_sql: []const u8, loc: *f.Sql.Location, sc: std.mem.Allocator, st: []const Operands.Site, org: []const Operands.Origin, obs: []const Annotations.Obligation) !void {
+        fn run(comp: *Compiler, cat: *Catalog, raw_sql: []const u8, loc: *f.Sql.Location, sc: std.mem.Allocator, definition: s.Definition, resources: []const ResourceBinding, st: []const Operands.Site, org: []const Operands.Origin, obs: []const Annotations.Obligation) !void {
             var analysis = try ProgramCheck.analyze(cat, raw_sql, loc);
             defer analysis.deinit();
+            try @import("Effects.zig").check(sc, cat, definition.effects, resources, analysis.parsed.program.body.instructions, &comp.context);
             _ = try Annotations.check(sc, sc, comp.graph, cat, analysis.parsed.program, &analysis.bound, raw_sql, st, org, obs, &comp.context, &comp.work, comp.limits.work);
         }
     }.run;
     var check_catalog = try Symbolic.catalog(scratch, temp_catalog, sql, symbolic_parameters.items, &at);
-    check_fn(compiler, &check_catalog, sql, &at, scratch, sites.items, origins.items, obligations.items) catch |err| {
+    check_fn(compiler, &check_catalog, sql, &at, scratch, def, res_bindings.items, sites.items, origins.items, obligations.items) catch |err| {
         const err_offset = compiler.context.offset orelse at.offset;
         for (origins.items) |origin| if (err_offset >= origin.start and err_offset < origin.end) {
             if (origin.file) |origin_file| compiler.file = origin_file;

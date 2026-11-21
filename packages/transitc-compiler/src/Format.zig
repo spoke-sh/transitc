@@ -156,6 +156,14 @@ fn definition(self: Self, def: s.Definition) !void {
             .named => |v| try self.name(v),
         }
     }
+    if (def.effects) |effects_| {
+        try writer.writeAll(" EFFECTS (");
+        for (effects_, 0..) |effect, i| {
+            if (i != 0) try writer.writeAll(", ");
+            try writer.print("{s} {s}", .{ @import("Effects.zig").label(effect.operation), effect.resource });
+        }
+        try writer.writeByte(')');
+    }
     try self.refinements("REQUIRES", def.preconditions);
     try self.refinements("ENSURES", def.postconditions);
     if (def.domain) |domain| {
@@ -511,6 +519,14 @@ fn kind(self: Self, value: s.Kind) anyerror!void {
         .module => |v| {
             try self.w.writeAll("MODULE ");
             try self.name(v);
+        },
+        .callable => |v| {
+            try self.w.print("{s} OF ", .{switch (v.kind) {
+                .function => "FUNCTION",
+                .guard => "GUARD",
+                .procedure => "PROCEDURE",
+            }});
+            try self.name(v.signature);
         },
         .module_of => |v| {
             try self.w.writeAll("MODULE OF ");

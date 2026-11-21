@@ -84,10 +84,11 @@ pub const Table = struct {
     }
 };
 pub const Export = struct { name: []const u8, value: Value };
-pub const HelperKind = enum { function, guard, procedure };
+pub const HelperKind = s.HelperKind;
 pub const Helper = struct {
     kind: HelperKind,
     ref: Graph.Ref,
+    contract: ?Graph.Ref = null,
     bindings: []const Binding = &.{},
     owner: usize = 0,
     schemas: []const SchemaBinding = &.{},
@@ -263,6 +264,14 @@ pub fn hashValue(value: Value, graph: Graph, into: *std.crypto.hash.sha2.Sha256,
         .helper => |h| {
             Graph.hashPart(into, @tagName(h.kind));
             try hashValue(.{ .module = h.ref }, graph, into, depth + 1);
+            if (h.contract) |contract| {
+                Graph.hashPart(into, "transit.source.callable.v1");
+                try hashValue(.{ .module = contract }, graph, into, depth + 1);
+                for (h.schemas) |schema| {
+                    Graph.hashPart(into, schema.logical);
+                    Graph.hashPart(into, schema.concrete);
+                }
+            }
         },
         .variant => |v| {
             try hashValue(.{ .module = v.definition }, graph, into, depth + 1);
@@ -325,7 +334,7 @@ fn sameValue(left: Value, right: Value, depth: usize) bool {
         .schema_binding => |v| std.mem.eql(u8, v, right.schema_binding),
         .type => |v| Scalar.eql(v, right.type),
         .module => |v| std.meta.eql(v, right.module),
-        .helper => |v| v.kind == right.helper.kind and std.meta.eql(v.ref, right.helper.ref) and v.owner == right.helper.owner and sameSchemas(v.schemas, right.helper.schemas),
+        .helper => |v| v.kind == right.helper.kind and std.meta.eql(v.contract, right.helper.contract) and std.meta.eql(v.ref, right.helper.ref) and v.owner == right.helper.owner and sameSchemas(v.schemas, right.helper.schemas),
         inline .table, .stream, .queue => |v, tag| v == @field(right, @tagName(tag)),
         .reference_table => |v| blk: {
             if (v.table != right.reference_table.table or v.columns.len != right.reference_table.columns.len) break :blk false;

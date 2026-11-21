@@ -16,6 +16,9 @@
         "transit_protocol",
         "transit_sql_frontend"
       ],
+      "packages/transitc-compiler/src/Effects.zig": [
+        "transit_sql_frontend"
+      ],
       "packages/transitc-compiler/src/ProgramAnnotations.zig": [
         "transit_sql_frontend"
       ],
@@ -56,6 +59,9 @@
       "packages/transitc-compiler/src/WorkingCatalog.zig": [
         "transit_protocol",
         "transit_sql_frontend"
+      ],
+      "packages/transitc-compiler/src/callable_test.zig": [
+        "transit_protocol"
       ],
       "packages/transitc-compiler/src/cardinality_test.zig": [
         "transit_protocol"

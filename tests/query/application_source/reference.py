@@ -69,6 +69,8 @@ def parse(source):
             return
         if helper_mode and rule in ('identifierHole', 'typeHole', 'valueHole', 'checkHole', 'scalarHole', 'tableHole', 'streamHole', 'queueHole'):
             raise Refusal(span(node)['start'], 'hole inside helper')
+        if rule == 'effectClause' and len(node.effect()) > 64:
+            raise Refusal(span(node)['start'], 'effect bound')
         if rule == 'functionBody' and node.programInstruction():
             for child in node.children or []:
                 bounds(child, atomic, 'function')
@@ -371,7 +373,10 @@ def parse(source):
         result = []
         for param in ctx.parameter() if ctx else []:
             kind = param.parameterKind()
-            if kind.numericSourceType():
+            if kind.callableParameter():
+                cp = kind.callableParameter()
+                value = {'callable': {'kind': 'function' if cp.FUNCTION() else 'guard' if cp.GUARD() else 'procedure', 'signature': name(cp.sourceQualifiedName())}}
+            elif kind.numericSourceType():
                 value = {'numeric': numeric(kind.numericSourceType())}
             elif kind.SCHEMA_BINDING():
                 value = {'schema_binding': None}
@@ -506,7 +511,7 @@ def parse(source):
         definitions.append({'name': def_name, 'public': bool(definition.PUBLIC() or definition.EXPORT()),
                             'kind': def_kind, 'parameters': params, 'body': def_body,
                             'span': span(definition), 'domain': domain, 'constructors': constructors,
-                            'return_type': return_type, 'preconditions': refinements(definition.precondition()),
+                            'return_type': return_type, 'effects': ([{'operation': e.children[0].getText().lower(), 'resource': e.sourceName().getText().lower()} for e in definition.effectClause().effect()] if definition.effectClause() else None), 'preconditions': refinements(definition.precondition()),
                             'postconditions': refinements(definition.postcondition()), 'program': program, 'migration': mig,
                             'target_of': target_of, 'target_ref': target_ref, 'output_path': output_path,
                             'suite_path': suite_path, 'suites': suites, 'target_options': target_options,

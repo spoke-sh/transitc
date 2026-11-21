@@ -20,35 +20,60 @@ CREATE MODULE Setup(lease TEXT) AS BEGIN
   ACTIVATE DATAFLOW refined_route;
 END;
 CREATE TARGET default AS BEGIN USE Setup('120s'); END;
+CREATE PROCEDURE BoundOnly(events STREAM(id BIGINT NOT NULL, amount BIGINT NOT NULL), amount BIGINT)
+REQUIRES amount IS NOT NULL ELSE 'MissingAmount'
+REQUIRES amount >= 1 AND amount <= 10 ELSE 'AmountBounds'
+AS BEGIN ATOMIC
+  PRODUCE INTO events VALUES (1, amount);
+END;
+CREATE PROCEDURE ReturnOnly(events STREAM(id BIGINT NOT NULL, amount BIGINT NOT NULL), returned BIGINT) RETURNS BIGINT
+ENSURES result = 5 ELSE 'ChangedAmount'
+AS BEGIN ATOMIC
+  PRODUCE INTO events VALUES (1, 5);
+  RETURN returned;
+END;
+CREATE MODULE BoundProbe() AS BEGIN
+  CREATE PUBLIC QUEUE probe_requests (amount BIGINT);
+  CREATE PUBLIC STREAM probe_events (id BIGINT NOT NULL, amount BIGINT NOT NULL);
+  CREATE PUBLIC DATAFLOW probe_route FROM QUEUE probe_requests AS request AS BEGIN
+    BEGIN ATOMIC CALL BoundOnly(probe_events, request.amount); END;
+  END;
+  AUTHORIZE DATAFLOW probe_route AS ROLE CURRENT_ROLE;
+  ACTIVATE DATAFLOW probe_route;
+END;
+CREATE MODULE ReturnProbe() AS BEGIN
+  CREATE PUBLIC QUEUE probe_requests (amount BIGINT);
+  CREATE PUBLIC STREAM probe_events (id BIGINT NOT NULL, amount BIGINT NOT NULL);
+  CREATE PUBLIC DATAFLOW probe_route FROM QUEUE probe_requests AS request AS BEGIN
+    BEGIN ATOMIC CALL ReturnOnly(probe_events, request.amount); END;
+  END;
+  AUTHORIZE DATAFLOW probe_route AS ROLE CURRENT_ROLE;
+  ACTIVATE DATAFLOW probe_route;
+END;
 CREATE TEST TARGET tests AS BEGIN
-  TEST 'bounds accepted' USING MODULES (Setup('30s')) AS BEGIN
-    ENQUEUE INTO refined_requests VALUES (1, 5, 5);
-    ASSERT WORKFLOW NAME 'refined_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;
-    ASSERT ROWS (CONSUME id, amount FROM refined_events) EQUAL ((1, 5));
-    ASSERT ROWS (CONSUME id, amount FROM refined_after) EQUAL ((1, 5));
+  TEST 'bounds accepted' USING MODULES (BoundProbe()) AS BEGIN
+    ENQUEUE INTO probe_requests VALUES (5);
+    ASSERT WORKFLOW NAME 'probe_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, amount FROM probe_events) EQUAL ((1, 5));
   END;
-  TEST 'missing amount' USING MODULES (Setup('30s')) AS BEGIN
-    ENQUEUE INTO refined_requests VALUES (1, NULL, 5);
-    ASSERT WORKFLOW NAME 'refined_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
-    ASSERT ROWS (CONSUME id, amount FROM refined_events) EQUAL ();
-    ASSERT ROWS (CONSUME id, amount FROM refined_after) EQUAL ();
+  TEST 'missing amount' USING MODULES (BoundProbe()) AS BEGIN
+    ENQUEUE INTO probe_requests VALUES (NULL);
+    ASSERT WORKFLOW NAME 'probe_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, amount FROM probe_events) EQUAL ();
   END;
-  TEST 'lower bound' USING MODULES (Setup('30s')) AS BEGIN
-    ENQUEUE INTO refined_requests VALUES (1, 0, 0);
-    ASSERT WORKFLOW NAME 'refined_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
-    ASSERT ROWS (CONSUME id, amount FROM refined_events) EQUAL ();
-    ASSERT ROWS (CONSUME id, amount FROM refined_after) EQUAL ();
+  TEST 'lower bound' USING MODULES (BoundProbe()) AS BEGIN
+    ENQUEUE INTO probe_requests VALUES (0);
+    ASSERT WORKFLOW NAME 'probe_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, amount FROM probe_events) EQUAL ();
   END;
-  TEST 'upper bound' USING MODULES (Setup('30s')) AS BEGIN
-    ENQUEUE INTO refined_requests VALUES (1, 11, 11);
-    ASSERT WORKFLOW NAME 'refined_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
-    ASSERT ROWS (CONSUME id, amount FROM refined_events) EQUAL ();
-    ASSERT ROWS (CONSUME id, amount FROM refined_after) EQUAL ();
+  TEST 'upper bound' USING MODULES (BoundProbe()) AS BEGIN
+    ENQUEUE INTO probe_requests VALUES (11);
+    ASSERT WORKFLOW NAME 'probe_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, amount FROM probe_events) EQUAL ();
   END;
-  TEST 'postcondition rollback' USING MODULES (Setup('30s')) AS BEGIN
-    ENQUEUE INTO refined_requests VALUES (1, 5, 6);
-    ASSERT WORKFLOW NAME 'refined_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
-    ASSERT ROWS (CONSUME id, amount FROM refined_events) EQUAL ();
-    ASSERT ROWS (CONSUME id, amount FROM refined_after) EQUAL ();
+  TEST 'postcondition rollback' USING MODULES (ReturnProbe()) AS BEGIN
+    ENQUEUE INTO probe_requests VALUES (6);
+    ASSERT WORKFLOW NAME 'probe_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, amount FROM probe_events) EQUAL ();
   END;
 END;

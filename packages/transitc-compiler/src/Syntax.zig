@@ -20,6 +20,7 @@ pub const Kind = union(enum) {
     schema_binding,
     module: Name,
     module_of: Name,
+    callable: struct { kind: HelperKind, signature: Name },
     row: []const Parameter,
     named: Name,
     table: []const Column,
@@ -94,6 +95,8 @@ pub const Statement = struct {
 pub const Migration = struct { basis: ?[]const u8, database: []const u8, schema: []const u8, version: []const u8, name: []const u8 };
 pub const SuiteRef = union(enum) { symbol: Name, path: []const u8 };
 pub const TargetOption = struct { name: []const u8, value: *Expr };
+pub const HelperKind = enum { function, guard, procedure };
+pub const Effect = struct { operation: enum { read, insert, produce, enqueue }, resource: []const u8 };
 pub const RefinementTerm = struct {
     left: []const u8,
     op: enum { present, equal, not_equal, less, less_equal, greater, greater_equal },
@@ -110,6 +113,7 @@ pub const Definition = struct {
     domain: ?Domain = null,
     constructors: []const Constructor = &.{},
     return_type: ?TypeRef = null,
+    effects: ?[]const Effect = null,
     preconditions: []const Refinement = &.{},
     postconditions: []const Refinement = &.{},
     program: ?Template.Syntax = null,
@@ -429,6 +433,7 @@ fn parseCreateDefinition(self: *Self, start: u32) !Definition {
         try self.require("RETURNS");
         break :blk try self.typeRef();
     } else null;
+    const effects = if (kind == .function or kind == .guard or kind == .procedure) try self.parseEffects() else null;
     const preconditions = if (kind == .function or kind == .guard or kind == .procedure) try self.refinements("REQUIRES") else &.{};
     const postconditions = if (kind == .function or kind == .guard or kind == .procedure) try self.refinements("ENSURES") else &.{};
     const migration: ?Migration = if (kind == .migration_target) try self.parseMigrationClause(false) else null;
@@ -530,7 +535,7 @@ fn parseCreateDefinition(self: *Self, start: u32) !Definition {
         break :blk result;
     };
     try self.require(";");
-    return .{ .name = name, .public = public, .kind = kind, .parameters = parameters, .body = body, .span = self.span(start), .domain = domain, .constructors = try constructors.toOwnedSlice(self.a), .return_type = return_type, .preconditions = preconditions, .postconditions = postconditions, .program = program, .migration = migration, .schema = def_schema };
+    return .{ .name = name, .public = public, .kind = kind, .parameters = parameters, .body = body, .span = self.span(start), .domain = domain, .constructors = try constructors.toOwnedSlice(self.a), .return_type = return_type, .effects = effects, .preconditions = preconditions, .postconditions = postconditions, .program = program, .migration = migration, .schema = def_schema };
 }
 fn currentSpan(self: *const Self) SourceDiagnostic.Span {
     const end_pos: u32 = @intCast(self.text.len);
@@ -754,7 +759,7 @@ fn parseParameters(self: *Self, require_non_empty: bool) anyerror![]const Parame
             }
             return error.DuplicateSourceName;
         };
-        const kind: Kind = if (self.take("BIGINT")) .integer else if (self.take("TEXT")) .text else if (self.take("BOOLEAN")) .boolean else if (self.take("UUID")) .uuid else if (self.take("TIMESTAMPTZ")) .timestamptz else if (self.take("DATE")) .date else if (self.numericSignature()) .{ .numeric = try self.numericType() } else if (self.take("BINARY")) .binary else if (self.take("IDENTIFIER")) .identifier else if (self.take("TYPE")) .type else if (self.take("SCHEMA_BINDING")) .schema_binding else if (self.take("MODULE")) (if (self.takeKeywordBeforeName("OF")) .{ .module_of = try self.parseName() } else .{ .module = try self.parseName() }) else if (self.takeSignature("ROW")) .{ .row = try self.parseParameters(true) } else if (self.take("TABLE")) .{ .table = try self.tableSignature() } else if (self.takeSignature("STREAM")) .{ .stream = try self.tableSignature() } else if (self.takeSignature("QUEUE")) .{ .queue = try self.tableSignature() } else .{ .named = try self.parseName() };
+        const kind: Kind = if (self.take("BIGINT")) .integer else if (self.take("TEXT")) .text else if (self.take("BOOLEAN")) .boolean else if (self.take("UUID")) .uuid else if (self.take("TIMESTAMPTZ")) .timestamptz else if (self.take("DATE")) .date else if (self.numericSignature()) .{ .numeric = try self.numericType() } else if (self.take("BINARY")) .binary else if (self.take("IDENTIFIER")) .identifier else if (self.take("TYPE")) .type else if (self.take("SCHEMA_BINDING")) .schema_binding else if (self.callableKind()) |callable| .{ .callable = .{ .kind = callable, .signature = try self.parseName() } } else if (self.take("MODULE")) (if (self.takeKeywordBeforeName("OF")) .{ .module_of = try self.parseName() } else .{ .module = try self.parseName() }) else if (self.takeSignature("ROW")) .{ .row = try self.parseParameters(true) } else if (self.take("TABLE")) .{ .table = try self.tableSignature() } else if (self.takeSignature("STREAM")) .{ .stream = try self.tableSignature() } else if (self.takeSignature("QUEUE")) .{ .queue = try self.tableSignature() } else .{ .named = try self.parseName() };
         try result.append(self.a, .{ .name = parameter_name, .kind = kind });
         if (self.take(")")) break;
         try self.require(",");
@@ -1243,4 +1248,25 @@ fn refinements(self: *Self, keyword: []const u8) ![]const Refinement {
         try result.append(self.a, .{ .terms = try terms.toOwnedSlice(self.a), .refusal = refusal, .span = self.span(start) });
     }
     return result.toOwnedSlice(self.a);
+}
+
+fn callableKind(self: *Self) ?HelperKind {
+    if (self.index + 1 >= self.tokens.len or !std.ascii.eqlIgnoreCase(self.text[self.tokens[self.index + 1].start..self.tokens[self.index + 1].end], "OF")) return null;
+    const kind: HelperKind = if (self.take("FUNCTION")) .function else if (self.take("GUARD")) .guard else if (self.take("PROCEDURE")) .procedure else return null;
+    self.index += 1;
+    return kind;
+}
+fn parseEffects(self: *Self) !?[]const Effect {
+    if (!self.take("EFFECTS")) return null;
+    try self.require("(");
+    var result: std.ArrayList(Effect) = .empty;
+    if (self.take(")")) return &.{};
+    while (true) {
+        if (result.items.len == 64) return error.SourceParameterLimit;
+        const operation: @FieldType(Effect, "operation") = if (self.take("READ")) .read else if (self.take("INSERT")) .insert else if (self.take("PRODUCE")) .produce else if (self.take("ENQUEUE")) .enqueue else return error.InvalidSourceSyntax;
+        try result.append(self.a, .{ .operation = operation, .resource = try self.identifier() });
+        if (self.take(")")) break;
+        try self.require(",");
+    }
+    return try result.toOwnedSlice(self.a);
 }

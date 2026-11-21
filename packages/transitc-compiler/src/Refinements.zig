@@ -43,3 +43,22 @@ pub fn validate(graph: Graph, file: usize, def: s.Definition) !void {
         };
     }
 }
+
+pub fn same(left: []const s.Refinement, right: []const s.Refinement) bool {
+    if (left.len != right.len) return false;
+    for (left, right) |l, r| {
+        if (!std.mem.eql(u8, l.refusal, r.refusal) or l.terms.len != r.terms.len) return false;
+        for (l.terms, r.terms) |lt, rt| {
+            if (!std.mem.eql(u8, lt.left, rt.left) or lt.op != rt.op or (lt.right == null) != (rt.right == null)) return false;
+            if (lt.right) |lv| {
+                const rv = rt.right.?;
+                if (std.meta.activeTag(lv) != std.meta.activeTag(rv)) return false;
+                switch (lv) {
+                    .integer => |n| if (n != rv.integer) return false,
+                    .name => |name| if (!std.mem.eql(u8, name, rv.name)) return false,
+                }
+            }
+        }
+    }
+    return true;
+}

@@ -44,3 +44,6 @@ Use [ONE and OPTIONAL reads](../guides/query-results.md) to distinguish query ca
 
 Use [helper input and result checks](../guides/refinements.md) for bounded
 `REQUIRES`/`ENSURES` clauses on guards and atomic procedures.
+
+[Reusable behavior](../guides/reusable-behavior.md) explains exact callable module
+arguments and explicit resource-operation contracts.

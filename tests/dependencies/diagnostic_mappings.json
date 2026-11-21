@@ -943,6 +943,30 @@
         "UnsupportedRefinementContract": {
           "code": "application.source.unsupported",
           "category": "unsupported"
+        },
+        "InvalidCallableSignature": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "MissingCallableContract": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "CallableSignatureMismatch": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "DuplicateEffectRequirement": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "InvalidEffectBinding": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "EffectContractMismatch": {
+          "code": "application.source.type",
+          "category": "binding"
         }
       }
     }
