@@ -126,6 +126,60 @@ def row_matrix(driver, destination, must_fail):
     return len(outputs) + len(fixed) + len(extra) + len(descriptors), controls
 
 
+def predicate_matrix(driver, destination):
+    source = """
+CREATE VARIANT Choice AS (On(enabled BOOLEAN), Off(enabled BOOLEAN));
+CREATE FUNCTION Identity(value BOOLEAN) RETURNS BOOLEAN AS BEGIN RETURN value; END;
+CREATE MODULE Consume(enabled BOOLEAN) AS BEGIN
+  CREATE PUBLIC DATAFLOW route FROM QUEUE requests AS request WHERE PREDICATE AS BEGIN
+    REQUIRE TRUE ELSE 'Refused';
+  END;
+END;
+CREATE MODULE Setup(selected Choice) AS BEGIN
+  CREATE PUBLIC QUEUE requests (id BIGINT NOT NULL);
+  MATCH selected
+    WHEN Choice.On(enabled) THEN USE Consume(enabled);
+    WHEN Choice.Off(enabled) THEN USE Consume(enabled);
+  END MATCH;
+END;
+CREATE TARGET default AS BEGIN USE Setup(Choice.ARM(VALUE)); END;
+"""
+    cases = []
+    for name, predicate in [('leaf', '$enabled'), ('and', 'request.id = 7 AND $enabled'),
+                            ('not-or', 'NOT $enabled OR request.id > 2'),
+                            ('helper', 'Identity($enabled)')]:
+        for arm in ('On', 'Off'):
+            for value in ('TRUE', 'FALSE'):
+                entry = source.replace('PREDICATE', predicate).replace('ARM', arm).replace('VALUE', value)
+                cases.append(dict(name=f'boolean-filter-{name}-{arm}-{value}', source=entry, compile='build'))
+    products = execute(driver, cases, destination, 'boolean-filter-products')
+    concrete = []
+    for case in cases:
+        entry = case['source']
+        begin = entry.index('  MATCH selected')
+        end = entry.index('  END MATCH;', begin) + len('  END MATCH;')
+        value = case['name'].split('-')[-1]
+        concrete.append(dict(name=case['name'] + '-concrete', source=entry[:begin] +
+                            f'  USE Consume({value});' + entry[end:], compile='build'))
+    ordinary = execute(driver, concrete, destination, 'boolean-filter-concrete')
+    for selected, fixed in zip(products, ordinary):
+        assert 'product' in selected and 'product' in fixed, (selected, fixed)
+        steps = selected['product']['steps']
+        same(2, len(steps), 'only Queue and selected filtered program emitted')
+        same('CREATE QUEUE REQUESTS ( ID BIGINT NOT NULL )', steps[0]['sql'], 'filter leaves Queue unchanged')
+        for left, right in zip(steps, fixed['product']['steps']):
+            same(False, '__transit$symbolic' in left['sql'], 'no filter analysis parameters emitted')
+            same(left['sql'], right['sql'], 'selected boolean filter SQL preserved')
+            same(left['fingerprint'], right['fingerprint'], 'selected boolean filter definition preserved')
+    refused = execute(driver, [dict(name=f'filter-native-refusal-{i}', source=source.replace(
+        'PREDICATE', predicate).replace('ARM', 'On').replace('VALUE', 'TRUE'), compile='build')
+        for i, predicate in enumerate(('$enabled = TRUE', 'request.id = request.id',
+                                      'request.id + 1 = 7'))], destination, 'boolean-filter-refusals')
+    for result in refused:
+        same('InvalidQueuePredicate', result.get('compile_error'), 'native filter profile retained')
+    return len(products) + len(ordinary)
+
+
 def run(driver, destination, must_fail):
     source = SOURCE.read_text()
     cases = [dict(name='symbolic-program-' + kind, source=source.replace('Target.Machine(MachineId(7))',
@@ -149,4 +203,4 @@ def run(driver, destination, must_fail):
             next(event for event in damaged['steps'][3]['checked']['program']['events'] if event['kind'] == 'insert')['columns'][0]['domain'] = 'example.site'
         controls.append(must_fail(label, lambda: compare('machine', damaged)))
     rows, row_controls = row_matrix(driver, destination, must_fail)
-    return len(products) + rows, controls + row_controls
+    return len(products) + rows + predicate_matrix(driver, destination), controls + row_controls

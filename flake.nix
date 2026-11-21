@@ -8,7 +8,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     transit = {
-      url = "github:spoke-sh/transit/5d13883116f5d9b8ef748625b47108a7ef9b3212";
+      url = "github:spoke-sh/transit/8fcf3ca0ca4aeb2d39af6601f7462712a3b208fe";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.zig-overlay.follows = "zig-overlay";
     };

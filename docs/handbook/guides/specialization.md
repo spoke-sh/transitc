@@ -59,7 +59,9 @@ Checking constants have a separate 64-parameter bound per lowered program; they
 do not consume the Queue's field budget. Native row/depth limits still apply.
 Internal checking names never appear in emitted SQL and cannot be named by
 authored program SQL. Queue acquisition predicates retain the native bounded
-predicate profile; type-only constants do not enable arbitrary predicate calls.
+predicate profile. Boolean constants remain usable as filter leaves, including
+through helpers and `AND`, `OR`, or `NOT`. The selected concrete filter must still
+pass native validation; checking constants do not enable arbitrary predicate calls.
 
 This checking establishes type and binding obligations. Runtime guards, row
 existence, atomic outcomes and current permissions still belong to Transit.

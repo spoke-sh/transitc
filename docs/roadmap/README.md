@@ -179,7 +179,7 @@ protocol, memory and compiled-case test types, plus native database execution.
 Transit contains no compiler snapshot or dependency on transitc.
 
 Standalone manifests pin the deterministic five-package pure source archive at
-Transit `5d13883116f5d9b8ef748625b47108a7ef9b3212`, with both Zig content hash and
+Transit `8fcf3ca0ca4aeb2d39af6601f7462712a3b208fe`, with both Zig content hash and
 Nix SHA256. The comparison binary remains frozen at
 `e7434306334e3692c6f3e123cba0d278fa412196`; the compatible compiled-case host is
 selected separately by the `transit` flake input. The

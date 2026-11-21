@@ -47,7 +47,7 @@ pub fn check(catalog: *Catalog, sql: []const u8, location: *f.Sql.Location) !Che
     defer analysis.deinit();
     const parsed = analysis.parsed;
     if (parsed.program.predicate) |predicate| location.offset = predicate.span.start;
-    try a.Predicate.validate(parsed.program, analysis.entries[0].schema);
+    try a.Predicate.validateForAnalysis(parsed.program, analysis.entries[0].schema, catalog.program_parameters);
     // Programs use canonical expansion in both passes. Preserve instruction
     // identities, atomic structure, scalar values and exact physical bindings.
     const encoded = try p.Json.valueAllocBounded(catalog.scratch, parsed.program, a.Codec.max_bytes);

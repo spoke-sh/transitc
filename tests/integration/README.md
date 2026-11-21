@@ -91,7 +91,7 @@ to exit and retains partial reply hashes.
 ## Upstream identity and updates
 
 The compiled-case runtime and both Zig package dependencies pin Transit
-[`5d13883116f5d9b8ef748625b47108a7ef9b3212`](https://github.com/spoke-sh/transit/commit/5d13883116f5d9b8ef748625b47108a7ef9b3212).
+[`8fcf3ca0ca4aeb2d39af6601f7462712a3b208fe`](https://github.com/spoke-sh/transit/commit/8fcf3ca0ca4aeb2d39af6601f7462712a3b208fe).
 The pure frontend archive adds bounded offline scalar analysis without changing
 the authored Queue schema. Its Nix SHA256 and Zig content hash are updated
 together; the compiled-case wire contract retains its exact version. To refresh this dependency,

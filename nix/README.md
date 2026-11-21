@@ -4,7 +4,7 @@
 `c1f2680d9353175e58ad503e750e7b4da76a84c5`. Those toolchain locks are unchanged.
 The `transit-baseline` input remains frozen at
 `e7434306334e3692c6f3e123cba0d278fa412196` for comparison. The `transit` input
-pins the compatible compiled-case test host at `5d13883116f5d9b8ef748625b47108a7ef9b3212`. Transit is upstream and does not
+pins the compatible compiled-case test host at `8fcf3ca0ca4aeb2d39af6601f7462712a3b208fe`. Transit is upstream and does not
 import this compiler or workspace.
 `zig.nix`, `zig-dynamic-linker.patch`, and `verify-zig-download.sh` were copied
 from the original basis. The inherited derivation name `transit-zig` identifies
