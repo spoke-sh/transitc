@@ -48,7 +48,13 @@ compares transitc with that exact binary across five fixture families and seven
 negative cases. SQL, source maps, provenance semantics and diagnostic envelopes
 must match exactly except for compiler revision, executable digest, input/cache
 identity and the dependency diagnostic's explicit `transit build --fetch` to
-`transitc build --fetch` correction. Human guidance for wrong target kinds and
+`transitc build --fetch` correction. The scalar-analysis dependency update also
+requires an explicit native definition cutover: the frozen baseline must report
+`f311e893f8d2f4c21f426790172fadfebe7eb2364615eb1566c09f11d39bb0bb`,
+and transitc must report
+`7344b5ed271c41ea371aaa6e61867b1a4d1f670e9a9176f96793835d8ead20a5`.
+The upstream Transaction.Origin change accounts for this reviewed difference;
+foreign or missing definitions still fail. Human guidance for wrong target kinds and
 missing dependencies must name the current `transitc build` / `transitc test`
 commands. Repeated transitc builds must be byte-identical.
 
@@ -77,13 +83,18 @@ journeys run once. The compiler and runtime digests are fixed for the schedule;
 do not rebuild either executable while it runs. Case, suite and cleanup budgets
 remain 30 seconds, five minutes and five seconds. Temporary test installations
 are private; publish reviewed reports, not credentials or runtime directories.
+Keep other storage-heavy proofs outside this qualification window. The deadline
+includes durable native execution, so competing disk workloads can legitimately
+exhaust it. Partial replies from an outer timeout retain their artifact identities
+after the compiler and its host process group have been killed and joined.
 
 ## Upstream identity and updates
 
-The compiled-case runtime and both Zig package dependencies pin merged Transit
-[`f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`](https://github.com/spoke-sh/transit/commit/f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6).
-The pure frontend archive has unchanged bytes at this revision, so its Nix
-SHA256 and Zig package content hash remain unchanged. To refresh this dependency,
+The compiled-case runtime and both Zig package dependencies pin Transit
+[`5d13883116f5d9b8ef748625b47108a7ef9b3212`](https://github.com/spoke-sh/transit/commit/5d13883116f5d9b8ef748625b47108a7ef9b3212).
+The pure frontend archive adds bounded offline scalar analysis without changing
+the authored Queue schema. Its Nix SHA256 and Zig content hash are updated
+together; the compiled-case wire contract retains its exact version. To refresh this dependency,
 update the `transit` input and lock, both package manifests, and the archive URL in
 `nix/transitc.nix`; fetch and verify the archive before running the package and
 compiled-case integration checks. The comparison baseline is updated separately.

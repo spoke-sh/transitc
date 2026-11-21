@@ -175,9 +175,15 @@ Symbolic scalar holes bind to temporary typed inputs, preserving physical and
 nominal descriptors without inventing values. Only the selected concrete arm is
 emitted. No temporary catalog fields or checking-only program identities escape
 into artifacts. Resource names and shapes stay concrete; a symbolic IF may not
-add programs, resources, schemas or exports. Whole-input ROW helper arguments
-combined with symbolic scalar holes remain unsupported; pass individual fields.
-Quoted `__transit$symbolic_` input names are reserved during symbolic checking.
+add programs, resources, schemas or exports. Whole-input ROW arguments preserve
+the authored fields, nullable cells and nominal descriptors through helper calls
+and aliases. Named ROW parameters check their declared fields; positional ROW
+arguments require the declared field count and order. Checking constants use a
+separate environment of at most 64 public scalars per lowered program and consume
+no Queue fields, resource dependencies or record depth. Native schema, expression
+and acquisition-predicate limits still apply. Quoted `__transit$symbolic_` names
+are reserved during symbolic checking and cannot be authored as bindings or
+expressions.
 
 
 ## Executable target

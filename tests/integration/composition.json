@@ -57,5 +57,10 @@
   "application-json-helpers": [
     "exact JSON extraction",
     "JSON null is a value"
+  ],
+  "application-whole-row": [
+    "whole input accepted",
+    "whole input guard refusal",
+    "other specialization"
   ]
 }
