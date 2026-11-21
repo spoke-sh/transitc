@@ -247,6 +247,7 @@
         "migrationClause()": "<inferred>",
         "name()": "<inferred>",
         "numericType()": "<inferred>",
+        "refinements()": "<inferred>",
         "statement()": "anyerror",
         "string()": "<inferred>",
         "template()": "<inferred>",
@@ -254,10 +255,11 @@
       },
       "open_error_set_uses": 5,
       "propagation": {
-        "try": 252,
+        "try": 262,
         "catch": 0
       },
       "imports": [
+        "Refinements.zig",
         "SourceFormat.zig",
         "Syntax.zig",
         "std"
@@ -448,6 +450,7 @@
         "ImpureSourceFunction": 4,
         "InvalidParameterType": 13,
         "InvalidQueuePredicate": 1,
+        "InvalidRefinementBinding": 2,
         "InvalidSourceName": 2,
         "InvalidSourceOperand": 4,
         "InvalidSourceSyntax": 12,
@@ -532,6 +535,8 @@
         "parameterExpected()": "<inferred>",
         "parameterScalar()": "<inferred>",
         "parseCalleeRef()": "<inferred>",
+        "refinementName()": "<inferred>",
+        "refinements()": "<inferred>",
         "requireEmitSymbol()": "<inferred>",
         "requireEmitWord()": "<inferred>",
         "resolveBoundHelper()": "<inferred>",
@@ -553,7 +558,7 @@
       },
       "open_error_set_uses": 11,
       "propagation": {
-        "try": 509,
+        "try": 528,
         "catch": 26
       },
       "imports": [
@@ -561,6 +566,7 @@
         "Graph.zig",
         "ProgramAnnotations.zig",
         "ProgramCheck.zig",
+        "Refinements.zig",
         "SourceTypes.zig",
         "SymbolicProgram.zig",
         "Syntax.zig",
@@ -569,6 +575,31 @@
         "std",
         "transit_protocol",
         "transit_sql_frontend"
+      ]
+    },
+    "packages/transitc-compiler/src/Refinements.zig": {
+      "errors": {
+        "InvalidRefinementBinding": 4,
+        "SourceDomainMismatch": 1,
+        "UnsupportedRefinementContract": 1,
+        "UnsupportedRefinementPredicate": 2
+      },
+      "outcomes": {},
+      "error_sets": {},
+      "error_returns": {
+        "scalar()": "<inferred>",
+        "validate()": "<inferred>"
+      },
+      "open_error_set_uses": 0,
+      "propagation": {
+        "try": 2,
+        "catch": 1
+      },
+      "imports": [
+        "Graph.zig",
+        "SourceTypes.zig",
+        "Syntax.zig",
+        "std"
       ]
     },
     "packages/transitc-compiler/src/ResourceOperands.zig": {
@@ -907,18 +938,18 @@
         "InvalidDomainIdentity": 1,
         "InvalidMigrationVersion": 1,
         "InvalidSourceName": 2,
-        "InvalidSourceSyntax": 28,
+        "InvalidSourceSyntax": 31,
         "InvalidTestCount": 3,
         "InvalidTestName": 2,
         "InvalidTestStatement": 1,
         "MutationInsideGuard": 1,
         "NullablePrimaryKey": 1,
-        "Overflow": 1,
+        "Overflow": 2,
         "ProcedureOutsideAtomic": 1,
         "RuntimePrivateOrUnsupportedDeclaration": 1,
         "SourceConstructorLimit": 2,
         "SourceDepthLimit": 4,
-        "SourceParameterLimit": 9,
+        "SourceParameterLimit": 11,
         "UnsupportedSourceDeclaration": 1,
         "UnsupportedSourceType": 1,
         "UnsupportedTestAssertion": 2,
@@ -1013,6 +1044,19 @@
           "stream",
           "queue"
         ],
+        "RefinementTerm.op": [
+          "present",
+          "equal",
+          "not_equal",
+          "less",
+          "less_equal",
+          "greater",
+          "greater_equal"
+        ],
+        "RefinementTerm.right": [
+          "name",
+          "integer"
+        ],
         "ScalarType": [
           "bigint",
           "text",
@@ -1090,6 +1134,7 @@
         "parseRowFields()": "<inferred>",
         "parseStatement()": "anyerror",
         "parseTwoPartName()": "<inferred>",
+        "refinements()": "<inferred>",
         "require()": "<inferred>",
         "requireArrow()": "<inferred>",
         "scalarType()": "<inferred>",
@@ -1100,7 +1145,7 @@
       },
       "open_error_set_uses": 4,
       "propagation": {
-        "try": 309,
+        "try": 321,
         "catch": 10
       },
       "imports": [
@@ -1761,7 +1806,10 @@
       "defaultTarget": "EXPORT DEFAULT TARGET sourceName SEMI",
       "migrationClause": "FROM ( EMPTY | STRING ) FOR DATABASE STRING SCHEMA STRING VERSION STRING NAME STRING",
       "exportMigrationClause": "FROM ( EMPTY | STRING ) ( FOR DATABASE STRING ( SCHEMA STRING ) ? ) ? VERSION STRING ( NAME STRING ) ?",
-      "definition": "CREATE PUBLIC ? ( MODULE sourceName parameters AS BEGIN body END | DOMAIN sourceName AS sourceBaseType IDENTITY STRING | VARIANT sourceName AS LPAREN variantConstructor ( COMMA variantConstructor ) * RPAREN | INTERFACE sourceName parameters | FUNCTION helperName parameters RETURNS sourceType AS BEGIN ATOMIC ? functionBody END | GUARD helperName parameters AS ( BEGIN ATOMIC ? programBlock END | guardRequires ) | PROCEDURE helperName parameters ( RETURNS sourceType ) ? AS BEGIN ATOMIC ? procedureBody END | MIGRATION TARGET sourceName migrationClause AS BEGIN body END | TEST ? TARGET sourceName AS BEGIN body END ) SEMI | EXPORT ( MODULE sourceName parameters AS BEGIN body END | TEST SUITE sourceName FROM STRING | TARGET sourceName exportTargetBody ) SEMI",
+      "definition": "CREATE PUBLIC ? ( MODULE sourceName parameters AS BEGIN body END | DOMAIN sourceName AS sourceBaseType IDENTITY STRING | VARIANT sourceName AS LPAREN variantConstructor ( COMMA variantConstructor ) * RPAREN | INTERFACE sourceName parameters | FUNCTION helperName parameters RETURNS sourceType precondition * postcondition * AS BEGIN ATOMIC ? functionBody END | GUARD helperName parameters precondition * postcondition * AS ( BEGIN ATOMIC ? programBlock END | guardRequires ) | PROCEDURE helperName parameters ( RETURNS sourceType ) ? precondition * postcondition * AS BEGIN ATOMIC ? procedureBody END | MIGRATION TARGET sourceName migrationClause AS BEGIN body END | TEST ? TARGET sourceName AS BEGIN body END ) SEMI | EXPORT ( MODULE sourceName parameters AS BEGIN body END | TEST SUITE sourceName FROM STRING | TARGET sourceName exportTargetBody ) SEMI",
+      "precondition": "REQUIRES refinementTerm ( AND refinementTerm ) * ELSE STRING",
+      "postcondition": "ENSURES refinementTerm ( AND refinementTerm ) * ELSE STRING",
+      "refinementTerm": "sourceName ( IS NOT NULL_ | sourceComparisonOp ( MINUS ? INTEGER | sourceName ) )",
       "guardRequires": "guardRequireItem ( COMMA guardRequireItem ) *",
       "guardRequireItem": "REQUIRE programExpression ELSE STRING",
       "exportTargetBody": "EQ sourceName DOT sourceName | AS SQL OF sourceName ( INTO STRING ) ? | AS MIGRATIONS OF sourceName exportMigrationClause ( INTO STRING ) ? | AS TESTS OF sourceName USING SUITES LPAREN suiteRef ( COMMA suiteRef ) * RPAREN ( WITH LPAREN targetOption ( COMMA targetOption ) * RPAREN ) ?",
@@ -1878,7 +1926,7 @@
       "sourceWord": "typeWord | BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | IDENTIFIER_KIND | SCHEMA_BINDING | MODULE | TABLE",
       "typeWord": "typeWordWithoutLogs | STREAM | QUEUE",
       "typeWordWithoutLogs": "typeWordOrdinary | NULL_ | CASE | CAST",
-      "typeWordOrdinary": "NUMERIC | ONE | LEASE_DURATION | MAX_LEASE_DURATION | IDENTIFIER | MIGRATION | MIGRATIONS | EMPTY | VERSION | FOR | AT | DECIMAL_ADD | DECIMAL_SUBTRACT | DECIMAL_MULTIPLY | DECIMAL_DIVIDE | DECIMAL_RESCALE | RANGE_OVERLAPS | RANGE_CONTAINS | RANGE_ADJACENT | RANGE_COMPARE | VECTOR_DISTANCE | TIME_BUCKET | LOCAL_TO_UTC | DATAFLOW | REVISION | AUTHORIZE | ACTIVATE | SUSPEND | RESUME | REFRESH | RETIRE | BEGIN | CONSTRAINT | CHECK | FOREIGN | REFERENCES | ENFORCED | VALID | VALIDATE | NO | ACTION | STREAM_SLICE | STREAMS | QUEUES | PARTITION | PARTITIONS | HASH | PRODUCE | ENQUEUE | CONSUME | CLAIM | ACK | NACK | EXTEND | RECEIPT | LEASE | WAIT | PRODUCER | ID | EPOCH | SEQUENCE | VISIBLE_AT | RETURNING | START | TRANSACTION | WORK | ISOLATION | LEVEL | SERIALIZABLE | READ | ONLY | WRITE | COMMIT | OFFSET | ROLLBACK | SAVEPOINT | RELEASE | TRANSIT_RELOAD_CONF | TRANSIT_SETTINGS | TRANSIT_CONFIG_RELOADS | DATABASES | SCHEMAS | ASC | DESC | NULLS | FIRST | LAST | ROLE | LOGIN | NOLOGIN | CREATEROLE | NOCREATEROLE | SCHEMA | DATABASE | AUTHORIZATION | OWNER | CURRENT_ROLE | CURRENT_USER | SESSION_USER | PUBLIC | ALL | PRIVILEGES | OPTION | ADMIN | INHERIT | CASCADE | NONE | RESET | CONNECT | USAGE | IN | JOIN | INNER | LEFT | OUTER | RIGHT | FULL | CROSS | NATURAL | GROUP | BY | HAVING | ORDER | SELECT | WHERE | LIMIT | COUNT | SUM | IS | AND | OR | BYTEA | MISSING | TYPE_ERROR | VALUE | CONFLICT | UINT64 | FLOAT64 | EXPLAIN | ALTER | DROP | ADD | COLUMN | RENAME | RESTRICT | DEFAULT | PRIMARY | COLLATE | ROUNDING | METRIC | TIMEZONE | TZDB | TZIF | UTF8_BINARY | ASCII_CI | EBCDIC_CP037 | EBCDIC_037_PAD | EBCDIC_1047_NOPAD | KEY | PUT | GET | KEYS | ABSENT | PRESENT | IF | EXISTS | DATA | OPTIONAL | WITHOUT | ZONE | X | TIME | TIMESTAMP | JSON | INTERVAL | PRECISION | VARYING | INSERT | UPDATE | DELETE | SET | VALUES | CREATE | CONNECTION | CONNECTIONS | SOURCE | SOURCES | SINK | SINKS | TABLES | DOCUMENT | KV | TO | FROM | INTO | WITH | GRANT | REVOKE | ON | SHOW | STORAGE | DESCRIBE | SECRET | AS | OF | FOR | SNAPSHOT | PROJECTING | CURRENT | INT64 | BOOL | UTF8 | IMPORT | DEPENDENCY | SUBDIRECTORY | PACKAGE | FILE | INTERFACE | TARGET | TEST | TESTS | SUITE | SUITES | SQL | USE | MODULES | ASSERT | ROWS | COMMAND | STATEMENT | EQUAL | MATCHED | CHANGED | FAILS | END | THEN | ELSE | NAME | DECLARE | BIND | VIEW | PROFILE | REFERENCE | USING | DOMAIN | VARIANT | IDENTITY | EXPORT | MATCH | WHEN | FUNCTION | GUARD | PROCEDURE | RETURNS | RETURN | CALL | LET | REQUIRE | ATOMIC | DO | SAME | FAILURE | WORKFLOW | COMPLETED | REFUSED | WITHIN | OBSERVATIONS",
+      "typeWordOrdinary": "REQUIRES | ENSURES | NUMERIC | ONE | LEASE_DURATION | MAX_LEASE_DURATION | IDENTIFIER | MIGRATION | MIGRATIONS | EMPTY | VERSION | FOR | AT | DECIMAL_ADD | DECIMAL_SUBTRACT | DECIMAL_MULTIPLY | DECIMAL_DIVIDE | DECIMAL_RESCALE | RANGE_OVERLAPS | RANGE_CONTAINS | RANGE_ADJACENT | RANGE_COMPARE | VECTOR_DISTANCE | TIME_BUCKET | LOCAL_TO_UTC | DATAFLOW | REVISION | AUTHORIZE | ACTIVATE | SUSPEND | RESUME | REFRESH | RETIRE | BEGIN | CONSTRAINT | CHECK | FOREIGN | REFERENCES | ENFORCED | VALID | VALIDATE | NO | ACTION | STREAM_SLICE | STREAMS | QUEUES | PARTITION | PARTITIONS | HASH | PRODUCE | ENQUEUE | CONSUME | CLAIM | ACK | NACK | EXTEND | RECEIPT | LEASE | WAIT | PRODUCER | ID | EPOCH | SEQUENCE | VISIBLE_AT | RETURNING | START | TRANSACTION | WORK | ISOLATION | LEVEL | SERIALIZABLE | READ | ONLY | WRITE | COMMIT | OFFSET | ROLLBACK | SAVEPOINT | RELEASE | TRANSIT_RELOAD_CONF | TRANSIT_SETTINGS | TRANSIT_CONFIG_RELOADS | DATABASES | SCHEMAS | ASC | DESC | NULLS | FIRST | LAST | ROLE | LOGIN | NOLOGIN | CREATEROLE | NOCREATEROLE | SCHEMA | DATABASE | AUTHORIZATION | OWNER | CURRENT_ROLE | CURRENT_USER | SESSION_USER | PUBLIC | ALL | PRIVILEGES | OPTION | ADMIN | INHERIT | CASCADE | NONE | RESET | CONNECT | USAGE | IN | JOIN | INNER | LEFT | OUTER | RIGHT | FULL | CROSS | NATURAL | GROUP | BY | HAVING | ORDER | SELECT | WHERE | LIMIT | COUNT | SUM | IS | AND | OR | BYTEA | MISSING | TYPE_ERROR | VALUE | CONFLICT | UINT64 | FLOAT64 | EXPLAIN | ALTER | DROP | ADD | COLUMN | RENAME | RESTRICT | DEFAULT | PRIMARY | COLLATE | ROUNDING | METRIC | TIMEZONE | TZDB | TZIF | UTF8_BINARY | ASCII_CI | EBCDIC_CP037 | EBCDIC_037_PAD | EBCDIC_1047_NOPAD | KEY | PUT | GET | KEYS | ABSENT | PRESENT | IF | EXISTS | DATA | OPTIONAL | WITHOUT | ZONE | X | TIME | TIMESTAMP | JSON | INTERVAL | PRECISION | VARYING | INSERT | UPDATE | DELETE | SET | VALUES | CREATE | CONNECTION | CONNECTIONS | SOURCE | SOURCES | SINK | SINKS | TABLES | DOCUMENT | KV | TO | FROM | INTO | WITH | GRANT | REVOKE | ON | SHOW | STORAGE | DESCRIBE | SECRET | AS | OF | FOR | SNAPSHOT | PROJECTING | CURRENT | INT64 | BOOL | UTF8 | IMPORT | DEPENDENCY | SUBDIRECTORY | PACKAGE | FILE | INTERFACE | TARGET | TEST | TESTS | SUITE | SUITES | SQL | USE | MODULES | ASSERT | ROWS | COMMAND | STATEMENT | EQUAL | MATCHED | CHANGED | FAILS | END | THEN | ELSE | NAME | DECLARE | BIND | VIEW | PROFILE | REFERENCE | USING | DOMAIN | VARIANT | IDENTITY | EXPORT | MATCH | WHEN | FUNCTION | GUARD | PROCEDURE | RETURNS | RETURN | CALL | LET | REQUIRE | ATOMIC | DO | SAME | FAILURE | WORKFLOW | COMPLETED | REFUSED | WITHIN | OBSERVATIONS",
       "IMPORT": "'IMPORT'",
       "DEPENDENCY": "'DEPENDENCY'",
       "SUBDIRECTORY": "'SUBDIRECTORY'",
@@ -1955,7 +2003,9 @@
       "LEASE_DURATION": "'LEASE_DURATION'",
       "MAX_LEASE_DURATION": "'MAX_LEASE_DURATION'",
       "ONE": "'ONE'",
-      "NUMERIC": "'NUMERIC'"
+      "NUMERIC": "'NUMERIC'",
+      "REQUIRES": "'REQUIRES'",
+      "ENSURES": "'ENSURES'"
     }
   }
 }

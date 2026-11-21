@@ -14,15 +14,18 @@ definition
         | DOMAIN sourceName AS sourceBaseType IDENTITY STRING
         | VARIANT sourceName AS LPAREN variantConstructor (COMMA variantConstructor)* RPAREN
         | INTERFACE sourceName parameters
-        | FUNCTION helperName parameters RETURNS sourceType AS BEGIN ATOMIC? functionBody END
-        | GUARD helperName parameters AS (BEGIN ATOMIC? programBlock END | guardRequires)
-        | PROCEDURE helperName parameters (RETURNS sourceType)? AS BEGIN ATOMIC? procedureBody END
+        | FUNCTION helperName parameters RETURNS sourceType precondition* postcondition* AS BEGIN ATOMIC? functionBody END
+        | GUARD helperName parameters precondition* postcondition* AS (BEGIN ATOMIC? programBlock END | guardRequires)
+        | PROCEDURE helperName parameters (RETURNS sourceType)? precondition* postcondition* AS BEGIN ATOMIC? procedureBody END
         | MIGRATION TARGET sourceName migrationClause AS BEGIN body END
         | TEST? TARGET sourceName AS BEGIN body END) SEMI
     | EXPORT (MODULE sourceName parameters AS BEGIN body END
         | TEST SUITE sourceName FROM STRING
         | TARGET sourceName exportTargetBody) SEMI
     ;
+precondition: REQUIRES refinementTerm (AND refinementTerm)* ELSE STRING;
+postcondition: ENSURES refinementTerm (AND refinementTerm)* ELSE STRING;
+refinementTerm: sourceName (IS NOT NULL_ | sourceComparisonOp (MINUS? INTEGER | sourceName));
 guardRequires: guardRequireItem (COMMA guardRequireItem)*;
 guardRequireItem: REQUIRE programExpression ELSE STRING;
 exportTargetBody
@@ -243,7 +246,7 @@ plainReferenceTypeHead: typeWord | STRUCT | UNION | LIST | ARRAY | MAP | RANGE |
 sourceWord: typeWord | BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | IDENTIFIER_KIND | SCHEMA_BINDING | MODULE | TABLE;
 typeWord: typeWordWithoutLogs | STREAM | QUEUE;
 typeWordWithoutLogs: typeWordOrdinary | NULL_ | CASE | CAST;
-typeWordOrdinary: NUMERIC | ONE | LEASE_DURATION | MAX_LEASE_DURATION | IDENTIFIER | MIGRATION | MIGRATIONS | EMPTY | VERSION | FOR | AT | DECIMAL_ADD | DECIMAL_SUBTRACT | DECIMAL_MULTIPLY | DECIMAL_DIVIDE
+typeWordOrdinary: REQUIRES | ENSURES | NUMERIC | ONE | LEASE_DURATION | MAX_LEASE_DURATION | IDENTIFIER | MIGRATION | MIGRATIONS | EMPTY | VERSION | FOR | AT | DECIMAL_ADD | DECIMAL_SUBTRACT | DECIMAL_MULTIPLY | DECIMAL_DIVIDE
     | DECIMAL_RESCALE | RANGE_OVERLAPS | RANGE_CONTAINS | RANGE_ADJACENT | RANGE_COMPARE
     | VECTOR_DISTANCE | TIME_BUCKET | LOCAL_TO_UTC | DATAFLOW | REVISION | AUTHORIZE | ACTIVATE
     | SUSPEND | RESUME | REFRESH | RETIRE | BEGIN | CONSTRAINT | CHECK | FOREIGN | REFERENCES
@@ -354,3 +357,6 @@ MAX_LEASE_DURATION: 'MAX_LEASE_DURATION';
 ONE: 'ONE';
 
 NUMERIC: 'NUMERIC';
+
+REQUIRES: 'REQUIRES';
+ENSURES: 'ENSURES';

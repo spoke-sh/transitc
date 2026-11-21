@@ -19,6 +19,7 @@ test {
     _ = @import("dynamic_test.zig");
     _ = @import("scalar_test.zig");
     _ = @import("cardinality_test.zig");
+    _ = @import("refinement_test.zig");
     _ = @import("symbolic_program_test.zig");
     _ = @import("migration_test.zig");
     _ = SourceDiagnostic;

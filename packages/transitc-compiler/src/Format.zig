@@ -156,6 +156,8 @@ fn definition(self: Self, def: s.Definition) !void {
             .named => |v| try self.name(v),
         }
     }
+    try self.refinements("REQUIRES", def.preconditions);
+    try self.refinements("ENSURES", def.postconditions);
     if (def.domain) |domain| {
         try writer.writeAll(" AS ");
         if (domain.numeric) |d| try self.numericType(d) else try writer.writeAll(scalarName(domain.base));
@@ -548,4 +550,23 @@ fn kind(self: Self, value: s.Kind) anyerror!void {
 
 fn numericType(self: Self, d: s.NumericType) !void {
     try self.w.print("NUMERIC({d}, {d})", .{ d.precision, d.scale });
+}
+
+fn refinements(self: Self, keyword: []const u8, clauses: []const s.Refinement) !void {
+    for (clauses) |clause| {
+        try self.w.print(" {s} ", .{keyword});
+        for (clause.terms, 0..) |term, i| {
+            if (i != 0) try self.w.writeAll(" AND ");
+            try self.w.print("{s} {s}", .{ term.left, @import("Refinements.zig").operator(term.op) });
+            if (term.right) |right| {
+                try self.w.writeByte(' ');
+                switch (right) {
+                    .integer => |n| try self.w.print("{d}", .{n}),
+                    .name => |name_| try self.w.writeAll(name_),
+                }
+            }
+        }
+        try self.w.writeAll(" ELSE ");
+        try self.string(clause.refusal);
+    }
 }

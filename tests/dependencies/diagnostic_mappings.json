@@ -931,6 +931,18 @@
         "InvalidDecimal": {
           "code": "application.source.type",
           "category": "binding"
+        },
+        "InvalidRefinementBinding": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "UnsupportedRefinementPredicate": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "UnsupportedRefinementContract": {
+          "code": "application.source.unsupported",
+          "category": "unsupported"
         }
       }
     }

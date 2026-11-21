@@ -1,0 +1,54 @@
+CREATE PROCEDURE Bounded(events STREAM(id BIGINT NOT NULL, amount BIGINT NOT NULL), id BIGINT, amount BIGINT, returned BIGINT) RETURNS BIGINT
+REQUIRES amount IS NOT NULL ELSE 'MissingAmount'
+REQUIRES amount >= 1 AND amount <= 10 ELSE 'AmountBounds'
+ENSURES result = amount ELSE 'ChangedAmount'
+AS BEGIN ATOMIC
+  PRODUCE INTO events VALUES (id, amount);
+  RETURN returned;
+END;
+CREATE MODULE Setup(lease TEXT) AS BEGIN
+  CREATE PUBLIC STREAM refined_events (id BIGINT NOT NULL, amount BIGINT NOT NULL);
+  CREATE PUBLIC STREAM refined_after (id BIGINT NOT NULL, amount BIGINT NOT NULL);
+  CREATE PUBLIC QUEUE refined_requests (id BIGINT NOT NULL, amount BIGINT, returned BIGINT) WITH (lease_duration = $lease, max_lease_duration = $lease);
+  CREATE PUBLIC DATAFLOW refined_route FROM QUEUE refined_requests AS request AS BEGIN
+    BEGIN ATOMIC
+      LET answer = CALL Bounded(refined_events, request.id, request.amount, request.returned);
+      PRODUCE INTO refined_after VALUES (request.id, answer);
+    END;
+  END;
+  AUTHORIZE DATAFLOW refined_route AS ROLE CURRENT_ROLE;
+  ACTIVATE DATAFLOW refined_route;
+END;
+CREATE TARGET default AS BEGIN USE Setup('120s'); END;
+CREATE TEST TARGET tests AS BEGIN
+  TEST 'bounds accepted' USING MODULES (Setup('30s')) AS BEGIN
+    ENQUEUE INTO refined_requests VALUES (1, 5, 5);
+    ASSERT WORKFLOW NAME 'refined_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, amount FROM refined_events) EQUAL ((1, 5));
+    ASSERT ROWS (CONSUME id, amount FROM refined_after) EQUAL ((1, 5));
+  END;
+  TEST 'missing amount' USING MODULES (Setup('30s')) AS BEGIN
+    ENQUEUE INTO refined_requests VALUES (1, NULL, 5);
+    ASSERT WORKFLOW NAME 'refined_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, amount FROM refined_events) EQUAL ();
+    ASSERT ROWS (CONSUME id, amount FROM refined_after) EQUAL ();
+  END;
+  TEST 'lower bound' USING MODULES (Setup('30s')) AS BEGIN
+    ENQUEUE INTO refined_requests VALUES (1, 0, 0);
+    ASSERT WORKFLOW NAME 'refined_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, amount FROM refined_events) EQUAL ();
+    ASSERT ROWS (CONSUME id, amount FROM refined_after) EQUAL ();
+  END;
+  TEST 'upper bound' USING MODULES (Setup('30s')) AS BEGIN
+    ENQUEUE INTO refined_requests VALUES (1, 11, 11);
+    ASSERT WORKFLOW NAME 'refined_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, amount FROM refined_events) EQUAL ();
+    ASSERT ROWS (CONSUME id, amount FROM refined_after) EQUAL ();
+  END;
+  TEST 'postcondition rollback' USING MODULES (Setup('30s')) AS BEGIN
+    ENQUEUE INTO refined_requests VALUES (1, 5, 6);
+    ASSERT WORKFLOW NAME 'refined_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, amount FROM refined_events) EQUAL ();
+    ASSERT ROWS (CONSUME id, amount FROM refined_after) EQUAL ();
+  END;
+END;

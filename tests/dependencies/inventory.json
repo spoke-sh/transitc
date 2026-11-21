@@ -72,6 +72,9 @@
       "packages/transitc-compiler/src/program_test.zig": [
         "transit_protocol"
       ],
+      "packages/transitc-compiler/src/refinement_test.zig": [
+        "transit_protocol"
+      ],
       "packages/transitc-compiler/src/resource_test.zig": [
         "transit_protocol"
       ],

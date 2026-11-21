@@ -341,6 +341,32 @@ def parse(source):
     def body(ctx):
         return [statement_node(stmt) for stmt in ctx.sourceStatement()]
 
+    def refinements(clauses):
+        if len(clauses) > 16:
+            raise Refusal(span(clauses[16])['start'], 'clause bound')
+        result = []
+        for clause in clauses:
+            terms = []
+            for term in clause.refinementTerm():
+                right = None
+                if term.IS():
+                    op = 'present'
+                else:
+                    op = binary[term.sourceComparisonOp().getText()]
+                    if term.INTEGER():
+                        n = int(term.INTEGER().getText()) * (-1 if term.MINUS() else 1)
+                        if not -(2 ** 63) <= n < 2 ** 63:
+                            raise Refusal(span(term)['start'], 'integer bound')
+                        right = {'integer': n}
+                    else:
+                        right = {'name': term.sourceName(1).getText().lower()}
+                terms.append({'left': term.sourceName(0).getText().lower(), 'op': op, 'right': right})
+            refusal = string(clause.STRING())
+            if len(terms) > 16 or not 1 <= len(refusal.encode()) <= 128:
+                raise Refusal(span(clause)['start'], 'refinement bound')
+            result.append({'terms': terms, 'refusal': refusal, 'span': span(clause)})
+        return result
+
     def parameters(ctx):
         result = []
         for param in ctx.parameter() if ctx else []:
@@ -480,7 +506,8 @@ def parse(source):
         definitions.append({'name': def_name, 'public': bool(definition.PUBLIC() or definition.EXPORT()),
                             'kind': def_kind, 'parameters': params, 'body': def_body,
                             'span': span(definition), 'domain': domain, 'constructors': constructors,
-                            'return_type': return_type, 'program': program, 'migration': mig,
+                            'return_type': return_type, 'preconditions': refinements(definition.precondition()),
+                            'postconditions': refinements(definition.postcondition()), 'program': program, 'migration': mig,
                             'target_of': target_of, 'target_ref': target_ref, 'output_path': output_path,
                             'suite_path': suite_path, 'suites': suites, 'target_options': target_options,
                             'schema': def_schema})

@@ -1422,5 +1422,26 @@
     "source": "CREATE MODULE Exact(large NUMERIC(38,9), minimum NUMERIC(38,9)) AS BEGIN\n  CREATE PUBLIC TABLE exact_values (id BIGINT PRIMARY KEY, amount NUMERIC(38, 9), payload JSON, span INTERVAL);\n  INSERT INTO exact_values VALUES\n    (1, $large, JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', INTERVAL(1, -2, 3)),\n    (2, $minimum, JSON 'null', INTERVAL(-2147483648, 2147483647, -9223372036854775808)),\n    (3, NULL, NULL, NULL);\nEND;\nCREATE MODULE Setup() AS BEGIN\n  USE Exact(NUMERIC(38,9) '9007199254740993.123456789', NUMERIC(38,9) '-99999999999999999999999999999.999999999');\nEND;\nCREATE TARGET default AS BEGIN USE Setup(); END;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'exact decimal JSON and interval components' USING MODULES (Setup()) AS BEGIN\n    ASSERT ROWS (SELECT id, amount, payload, span FROM exact_values) EQUAL (\n      (1, 9007199254740993.123456789, JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', INTERVAL(1, -2, 3)),\n      (2, -99999999999999999999999999999.999999999, JSON 'null', INTERVAL(-2147483648, 2147483647, -9223372036854775808)),\n      (3, NULL, NULL, NULL)\n    );\n  END;\nEND;\n",
     "parse": true,
     "compile": "test_suite"
+  },
+  {
+    "name": "bounded-refinement-fixture",
+    "source": "CREATE PROCEDURE Bounded(events STREAM(id BIGINT NOT NULL, amount BIGINT NOT NULL), id BIGINT, amount BIGINT, returned BIGINT) RETURNS BIGINT\nREQUIRES amount IS NOT NULL ELSE 'MissingAmount'\nREQUIRES amount >= 1 AND amount <= 10 ELSE 'AmountBounds'\nENSURES result = amount ELSE 'ChangedAmount'\nAS BEGIN ATOMIC\n  PRODUCE INTO events VALUES (id, amount);\n  RETURN returned;\nEND;\nCREATE MODULE Setup(lease TEXT) AS BEGIN\n  CREATE PUBLIC STREAM refined_events (id BIGINT NOT NULL, amount BIGINT NOT NULL);\n  CREATE PUBLIC STREAM refined_after (id BIGINT NOT NULL, amount BIGINT NOT NULL);\n  CREATE PUBLIC QUEUE refined_requests (id BIGINT NOT NULL, amount BIGINT, returned BIGINT) WITH (lease_duration = $lease, max_lease_duration = $lease);\n  CREATE PUBLIC DATAFLOW refined_route FROM QUEUE refined_requests AS request AS BEGIN\n    BEGIN ATOMIC\n      LET answer = CALL Bounded(refined_events, request.id, request.amount, request.returned);\n      PRODUCE INTO refined_after VALUES (request.id, answer);\n    END;\n  END;\n  AUTHORIZE DATAFLOW refined_route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW refined_route;\nEND;\nCREATE TARGET default AS BEGIN USE Setup('120s'); END;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'bounds accepted' USING MODULES (Setup('30s')) AS BEGIN\n    ENQUEUE INTO refined_requests VALUES (1, 5, 5);\n    ASSERT WORKFLOW NAME 'refined_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, amount FROM refined_events) EQUAL ((1, 5));\n    ASSERT ROWS (CONSUME id, amount FROM refined_after) EQUAL ((1, 5));\n  END;\n  TEST 'missing amount' USING MODULES (Setup('30s')) AS BEGIN\n    ENQUEUE INTO refined_requests VALUES (1, NULL, 5);\n    ASSERT WORKFLOW NAME 'refined_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, amount FROM refined_events) EQUAL ();\n    ASSERT ROWS (CONSUME id, amount FROM refined_after) EQUAL ();\n  END;\n  TEST 'lower bound' USING MODULES (Setup('30s')) AS BEGIN\n    ENQUEUE INTO refined_requests VALUES (1, 0, 0);\n    ASSERT WORKFLOW NAME 'refined_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, amount FROM refined_events) EQUAL ();\n    ASSERT ROWS (CONSUME id, amount FROM refined_after) EQUAL ();\n  END;\n  TEST 'upper bound' USING MODULES (Setup('30s')) AS BEGIN\n    ENQUEUE INTO refined_requests VALUES (1, 11, 11);\n    ASSERT WORKFLOW NAME 'refined_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, amount FROM refined_events) EQUAL ();\n    ASSERT ROWS (CONSUME id, amount FROM refined_after) EQUAL ();\n  END;\n  TEST 'postcondition rollback' USING MODULES (Setup('30s')) AS BEGIN\n    ENQUEUE INTO refined_requests VALUES (1, 5, 6);\n    ASSERT WORKFLOW NAME 'refined_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, amount FROM refined_events) EQUAL ();\n    ASSERT ROWS (CONSUME id, amount FROM refined_after) EQUAL ();\n  END;\nEND;\n",
+    "parse": true,
+    "compile": "test_suite"
+  },
+  {
+    "name": "refinement-signed-extremes",
+    "source": "CREATE GUARD G(n BIGINT) REQUIRES n >= -9223372036854775808 AND n <= 9223372036854775807 ELSE 'Bounds' AS REQUIRE TRUE ELSE 'No';",
+    "parse": true
+  },
+  {
+    "name": "refinement-unknown-predicate",
+    "source": "CREATE GUARD G(n BIGINT) REQUIRES n BETWEEN 1 AND 10 ELSE 'Bounds' AS REQUIRE TRUE ELSE 'No';",
+    "parse": false
+  },
+  {
+    "name": "refinement-state-observation",
+    "source": "CREATE GUARD G(n BIGINT) REQUIRES EXISTS(SELECT id FROM t) ELSE 'Missing' AS REQUIRE TRUE ELSE 'No';",
+    "parse": false
   }
 ]

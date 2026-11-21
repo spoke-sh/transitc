@@ -87,6 +87,7 @@ pub fn validateAll(compiler: *Compiler) !void {
         compiler.file = file_idx;
         compiler.offset = def.span.start;
         compiler.context = .{ .name = def.name };
+        try @import("Refinements.zig").validate(graph, file_idx, def);
         for (def.parameters) |param| {
             compiler.context = .{ .name = param.name };
             switch (param.kind) {
@@ -535,13 +536,17 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
             });
         },
         .guard => {
+            try lowerer.refinements(&env, def.preconditions);
             try lowerer.lowerGuardProgram(&env, def.program.?, 0);
+            try lowerer.refinements(&env, def.postconditions);
         },
         .procedure => {
             if (def.return_type != null) env.return_binding = try lowerer.freshHygienic("ret");
             try lowerer.emitFixed("BEGIN ATOMIC", origin_base);
+            try lowerer.refinements(&env, def.preconditions);
             var idx: usize = 0;
             try lowerer.lowerBlock(&env, body_tokens, &idx, true, 0);
+            try lowerer.refinements(&env, def.postconditions);
             try lowerer.emitFixed("END ;", origin_base);
         },
         else => unreachable,
@@ -1835,12 +1840,14 @@ fn inlineHelperCall(self: *Self, caller_env: *Env, tokens: []const s.Token, i: *
     }
     callee_env.resources = res_bindings.items;
     callee_env.row_vars = row_vars.items;
+    try self.refinements(&callee_env, callee.preconditions);
     if (kind == .guard) {
         try self.lowerGuardProgram(&callee_env, callee.program.?, depth + 1);
     } else {
         var body_cursor: usize = 0;
         try self.lowerBlock(&callee_env, callee.program.?.tokens, &body_cursor, atomic, depth + 1);
     }
+    try self.refinements(&callee_env, callee.postconditions);
 }
 
 fn resolveResourceArgument(self: *Self, caller_env: *const Env, arg_tokens: []const s.Token, expected_kind: types.ResourceKind, arg_offset: usize) !*const types.Table {
@@ -2709,4 +2716,35 @@ fn tokenWord(text: []const u8, tok: s.Token, expected: []const u8) bool {
 
 fn tokenSymbol(text: []const u8, tok: s.Token, expected: u8) bool {
     return tok.kind == .symbol and tok.end - tok.start == 1 and text[tok.start] == expected;
+}
+
+fn refinementName(self: *Self, env: *const Env, name: []const u8, origin: Operands.Origin) !void {
+    if (std.mem.eql(u8, name, "result")) return self.emitQuotedRaw(env.return_binding orelse return error.InvalidRefinementBinding, origin);
+    for (env.symbols.items) |symbol| if (std.mem.eql(u8, symbol.original, name)) return self.emitQuotedRaw(symbol.emitted, origin);
+    return error.InvalidRefinementBinding;
+}
+fn refinements(self: *Self, env: *const Env, clauses: []const s.Refinement) !void {
+    for (clauses) |clause| {
+        try self.compiler.tick();
+        const origin = self.makeOrigin(env, clause.span.start);
+        try self.emitFixed("REQUIRE", origin);
+        for (clause.terms, 0..) |term, i| {
+            if (i != 0) try self.emitFixed("AND", origin);
+            try self.refinementName(env, term.left, origin);
+            try self.emitFixed(@import("Refinements.zig").operator(term.op), origin);
+            if (term.right) |right| switch (right) {
+                .name => |name| try self.refinementName(env, name, origin),
+                .integer => |n| {
+                    var buffer: [32]u8 = undefined;
+                    try self.emitFixed(try std.fmt.bufPrint(&buffer, "{d}", .{n}), origin);
+                },
+            };
+        }
+        try self.emitFixed("ELSE", origin);
+        // Refusal text is data, with the same quoting as every source value.
+        var buffer: Compiler.BoundedBuffer = .{ .allocator = self.scratch, .limit = self.writer.limit };
+        try Compiler.quoted(&buffer, clause.refusal, '\'');
+        try self.emitFixed(buffer.bytes.items, origin);
+        try self.emitFixed(";", origin);
+    }
 }

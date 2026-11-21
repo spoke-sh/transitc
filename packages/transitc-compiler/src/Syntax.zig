@@ -94,6 +94,12 @@ pub const Statement = struct {
 pub const Migration = struct { basis: ?[]const u8, database: []const u8, schema: []const u8, version: []const u8, name: []const u8 };
 pub const SuiteRef = union(enum) { symbol: Name, path: []const u8 };
 pub const TargetOption = struct { name: []const u8, value: *Expr };
+pub const RefinementTerm = struct {
+    left: []const u8,
+    op: enum { present, equal, not_equal, less, less_equal, greater, greater_equal },
+    right: ?union(enum) { name: []const u8, integer: i64 } = null,
+};
+pub const Refinement = struct { terms: []const RefinementTerm, refusal: []const u8, span: Span };
 pub const Definition = struct {
     name: []const u8,
     public: bool,
@@ -104,6 +110,8 @@ pub const Definition = struct {
     domain: ?Domain = null,
     constructors: []const Constructor = &.{},
     return_type: ?TypeRef = null,
+    preconditions: []const Refinement = &.{},
+    postconditions: []const Refinement = &.{},
     program: ?Template.Syntax = null,
     migration: ?Migration = null,
     target_of: ?[]const u8 = null,
@@ -421,6 +429,8 @@ fn parseCreateDefinition(self: *Self, start: u32) !Definition {
         try self.require("RETURNS");
         break :blk try self.typeRef();
     } else null;
+    const preconditions = if (kind == .function or kind == .guard or kind == .procedure) try self.refinements("REQUIRES") else &.{};
+    const postconditions = if (kind == .function or kind == .guard or kind == .procedure) try self.refinements("ENSURES") else &.{};
     const migration: ?Migration = if (kind == .migration_target) try self.parseMigrationClause(false) else null;
     var domain: ?Domain = null;
     var constructors: std.ArrayList(Constructor) = .empty;
@@ -520,7 +530,7 @@ fn parseCreateDefinition(self: *Self, start: u32) !Definition {
         break :blk result;
     };
     try self.require(";");
-    return .{ .name = name, .public = public, .kind = kind, .parameters = parameters, .body = body, .span = self.span(start), .domain = domain, .constructors = try constructors.toOwnedSlice(self.a), .return_type = return_type, .program = program, .migration = migration, .schema = def_schema };
+    return .{ .name = name, .public = public, .kind = kind, .parameters = parameters, .body = body, .span = self.span(start), .domain = domain, .constructors = try constructors.toOwnedSlice(self.a), .return_type = return_type, .preconditions = preconditions, .postconditions = postconditions, .program = program, .migration = migration, .schema = def_schema };
 }
 fn currentSpan(self: *const Self) SourceDiagnostic.Span {
     const end_pos: u32 = @intCast(self.text.len);
@@ -1193,4 +1203,44 @@ fn expression(self: *Self, minimum: u8) anyerror!*Expr {
         left = combined;
     }
     return left;
+}
+
+fn refinements(self: *Self, keyword: []const u8) ![]const Refinement {
+    var result: std.ArrayList(Refinement) = .empty;
+    while (self.is(keyword)) {
+        const start = self.at();
+        self.index += 1;
+        if (result.items.len == 16) return error.SourceParameterLimit;
+        var terms: std.ArrayList(RefinementTerm) = .empty;
+        while (true) {
+            if (terms.items.len == 16) return error.SourceParameterLimit;
+            const left = try self.identifier();
+            const op: @FieldType(RefinementTerm, "op") = if (self.take("IS")) blk: {
+                try self.require("NOT");
+                try self.require("NULL");
+                break :blk .present;
+            } else if (self.take("=")) .equal else if (self.take("<")) (if (self.take("=")) .less_equal else if (self.take(">")) .not_equal else .less) else if (self.take(">")) (if (self.take("=")) .greater_equal else .greater) else return error.InvalidSourceSyntax;
+            const right: @FieldType(RefinementTerm, "right") = if (op == .present) null else blk: {
+                const negative = self.take("-");
+                if (self.index < self.tokens.len and self.tokens[self.index].kind == .number) {
+                    const token = self.tokens[self.index];
+                    self.index += 1;
+                    const magnitude = try std.fmt.parseInt(u64, self.text[token.start..token.end], 10);
+                    const limit: u64 = @as(u64, std.math.maxInt(i64)) + @intFromBool(negative);
+                    if (magnitude > limit) return error.Overflow;
+                    const integer: i64 = if (!negative) @intCast(magnitude) else if (magnitude == limit) std.math.minInt(i64) else -@as(i64, @intCast(magnitude));
+                    break :blk .{ .integer = integer };
+                }
+                if (negative) return error.InvalidSourceSyntax;
+                break :blk .{ .name = try self.identifier() };
+            };
+            try terms.append(self.a, .{ .left = left, .op = op, .right = right });
+            if (!self.take("AND")) break;
+        }
+        try self.require("ELSE");
+        const refusal = try self.string();
+        if (refusal.len == 0 or refusal.len > 128) return error.InvalidSourceSyntax;
+        try result.append(self.a, .{ .terms = try terms.toOwnedSlice(self.a), .refusal = refusal, .span = self.span(start) });
+    }
+    return result.toOwnedSlice(self.a);
 }

@@ -882,3 +882,12 @@ DATE payload. See the [surface matrix](application-source/SQL_SURFACES_V1.md).
 row-presence evidence. Their [contract](application-source/CARDINALITY_V1.md)
 defines ordered validation, guarded projection, nullable fields, branch-local
 refinement and the retained native cell-state/many-row boundaries.
+
+## Bounded callable obligations
+
+Guards and atomic procedures admit ordered `REQUIRES` and `ENSURES` clauses for
+scalar non-nullness, constant BIGINT bounds and matching scalar/domain equality.
+Each clause lowers to an explicit runtime REQUIRE after single argument
+evaluation; postconditions validate the captured result before caller effects.
+See [bounded callable obligations](application-source/REFINEMENTS_V1.md) for the
+closed predicate grammar, limits, error order and atomic rollback contract.
