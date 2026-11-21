@@ -242,3 +242,28 @@ test "multi-schema AS MIGRATIONS OF synthesizes CREATE SCHEMA NOT ENFORCED forei
     try std.testing.expect(std.mem.indexOf(u8, second.sql, "ALTER TABLE \"tenancy\".\"environments\" ADD COLUMN REGION TEXT;") != null);
     try std.testing.expect(std.mem.indexOf(u8, second.sql, "CREATE TABLE \"deployments\" . INSTANCES") != null);
 }
+test "scalar additions preserve exact descriptors and refuse implicit conversions" {
+    var arena: std.heap.ArenaAllocator = .init(std.testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+    var context: c.SourceDiagnostic.Context = .{};
+    const start = try desired(std.testing.allocator, "EMPTY", "0001", "CREATE PUBLIC TABLE t (id BIGINT PRIMARY KEY);");
+    defer start.deinit();
+    const first = try d.build(a, start, null, &.{}, compiler, &context);
+    const schema = "CREATE PUBLIC TABLE t (id BIGINT PRIMARY KEY, day DATE DEFAULT DATE '2024-02-29', amount NUMERIC(38,9) DEFAULT 9007199254740993.123456789, payload JSON DEFAULT '{\"a\":9007199254740993}', span INTERVAL DEFAULT INTERVAL(1,-2,3));";
+    const next = try desired(std.testing.allocator, "'prior/basis.json'", "0002", schema);
+    defer next.deinit();
+    const second = try d.build(a, next, first.basis, first.files, compiler, &context);
+    try std.testing.expectEqual(4, second.steps);
+    const fresh = try desired(std.testing.allocator, "EMPTY", "0001", schema);
+    defer fresh.deinit();
+    const created = try d.build(a, fresh, null, &.{}, compiler, &context);
+    try std.testing.expectEqualSlices(u8, &created.basis.tables[0].definition_digest, &second.basis.tables[0].definition_digest);
+    const narrower = try std.mem.replaceOwned(u8, a, schema, "NUMERIC(38,9)", "NUMERIC(38,8)");
+    // Remove the now-inexact default so this refusal checks migration policy,
+    // rather than failing early in the literal codec.
+    const exact = try std.mem.replaceOwned(u8, a, narrower, "9007199254740993.123456789", "9007199254740993.12345678");
+    const changed = try desired(std.testing.allocator, "'prior/basis.json'", "0003", exact);
+    defer changed.deinit();
+    try std.testing.expectError(error.MigrationTransformRequired, d.build(a, changed, second.basis, second.files, compiler, &context));
+}

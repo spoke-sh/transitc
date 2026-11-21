@@ -71,3 +71,11 @@ test "source writer exhaustion is explicit and never a complete result" {
     var writer: std.Io.Writer = .fixed(&bytes);
     try std.testing.expectError(error.WriteFailed, c.Format.source(std.testing.allocator, source, parsed, &writer));
 }
+
+test "runtime MATCH layout preserves comments and nested arm boundaries" {
+    try expectFormat(
+        std.testing.allocator,
+        "create guard route(value row(tag text,machine row(id bigint),site row(id bigint))) as begin match value as Target when Target.Machine(id) then -- active\nrequire id=7 else 'wrong';when Target.Site(id) then end match;end;",
+        "CREATE GUARD route(value ROW(tag TEXT, machine ROW(id BIGINT), site ROW(id BIGINT))) AS BEGIN\n  MATCH value AS Target\n    WHEN Target.Machine(id) THEN -- active\n      REQUIRE id = 7 ELSE 'wrong';\n    WHEN Target.Site(id) THEN\n  END MATCH;\nEND;\n",
+    );
+}

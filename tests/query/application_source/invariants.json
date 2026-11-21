@@ -12,11 +12,11 @@
       ],
       "profile": "transit_source_v1/Table",
       "tasks": [
-        "test",
-        "test-grammar",
-        "test-types",
-        "test-build-command",
-        "test-command"
+        "test::unit",
+        "test::grammar",
+        "test::types",
+        "test::build-command",
+        "test::command"
       ],
       "scenarios": [
         "Complete source/template syntax and typed-hole sites",
@@ -40,11 +40,11 @@
       ],
       "profile": "transit_source_v1/nominal-public-Table-specialization",
       "tasks": [
-        "test",
-        "test-grammar",
-        "test-types",
-        "test-build-command",
-        "test-command"
+        "test::unit",
+        "test::grammar",
+        "test::types",
+        "test::build-command",
+        "test::command"
       ],
       "scenarios": [
         "Distinct Machine/Site nominal identities with equal raw ID 7",

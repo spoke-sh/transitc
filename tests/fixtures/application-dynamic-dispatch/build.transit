@@ -1,0 +1,74 @@
+IMPORT ids FROM 'types.transit';
+IMPORT workflow FROM 'workflow.transit';
+CREATE MODULE Resources(machine TYPE, site TYPE) AS BEGIN
+  CREATE PUBLIC QUEUE dynamic_requests (id BIGINT NOT NULL, target STRUCT(tag TEXT NOT NULL, machine STRUCT(id BIGINT NOT NULL), site STRUCT(id BIGINT NOT NULL)) NOT NULL, reject BOOLEAN NOT NULL) WITH (lease_duration = '120s', max_lease_duration = '120s');
+  CREATE PUBLIC TABLE dynamic_machines (id $machine PRIMARY KEY);
+  CREATE PUBLIC TABLE dynamic_sites (id $site PRIMARY KEY);
+  CREATE PUBLIC TABLE dynamic_accepted_machines (id BIGINT PRIMARY KEY, machine_id $machine NOT NULL);
+  CREATE PUBLIC TABLE dynamic_accepted_sites (id BIGINT PRIMARY KEY, site_id $site NOT NULL);
+  CREATE PUBLIC STREAM dynamic_events (id BIGINT NOT NULL, tag TEXT NOT NULL);
+END;
+CREATE MODULE SeedMachine(value ids.MachineId) AS BEGIN
+  INSERT INTO dynamic_machines VALUES ($value);
+END;
+CREATE MODULE SeedSite(value ids.SiteId) AS BEGIN
+  INSERT INTO dynamic_sites VALUES ($value);
+END;
+CREATE MODULE Setup(seed_machines BOOLEAN, seed_sites BOOLEAN) AS BEGIN
+  USE Resources(TYPE ids.MachineId, TYPE ids.SiteId);
+  IF seed_machines THEN USE SeedMachine(ids.MachineId(7)); END IF;
+  IF seed_sites THEN USE SeedSite(ids.SiteId(7)); END IF;
+  USE workflow.Routing();
+END;
+CREATE TARGET default AS BEGIN USE Setup(TRUE, TRUE); END;
+CREATE TEST TARGET tests AS BEGIN
+  TEST 'machine dispatch' USING MODULES (Setup(TRUE, TRUE)) AS BEGIN
+    ENQUEUE INTO dynamic_requests VALUES (1, STRUCT('machine', STRUCT(7), NULL), FALSE);
+    ASSERT WORKFLOW NAME 'dynamic_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (SELECT id, machine_id FROM dynamic_accepted_machines) EQUAL ((1, 7));
+    ASSERT ROWS (SELECT id, site_id FROM dynamic_accepted_sites) EQUAL ();
+    ASSERT ROWS (CONSUME id, tag FROM dynamic_events) EQUAL ((1, 'machine'));
+  END;
+  TEST 'site dispatch' USING MODULES (Setup(TRUE, TRUE)) AS BEGIN
+    ENQUEUE INTO dynamic_requests VALUES (2, STRUCT('site', NULL, STRUCT(7)), FALSE);
+    ASSERT WORKFLOW NAME 'dynamic_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (SELECT id, machine_id FROM dynamic_accepted_machines) EQUAL ();
+    ASSERT ROWS (SELECT id, site_id FROM dynamic_accepted_sites) EQUAL ((2, 7));
+    ASSERT ROWS (CONSUME id, tag FROM dynamic_events) EQUAL ((2, 'site'));
+  END;
+  TEST 'invalid tag' USING MODULES (Setup(FALSE, FALSE)) AS BEGIN
+    ENQUEUE INTO dynamic_requests VALUES (3, STRUCT('other', STRUCT(7), NULL), FALSE);
+    ASSERT WORKFLOW NAME 'dynamic_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (SELECT id, machine_id FROM dynamic_accepted_machines) EQUAL ();
+    ASSERT ROWS (SELECT id, site_id FROM dynamic_accepted_sites) EQUAL ();
+    ASSERT ROWS (CONSUME id, tag FROM dynamic_events) EQUAL ();
+  END;
+  TEST 'missing active payload' USING MODULES (Setup(FALSE, FALSE)) AS BEGIN
+    ENQUEUE INTO dynamic_requests VALUES (4, STRUCT('machine', NULL, NULL), FALSE);
+    ASSERT WORKFLOW NAME 'dynamic_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (SELECT id, machine_id FROM dynamic_accepted_machines) EQUAL ();
+    ASSERT ROWS (SELECT id, site_id FROM dynamic_accepted_sites) EQUAL ();
+    ASSERT ROWS (CONSUME id, tag FROM dynamic_events) EQUAL ();
+  END;
+  TEST 'populated inactive payload' USING MODULES (Setup(TRUE, FALSE)) AS BEGIN
+    ENQUEUE INTO dynamic_requests VALUES (5, STRUCT('machine', STRUCT(7), STRUCT(7)), FALSE);
+    ASSERT WORKFLOW NAME 'dynamic_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (SELECT id, machine_id FROM dynamic_accepted_machines) EQUAL ();
+    ASSERT ROWS (SELECT id, site_id FROM dynamic_accepted_sites) EQUAL ();
+    ASSERT ROWS (CONSUME id, tag FROM dynamic_events) EQUAL ();
+  END;
+  TEST 'missing selected resource' USING MODULES (Setup(FALSE, TRUE)) AS BEGIN
+    ENQUEUE INTO dynamic_requests VALUES (6, STRUCT('site', NULL, STRUCT(9)), FALSE);
+    ASSERT WORKFLOW NAME 'dynamic_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (SELECT id, machine_id FROM dynamic_accepted_machines) EQUAL ();
+    ASSERT ROWS (SELECT id, site_id FROM dynamic_accepted_sites) EQUAL ();
+    ASSERT ROWS (CONSUME id, tag FROM dynamic_events) EQUAL ();
+  END;
+  TEST 'rollback after write' USING MODULES (Setup(TRUE, FALSE)) AS BEGIN
+    ENQUEUE INTO dynamic_requests VALUES (7, STRUCT('machine', STRUCT(7), NULL), TRUE);
+    ASSERT WORKFLOW NAME 'dynamic_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (SELECT id, machine_id FROM dynamic_accepted_machines) EQUAL ();
+    ASSERT ROWS (SELECT id, site_id FROM dynamic_accepted_sites) EQUAL ();
+    ASSERT ROWS (CONSUME id, tag FROM dynamic_events) EQUAL ();
+  END;
+END;

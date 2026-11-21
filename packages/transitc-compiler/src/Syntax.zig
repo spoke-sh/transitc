@@ -12,12 +12,17 @@ pub const Kind = union(enum) {
     boolean,
     uuid,
     timestamptz,
+    date,
+    json,
+    interval,
+    numeric: NumericType,
     binary,
     identifier,
     type,
     schema_binding,
     module: Name,
     module_of: Name,
+    callable: struct { kind: HelperKind, signature: Name },
     row: []const Parameter,
     named: Name,
     table: []const Column,
@@ -25,11 +30,13 @@ pub const Kind = union(enum) {
     queue: []const Column,
 };
 pub const Parameter = struct { name: []const u8, kind: Kind };
-pub const ScalarType = enum { bigint, text, boolean, uuid, timestamptz, binary };
-pub const TypeRef = union(enum) { scalar: ScalarType, named: Name };
+pub const NumericType = f.Types.Decimal;
+pub const Interval = f.Types.Semantics.Interval;
+pub const ScalarType = enum { bigint, text, boolean, uuid, timestamptz, date, numeric, json, interval, binary };
+pub const TypeRef = union(enum) { scalar: ScalarType, numeric: NumericType, named: Name };
 pub const Column = struct { name: []const u8, type: TypeRef, nullable: bool = true, primary: bool = false, collation: []const u8 = "none" };
 pub const Constructor = struct { name: []const u8, fields: []const Parameter };
-pub const Domain = struct { base: ScalarType, identity: []const u8 };
+pub const Domain = struct { base: ScalarType, numeric: ?NumericType = null, identity: []const u8 };
 pub const Binary = enum { add, subtract, multiply, equal, not_equal, less, less_equal, greater, greater_equal, and_, or_ };
 pub const RowField = struct { name: []const u8, value: *Expr };
 pub const Expr = struct {
@@ -40,6 +47,11 @@ pub const Expr = struct {
         boolean: bool,
         uuid: []const u8,
         timestamptz: []const u8,
+        date: []const u8,
+        json: []const u8,
+        interval: Interval,
+        numeric: struct { type: NumericType, text: []const u8 },
+        numeric_type: NumericType,
         bytes: []const u8,
         identifier: []const u8,
         schema_binding: []const u8,
@@ -88,6 +100,14 @@ pub const Statement = struct {
 pub const Migration = struct { basis: ?[]const u8, database: []const u8, schema: []const u8, version: []const u8, name: []const u8 };
 pub const SuiteRef = union(enum) { symbol: Name, path: []const u8 };
 pub const TargetOption = struct { name: []const u8, value: *Expr };
+pub const HelperKind = enum { function, guard, procedure };
+pub const Effect = struct { operation: enum { read, insert, produce, enqueue }, resource: []const u8 };
+pub const RefinementTerm = struct {
+    left: []const u8,
+    op: enum { present, equal, not_equal, less, less_equal, greater, greater_equal },
+    right: ?union(enum) { name: []const u8, integer: i64 } = null,
+};
+pub const Refinement = struct { terms: []const RefinementTerm, refusal: []const u8, span: Span };
 pub const Definition = struct {
     name: []const u8,
     public: bool,
@@ -98,6 +118,9 @@ pub const Definition = struct {
     domain: ?Domain = null,
     constructors: []const Constructor = &.{},
     return_type: ?TypeRef = null,
+    effects: ?[]const Effect = null,
+    preconditions: []const Refinement = &.{},
+    postconditions: []const Refinement = &.{},
     program: ?Template.Syntax = null,
     migration: ?Migration = null,
     target_of: ?[]const u8 = null,
@@ -415,16 +438,20 @@ fn parseCreateDefinition(self: *Self, start: u32) !Definition {
         try self.require("RETURNS");
         break :blk try self.typeRef();
     } else null;
+    const effects = if (kind == .function or kind == .guard or kind == .procedure) try self.parseEffects() else null;
+    const preconditions = if (kind == .function or kind == .guard or kind == .procedure) try self.refinements("REQUIRES") else &.{};
+    const postconditions = if (kind == .function or kind == .guard or kind == .procedure) try self.refinements("ENSURES") else &.{};
     const migration: ?Migration = if (kind == .migration_target) try self.parseMigrationClause(false) else null;
     var domain: ?Domain = null;
     var constructors: std.ArrayList(Constructor) = .empty;
     var program: ?Template.Syntax = null;
     if (kind == .domain) {
         try self.require("AS");
-        const base = try self.scalarType();
+        const numeric = if (self.is("NUMERIC")) try self.numericType() else null;
+        const base = if (numeric != null) ScalarType.numeric else try self.scalarType();
         try self.require("IDENTITY");
         const id_span = self.currentSpan();
-        domain = .{ .base = base, .identity = try self.string() };
+        domain = .{ .base = base, .numeric = numeric, .identity = try self.string() };
         if (domain.?.identity.len == 0 or domain.?.identity.len > 128) {
             if (self.report) |r| r.setSpan(self.file_index, id_span.start, id_span.end);
             return error.InvalidDomainIdentity;
@@ -513,7 +540,7 @@ fn parseCreateDefinition(self: *Self, start: u32) !Definition {
         break :blk result;
     };
     try self.require(";");
-    return .{ .name = name, .public = public, .kind = kind, .parameters = parameters, .body = body, .span = self.span(start), .domain = domain, .constructors = try constructors.toOwnedSlice(self.a), .return_type = return_type, .program = program, .migration = migration, .schema = def_schema };
+    return .{ .name = name, .public = public, .kind = kind, .parameters = parameters, .body = body, .span = self.span(start), .domain = domain, .constructors = try constructors.toOwnedSlice(self.a), .return_type = return_type, .effects = effects, .preconditions = preconditions, .postconditions = postconditions, .program = program, .migration = migration, .schema = def_schema };
 }
 fn currentSpan(self: *const Self) SourceDiagnostic.Span {
     const end_pos: u32 = @intCast(self.text.len);
@@ -617,12 +644,63 @@ fn scalarType(self: *Self) !ScalarType {
     if (self.take("BOOLEAN")) return .boolean;
     if (self.take("UUID")) return .uuid;
     if (self.take("TIMESTAMPTZ")) return .timestamptz;
+    if (self.take("DATE")) return .date;
+    if (self.take("JSON")) return .json;
+    if (self.take("INTERVAL")) return .interval;
     if (self.take("BINARY")) return .binary;
-    self.failExpected("scalar type ('BIGINT', 'TEXT', 'BOOLEAN', 'UUID', 'TIMESTAMPTZ' or 'BINARY')");
+    self.failExpected("scalar type ('BIGINT', 'TEXT', 'BOOLEAN', 'UUID', 'TIMESTAMPTZ', 'DATE', 'JSON', 'INTERVAL' or 'BINARY')");
     return error.UnsupportedSourceType;
 }
+fn numericType(self: *Self) !NumericType {
+    try self.require("NUMERIC");
+    try self.require("(");
+    const precision = try self.numericPart();
+    try self.require(",");
+    const scale = try self.numericPart();
+    try self.require(")");
+    return .{ .precision = precision, .scale = scale };
+}
+fn numericPart(self: *Self) !u8 {
+    if (self.index == self.tokens.len or self.tokens[self.index].kind != .number) return error.InvalidSourceSyntax;
+    const token = self.tokens[self.index];
+    self.index += 1;
+    return std.fmt.parseInt(u8, self.text[token.start..token.end], 10) catch return error.InvalidSourceSyntax;
+}
+fn numericSignature(self: *Self) bool {
+    return self.is("NUMERIC") and self.index + 1 < self.tokens.len and std.mem.eql(u8, self.text[self.tokens[self.index + 1].start..self.tokens[self.index + 1].end], "(");
+}
+fn intervalLiteral(self: *Self) bool {
+    return self.is("INTERVAL") and self.index + 1 < self.tokens.len and std.mem.eql(u8, self.text[self.tokens[self.index + 1].start..self.tokens[self.index + 1].end], "(");
+}
+fn intervalPart(self: *Self, comptime T: type) !T {
+    const negative = self.take("-");
+    if (self.index == self.tokens.len or self.tokens[self.index].kind != .number) return error.InvalidSourceSyntax;
+    const token = self.tokens[self.index];
+    self.index += 1;
+    const magnitude = std.fmt.parseInt(u64, self.text[token.start..token.end], 10) catch |err| switch (err) {
+        error.Overflow => return error.Overflow,
+        else => return error.InvalidSourceSyntax,
+    };
+    const wide: i128 = if (negative) -@as(i128, magnitude) else magnitude;
+    return std.math.cast(T, wide) orelse error.Overflow;
+}
+fn intervalValue(self: *Self) !Interval {
+    try self.require("INTERVAL");
+    try self.require("(");
+    const months = try self.intervalPart(i32);
+    try self.require(",");
+    const days = try self.intervalPart(i32);
+    try self.require(",");
+    const nanos = try self.intervalPart(i64);
+    try self.require(")");
+    return .{ .months = months, .days = days, .nanos = nanos };
+}
+fn numericLiteral(self: *Self) bool {
+    return self.is("NUMERIC") and self.index + 6 < self.tokens.len and self.tokens[self.index + 6].kind == .string;
+}
 fn typeRef(self: *Self) !TypeRef {
-    if (self.is("BIGINT") or self.is("TEXT") or self.is("BOOLEAN") or self.is("UUID") or self.is("TIMESTAMPTZ") or self.is("BINARY")) return .{ .scalar = try self.scalarType() };
+    if (self.numericSignature()) return .{ .numeric = try self.numericType() };
+    if (self.is("BIGINT") or self.is("TEXT") or self.is("BOOLEAN") or self.is("UUID") or self.is("TIMESTAMPTZ") or self.is("DATE") or self.is("JSON") or self.is("INTERVAL") or self.is("BINARY")) return .{ .scalar = try self.scalarType() };
     return .{ .named = try self.parseName() };
 }
 fn tableSignature(self: *Self) ![]const Column {
@@ -714,7 +792,7 @@ fn parseParameters(self: *Self, require_non_empty: bool) anyerror![]const Parame
             }
             return error.DuplicateSourceName;
         };
-        const kind: Kind = if (self.take("BIGINT")) .integer else if (self.take("TEXT")) .text else if (self.take("BOOLEAN")) .boolean else if (self.take("UUID")) .uuid else if (self.take("TIMESTAMPTZ")) .timestamptz else if (self.take("BINARY")) .binary else if (self.take("IDENTIFIER")) .identifier else if (self.take("TYPE")) .type else if (self.take("SCHEMA_BINDING")) .schema_binding else if (self.take("MODULE")) (if (self.takeKeywordBeforeName("OF")) .{ .module_of = try self.parseName() } else .{ .module = try self.parseName() }) else if (self.takeSignature("ROW")) .{ .row = try self.parseParameters(true) } else if (self.take("TABLE")) .{ .table = try self.tableSignature() } else if (self.takeSignature("STREAM")) .{ .stream = try self.tableSignature() } else if (self.takeSignature("QUEUE")) .{ .queue = try self.tableSignature() } else .{ .named = try self.parseName() };
+        const kind: Kind = if (self.take("BIGINT")) .integer else if (self.take("TEXT")) .text else if (self.take("BOOLEAN")) .boolean else if (self.take("UUID")) .uuid else if (self.take("TIMESTAMPTZ")) .timestamptz else if (self.take("DATE")) .date else if (self.take("JSON")) .json else if (self.take("INTERVAL")) .interval else if (self.numericSignature()) .{ .numeric = try self.numericType() } else if (self.take("BINARY")) .binary else if (self.take("IDENTIFIER")) .identifier else if (self.take("TYPE")) .type else if (self.take("SCHEMA_BINDING")) .schema_binding else if (self.callableKind()) |callable| .{ .callable = .{ .kind = callable, .signature = try self.parseName() } } else if (self.take("MODULE")) (if (self.takeKeywordBeforeName("OF")) .{ .module_of = try self.parseName() } else .{ .module = try self.parseName() }) else if (self.takeSignature("ROW")) .{ .row = try self.parseParameters(true) } else if (self.take("TABLE")) .{ .table = try self.tableSignature() } else if (self.takeSignature("STREAM")) .{ .stream = try self.tableSignature() } else if (self.takeSignature("QUEUE")) .{ .queue = try self.tableSignature() } else .{ .named = try self.parseName() };
         try result.append(self.a, .{ .name = parameter_name, .kind = kind });
         if (self.take(")")) break;
         try self.require(",");
@@ -1111,7 +1189,10 @@ fn expression(self: *Self, minimum: u8) anyerror!*Expr {
     const value: @FieldType(Expr, "value") = if (self.take("-")) blk: {
         if (self.index < self.tokens.len and self.tokens[self.index].kind == .number) {
             const token = self.tokens[self.index];
-            const magnitude = try std.fmt.parseInt(u64, self.text[token.start..token.end], 10);
+            const magnitude = std.fmt.parseInt(u64, self.text[token.start..token.end], 10) catch |err| switch (err) {
+                error.Overflow => return error.Overflow,
+                else => return error.InvalidSourceSyntax,
+            };
             if (magnitude > @as(u64, std.math.maxInt(i64)) + 1) return error.Overflow;
             self.index += 1;
             break :blk .{ .integer = if (magnitude == @as(u64, std.math.maxInt(i64)) + 1) std.math.minInt(i64) else -@as(i64, @intCast(magnitude)) };
@@ -1130,9 +1211,10 @@ fn expression(self: *Self, minimum: u8) anyerror!*Expr {
         const kind = try self.typeRef();
         break :blk switch (kind) {
             .scalar => |scalar| .{ .type = scalar },
+            .numeric => |numeric| .{ .numeric_type = numeric },
             .named => |name| .{ .named_type = name },
         };
-    } else if (self.take("TRUE")) .{ .boolean = true } else if (self.take("FALSE")) .{ .boolean = false } else if (self.index + 1 < self.tokens.len and self.tokens[self.index + 1].kind == .string and self.take("UUID")) .{ .uuid = try self.string() } else if (self.index + 1 < self.tokens.len and self.tokens[self.index + 1].kind == .string and (self.take("TIMESTAMPTZ") or self.take("TIMESTAMP"))) .{ .timestamptz = try self.string() } else if (self.index + 1 < self.tokens.len and self.tokens[self.index + 1].kind == .string and self.take("X")) .{ .bytes = try self.string() } else if (self.index < self.tokens.len and self.tokens[self.index].kind == .string) .{ .text = try self.string() } else if (self.index < self.tokens.len and self.tokens[self.index].kind == .number) blk: {
+    } else if (self.intervalLiteral()) .{ .interval = try self.intervalValue() } else if (self.numericLiteral()) .{ .numeric = .{ .type = try self.numericType(), .text = try self.string() } } else if (self.take("TRUE")) .{ .boolean = true } else if (self.take("FALSE")) .{ .boolean = false } else if (self.index + 1 < self.tokens.len and self.tokens[self.index + 1].kind == .string and self.take("UUID")) .{ .uuid = try self.string() } else if (self.index + 1 < self.tokens.len and self.tokens[self.index + 1].kind == .string and (self.take("TIMESTAMPTZ") or self.take("TIMESTAMP"))) .{ .timestamptz = try self.string() } else if (self.index + 1 < self.tokens.len and self.tokens[self.index + 1].kind == .string and self.take("DATE")) .{ .date = try self.string() } else if (self.index + 1 < self.tokens.len and self.tokens[self.index + 1].kind == .string and self.take("JSON")) .{ .json = try self.string() } else if (self.index + 1 < self.tokens.len and self.tokens[self.index + 1].kind == .string and self.take("X")) .{ .bytes = try self.string() } else if (self.index < self.tokens.len and self.tokens[self.index].kind == .string) .{ .text = try self.string() } else if (self.index < self.tokens.len and self.tokens[self.index].kind == .number) blk: {
         const token = self.tokens[self.index];
         self.index += 1;
         break :blk .{ .integer = try std.fmt.parseInt(i64, self.text[token.start..token.end], 10) };
@@ -1162,4 +1244,68 @@ fn expression(self: *Self, minimum: u8) anyerror!*Expr {
         left = combined;
     }
     return left;
+}
+
+fn refinements(self: *Self, keyword: []const u8) ![]const Refinement {
+    var result: std.ArrayList(Refinement) = .empty;
+    while (self.is(keyword)) {
+        const start = self.at();
+        self.index += 1;
+        if (result.items.len == 16) return error.SourceParameterLimit;
+        var terms: std.ArrayList(RefinementTerm) = .empty;
+        while (true) {
+            if (terms.items.len == 16) return error.SourceParameterLimit;
+            const left = try self.identifier();
+            const op: @FieldType(RefinementTerm, "op") = if (self.take("IS")) blk: {
+                try self.require("NOT");
+                try self.require("NULL");
+                break :blk .present;
+            } else if (self.take("=")) .equal else if (self.take("<")) (if (self.take("=")) .less_equal else if (self.take(">")) .not_equal else .less) else if (self.take(">")) (if (self.take("=")) .greater_equal else .greater) else return error.InvalidSourceSyntax;
+            const right: @FieldType(RefinementTerm, "right") = if (op == .present) null else blk: {
+                const negative = self.take("-");
+                if (self.index < self.tokens.len and self.tokens[self.index].kind == .number) {
+                    const token = self.tokens[self.index];
+                    self.index += 1;
+                    const magnitude = std.fmt.parseInt(u64, self.text[token.start..token.end], 10) catch |err| switch (err) {
+                        error.Overflow => return error.Overflow,
+                        else => return error.InvalidSourceSyntax,
+                    };
+                    const limit: u64 = @as(u64, std.math.maxInt(i64)) + @intFromBool(negative);
+                    if (magnitude > limit) return error.Overflow;
+                    const integer: i64 = if (!negative) @intCast(magnitude) else if (magnitude == limit) std.math.minInt(i64) else -@as(i64, @intCast(magnitude));
+                    break :blk .{ .integer = integer };
+                }
+                if (negative) return error.InvalidSourceSyntax;
+                break :blk .{ .name = try self.identifier() };
+            };
+            try terms.append(self.a, .{ .left = left, .op = op, .right = right });
+            if (!self.take("AND")) break;
+        }
+        try self.require("ELSE");
+        const refusal = try self.string();
+        if (refusal.len == 0 or refusal.len > 128) return error.InvalidSourceSyntax;
+        try result.append(self.a, .{ .terms = try terms.toOwnedSlice(self.a), .refusal = refusal, .span = self.span(start) });
+    }
+    return result.toOwnedSlice(self.a);
+}
+
+fn callableKind(self: *Self) ?HelperKind {
+    if (self.index + 1 >= self.tokens.len or !std.ascii.eqlIgnoreCase(self.text[self.tokens[self.index + 1].start..self.tokens[self.index + 1].end], "OF")) return null;
+    const kind: HelperKind = if (self.take("FUNCTION")) .function else if (self.take("GUARD")) .guard else if (self.take("PROCEDURE")) .procedure else return null;
+    self.index += 1;
+    return kind;
+}
+fn parseEffects(self: *Self) !?[]const Effect {
+    if (!self.take("EFFECTS")) return null;
+    try self.require("(");
+    var result: std.ArrayList(Effect) = .empty;
+    if (self.take(")")) return &.{};
+    while (true) {
+        if (result.items.len == 64) return error.SourceParameterLimit;
+        const operation: @FieldType(Effect, "operation") = if (self.take("READ")) .read else if (self.take("INSERT")) .insert else if (self.take("PRODUCE")) .produce else if (self.take("ENQUEUE")) .enqueue else return error.InvalidSourceSyntax;
+        try result.append(self.a, .{ .operation = operation, .resource = try self.identifier() });
+        if (self.take(")")) break;
+        try self.require(",");
+    }
+    return try result.toOwnedSlice(self.a);
 }

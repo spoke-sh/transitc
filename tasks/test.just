@@ -54,6 +54,13 @@ integration: _build
     python3 -B tests/integration/upstream_transit.py
     python3 -B tests/integration/parity.py
     python3 -B tests/integration/execute_sql.py
+    python3 -B tests/runner/launch.py tests/integration/typed_composition.py zig-out/bin/transitc
+    python3 -B tests/runner/launch.py tests/integration/scalar_surfaces.py zig-out/bin/transitc
+    python3 -B tests/runner/launch.py tests/integration/cardinality.py zig-out/bin/transitc
+    python3 -B tests/runner/launch.py tests/integration/sql_scalars.py zig-out/bin/transitc
+    python3 -B tests/runner/launch.py tests/integration/json_helpers.py zig-out/bin/transitc
+    python3 -B tests/runner/launch.py tests/integration/refinements.py zig-out/bin/transitc
+    python3 -B tests/runner/launch.py tests/integration/callables.py zig-out/bin/transitc
 
 # Share the root build recipe and run it once per invocation of these suites.
 _build:

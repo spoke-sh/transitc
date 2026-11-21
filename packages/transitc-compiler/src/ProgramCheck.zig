@@ -59,6 +59,7 @@ pub fn check(catalog: *Catalog, sql: []const u8, location: *f.Sql.Location) !Che
         @import("Graph.zig").hashPart(&hash, entry.name);
         @import("Graph.zig").hashPart(&hash, @tagName(entry.kind));
         hash.update(&try entry.schema.fingerprint());
+        entry.hashLogPolicy(&hash);
     }
     return .{
         .schema_name = try catalog.output.dupe(u8, parsed.program.schema orelse "public"),

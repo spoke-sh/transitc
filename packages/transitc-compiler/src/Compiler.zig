@@ -558,6 +558,12 @@ fn checkTargetComposition(self: *Self, target_file: usize, err_span: s.Span, ins
 fn validateParameterKind(self: *Self, file: usize, kind: s.Kind, depth: usize) anyerror!void {
     if (depth >= self.limits.depth) return error.SourceDepthLimit;
     switch (kind) {
+        .callable => |value| {
+            const ref = try self.graph.resolveReported(file, value.signature, self.report);
+            const def = self.graph.getDefinition(ref);
+            if (!std.mem.eql(u8, @tagName(def.kind), @tagName(value.kind))) return error.InvalidCallableSignature;
+            if (value.kind != .function and def.effects == null) return error.MissingCallableContract;
+        },
         .module => |m_name| {
             const interface = try self.graph.resolve(file, m_name);
             if (self.graph.getDefinition(interface).kind != .interface) return error.InvalidModuleInterface;
@@ -566,7 +572,11 @@ fn validateParameterKind(self: *Self, file: usize, kind: s.Kind, depth: usize) a
             const ctor = try self.graph.resolveReported(file, m_name, self.report);
             if (self.graph.getDefinition(ctor).kind != .module) return error.NotModuleConstructor;
         },
-        .row => |fields| for (fields) |f_item| try self.validateParameterKind(file, f_item.kind, depth + 1),
+        .row => |fields| for (fields) |f_item| {
+            if (f_item.kind == .callable) return error.InvalidCallableSignature;
+            try self.validateParameterKind(file, f_item.kind, depth + 1);
+        },
+        .numeric => |d| _ = try types.numericScalar(d),
         else => {},
     }
 }
@@ -600,6 +610,11 @@ fn sameParameterKind(self: *Self, left_file: usize, left: s.Kind, right_file: us
     if (depth >= self.limits.depth) return error.SourceDepthLimit;
     if (std.meta.activeTag(left) != std.meta.activeTag(right)) return error.ModuleInterfaceMismatch;
     switch (left) {
+        .numeric => |d| if (!std.meta.eql(d, right.numeric)) return error.ModuleInterfaceMismatch,
+        .callable => |v| {
+            if (v.kind != right.callable.kind) return error.CallableSignatureMismatch;
+            try self.callableSignature(try self.graph.resolve(left_file, v.signature), try self.graph.resolve(right_file, right.callable.signature), depth + 1);
+        },
         .module => |m| try self.signature(try self.graph.resolve(left_file, m), try self.graph.resolve(right_file, right.module), depth),
         .module_of => |m| if (!std.meta.eql(try self.graph.resolve(left_file, m), try self.graph.resolve(right_file, right.module_of))) return error.ModuleInterfaceMismatch,
         .named => |n| if (!std.meta.eql(try self.graph.resolve(left_file, n), try self.graph.resolve(right_file, right.named))) return error.ModuleInterfaceMismatch,
@@ -644,8 +659,12 @@ fn argumentDepth(self: *Self, file: usize, kind: s.Kind, value: Value, depth: us
             if (std.meta.activeTag(value) != @field(std.meta.Tag(Value), @tagName(tag))) return error.SourceTypeMismatch;
             try types.signature(self.graph, file, columns, @field(value, @tagName(tag)), &self.context);
         },
-        .integer, .text, .boolean, .uuid, .timestamptz, .binary => {
+        .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary => {
             if (!types.Scalar.eql(try types.field(self.graph, file, kind), value.scalar() orelse return error.SourceTypeMismatch)) return error.SourceTypeMismatch;
+        },
+        .callable => |v| {
+            if (value != .helper or value.helper.kind != v.kind) return error.CallableSignatureMismatch;
+            try self.callableSignature(try self.graph.resolve(file, v.signature), value.helper.ref, depth + 1);
         },
         .module => |name| {
             if (value != .module) return error.SourceTypeMismatch;
@@ -735,7 +754,7 @@ fn invoke(self: *Self, file: usize, span: s.Span, call: s.Call, bindings: []cons
             unreachable;
         } else i;
         const arg = call.arguments[arg_idx];
-        const value = evaluated_args[arg_idx];
+        var value = evaluated_args[arg_idx];
         self.file = file;
         self.offset = arg.span.start;
         self.span_end = arg.span.end;
@@ -751,6 +770,7 @@ fn invoke(self: *Self, file: usize, span: s.Span, call: s.Call, bindings: []cons
             return err;
         };
         self.context = .{};
+        if (parameter.kind == .callable) value.helper.contract = try self.graph.resolve(ref.file, parameter.kind.callable.signature);
         // Reached symbolic callees are checked for their declared scalar types.
         // This also checks both paths of recursive IF bodies before a recursive
         // edge is discharged by its signature, without guessing payload values.
@@ -855,6 +875,7 @@ fn checkBody(self: *Self, file: usize, statements: []const s.Statement, bindings
     };
     if (stable_catalog and (checker.catalog.schemas.items.len != self.catalog.schemas.items.len or
         checker.catalog.entries.items.len != self.catalog.entries.items.len or
+        checker.catalog.programs.items.len != self.catalog.programs.items.len or
         (if (checker.exports) |v| v.items.len else 0) != (if (self.exports) |v| v.items.len else 0))) return error.UnsupportedSymbolicSchema;
 }
 fn match(self: *Self, file: usize, input: @FieldType(@FieldType(s.Statement, "value"), "match"), bindings: []const Binding, depth: usize) !void {
@@ -1351,7 +1372,17 @@ fn reference(self: *Self, file: usize, name: s.Name, bindings: []const Binding) 
             return first;
         };
     }
-    return .{ .module = try self.resolve(file, name, bindings) };
+    const ref = try self.graph.resolveReported(file, name, self.report);
+    const def = self.graph.getDefinition(ref);
+    const helper_kind: ?types.HelperKind = switch (def.kind) {
+        .function => .function,
+        .guard => .guard,
+        .procedure => .procedure,
+        else => null,
+    };
+    if (helper_kind) |kind| return .{ .helper = .{ .kind = kind, .ref = ref, .owner = self.owner, .schemas = try self.a.dupe(types.SchemaBinding, self.activeSchemas()) } };
+    if (def.kind != .module) return error.NotModuleConstructor;
+    return .{ .module = ref };
 }
 fn construct(self: *Self, file: usize, call: s.Call, bindings: []const Binding, depth: usize) !Value {
     // An imported domain has two components; a local variant constructor also
@@ -1365,7 +1396,7 @@ fn construct(self: *Self, file: usize, call: s.Call, bindings: []const Binding, 
         const kind = try types.domain(self.graph, try self.graph.resolve(file, call.name));
         if (call.arguments.len != 1) return error.SourceArgumentCount;
         const value = try self.expression(file, call.arguments[0], bindings, depth + 1);
-        if (!types.Scalar.eql(.{ .base = kind.base }, value.scalar() orelse return error.SourceTypeMismatch)) return error.SourceTypeMismatch;
+        if (!types.Scalar.eql(.{ .base = kind.base, .numeric = kind.numeric }, value.scalar() orelse return error.SourceTypeMismatch)) return error.SourceTypeMismatch;
         if (value == .symbolic) return .{ .symbolic = kind };
         return .{ .nominal = .{ .type = kind, .value = try value.primitive() } };
     }
@@ -1427,6 +1458,31 @@ fn expression(self: *Self, file: usize, expr: *const s.Expr, bindings: []const B
             };
             break :blk .{ .timestamptz = value };
         },
+        .date => |value| blk: {
+            _ = f.Types.Semantics.bind(value, .date) catch {
+                if (self.report) |r| {
+                    r.setSpan(file, expr.span.start, expr.span.end);
+                    r.setHeadline("invalid DATE literal '{s}'", .{value});
+                }
+                return error.InvalidSourceOperand;
+            };
+            break :blk .{ .date = value };
+        },
+        .numeric => |value| blk: {
+            const kind = try types.numericScalar(value.type);
+            const atom = try f.Types.Semantics.bind(value.text, kind.physical());
+            break :blk .{ .numeric = .{ .type = value.type, .coefficient = atom.decimal } };
+        },
+        .json => |value| blk: {
+            var parsed = f.Types.Json.parse(self.a, value, .{}) catch |err| switch (err) {
+                error.OutOfMemory, error.DuplicateField, error.InvalidUtf8, error.JsonByteBudgetExceeded, error.JsonDepthExceeded, error.JsonTokenBudgetExceeded, error.JsonFieldBudgetExceeded => return err,
+                else => return error.InvalidJson,
+            };
+            parsed.deinit();
+            break :blk .{ .json = value };
+        },
+        .interval => |value| .{ .interval = value },
+        .numeric_type => |value| .{ .type = try types.numericScalar(value) },
         .bytes => |value| blk: {
             if (value.len % 2 != 0) {
                 if (self.report) |r| {
@@ -1494,6 +1550,7 @@ fn expression(self: *Self, file: usize, expr: *const s.Expr, bindings: []const B
             const right = try self.expression(file, value.right, bindings, depth + 1);
             const left_type = left.scalar() orelse return error.SourceTypeMismatch;
             if (!types.Scalar.eql(left_type, right.scalar() orelse return error.SourceTypeMismatch)) return error.SourceTypeMismatch;
+            if (left_type.base == .json or left_type.base == .interval) return error.SourceTypeMismatch;
             if (left_type.domain != null) {
                 if (value.op != .equal and value.op != .not_equal) return error.SourceTypeMismatch;
                 if (left == .symbolic or right == .symbolic) break :blk .{ .symbolic = .{ .base = .boolean } };
@@ -1501,10 +1558,13 @@ fn expression(self: *Self, file: usize, expr: *const s.Expr, bindings: []const B
                 const r = try right.primitive();
                 const equal = switch (l) {
                     .integer => |v| v == r.integer,
+                    .numeric => |v| v.coefficient == r.numeric.coefficient,
+                    .json, .interval => unreachable,
                     .boolean => |v| v == r.boolean,
                     .text => |v| std.mem.eql(u8, v, r.text),
                     .uuid => |v| std.mem.eql(u8, &(f.Types.Semantics.bind(v, .uuid) catch unreachable).uuid, &(f.Types.Semantics.bind(r.uuid, .uuid) catch unreachable).uuid),
                     .timestamptz => |v| (f.Types.Semantics.bind(v, .{ .timestamp = .utc }) catch unreachable).timestamp == (f.Types.Semantics.bind(r.timestamptz, .{ .timestamp = .utc }) catch unreachable).timestamp,
+                    .date => |v| (f.Types.Semantics.bind(v, .date) catch unreachable).date == (f.Types.Semantics.bind(r.date, .date) catch unreachable).date,
                     .binary => |v| std.ascii.eqlIgnoreCase(v, r.binary),
                 };
                 break :blk .{ .boolean = if (value.op == .equal) equal else !equal };
@@ -1533,10 +1593,12 @@ fn expression(self: *Self, file: usize, expr: *const s.Expr, bindings: []const B
             }
             const order: std.math.Order = switch (left) {
                 .integer => std.math.order(left.integer, right.integer),
+                .numeric => std.math.order(left.numeric.coefficient, right.numeric.coefficient),
                 .text => std.mem.order(u8, left.text, right.text),
                 .boolean => std.math.order(@intFromBool(left.boolean), @intFromBool(right.boolean)),
                 .uuid => std.mem.order(u8, &(f.Types.Semantics.bind(left.uuid, .uuid) catch unreachable).uuid, &(f.Types.Semantics.bind(right.uuid, .uuid) catch unreachable).uuid),
                 .timestamptz => std.math.order((f.Types.Semantics.bind(left.timestamptz, .{ .timestamp = .utc }) catch unreachable).timestamp, (f.Types.Semantics.bind(right.timestamptz, .{ .timestamp = .utc }) catch unreachable).timestamp),
+                .date => std.math.order((f.Types.Semantics.bind(left.date, .date) catch unreachable).date, (f.Types.Semantics.bind(right.date, .date) catch unreachable).date),
                 .binary => std.mem.order(u8, left.binary, right.binary),
                 else => return error.SourceTypeMismatch,
             };
@@ -1572,7 +1634,6 @@ fn emit(self: *Self, file: usize, span: s.Span, template: s.Template.Syntax, bin
 }
 fn emitStatement(self: *Self, file: usize, span: s.Span, template: s.Template.Syntax, bindings: []const Binding, origins: *std.ArrayList(Origin), at: *f.Sql.Location) !void {
     const tokens = template.tokens;
-    if (self.symbolic and (template.kind == .program or template.kind == .control)) return error.UnsupportedSymbolicProgram;
     if (self.in_case and self.actions.items.len == Test.max_actions) return error.TestActionLimit;
     self.file = file;
     self.offset = span.start;
@@ -1592,27 +1653,35 @@ fn emitStatement(self: *Self, file: usize, span: s.Span, template: s.Template.Sy
     self.catalog.bindings = bindings;
     self.catalog.context = &self.context;
     const is_create = tokenIs(self.graph.sources[file].text, tokens[0], "CREATE");
+    var symbolic_parameters: @import("SymbolicProgram.zig").Parameters = .empty;
     const raw = if (template.kind == .program)
-        try @import("ProgramLowering.zig").lowerProgram(self, file, tokens, bindings, scratch, f.Sql.max_statement_bytes, &sites, origins, &obligations)
+        try @import("ProgramLowering.zig").lowerProgram(self, file, tokens, bindings, scratch, f.Sql.max_statement_bytes, &sites, origins, &obligations, &symbolic_parameters)
     else
         try expand(self.graph.sources[file].text, tokens, bindings, self.activeSchemas(), scratch, f.Sql.max_statement_bytes, false, if (log_statement) null else &type_sites, self.a, &sites, origins);
+    var check_catalog = try @import("SymbolicProgram.zig").catalog(scratch, self.catalog, raw, symbolic_parameters.items, at);
     // DDL creates the proposed shape; other statements check source annotations
     // before the ordinary binder can erase nominal identity into scalar values.
     var digest: [32]u8 = undefined;
     if (is_create and template.kind != .program) digest = try self.catalog.check(raw, at);
     const resource_checked = if (log_statement) try @import("ResourceOperands.zig").check(template, bindings) else null;
     const checked = if (template.kind == .program) blk: {
-        var analysis = try @import("ProgramCheck.zig").analyze(&self.catalog, raw, at);
+        var analysis = try @import("ProgramCheck.zig").analyze(&check_catalog, raw, at);
         defer analysis.deinit();
         var result = resource_checked.?;
-        result.program = try @import("ProgramAnnotations.zig").check(scratch, self.a, self.graph, &self.catalog, analysis.parsed.program, &analysis.bound, raw, sites.items, origins.items, obligations.items, &self.context, &self.work, self.limits.work);
+        result.program = try @import("ProgramAnnotations.zig").check(scratch, self.a, self.graph, &check_catalog, analysis.parsed.program, &analysis.bound, raw, sites.items, origins.items, obligations.items, &self.context, &self.work, self.limits.work);
         break :blk result;
     } else if (template.kind == .control or template.kind == .create_schema) resource_checked.? else try Operands.check(scratch, self.a, self.graph, &self.catalog, self.owner, bindings, raw, sites.items, self.symbolic, &self.context);
     self.context = .{};
     if (log_statement and self.symbolic and !is_create) _ = try self.catalog.check(raw, at);
     if (!log_statement) try Catalog.verifyTypeOperands(scratch, raw, type_sites.items, at);
     self.checked_statements += 1;
-    if (self.symbolic) return;
+    if (self.symbolic) {
+        if (template.kind == .program) {
+            _ = try check_catalog.check(raw, at);
+            self.catalog.programs = check_catalog.programs;
+        }
+        return;
+    }
     const canonical = if (template.kind == .program) raw else blk: {
         origins.clearRetainingCapacity();
         break :blk try expand(self.graph.sources[file].text, tokens, bindings, self.activeSchemas(), scratch, f.Sql.max_statement_bytes, true, null, self.a, null, origins);
@@ -1876,6 +1945,12 @@ pub fn quoted(writer: *BoundedBuffer, text: []const u8, quote: u8) !void {
 pub fn writeValue(writer: *BoundedBuffer, value: Value) !void {
     switch (value) {
         .integer => |number| try writer.print("{d}", .{number}),
+        .numeric => |number| try @import("SourceNumeric.zig").write(writer, number),
+        .interval => |v| try writer.print("INTERVAL({d}, {d}, {d})", .{ v.months, v.days, v.nanos }),
+        .json => |v| {
+            try writer.writeAll("JSON ");
+            try quoted(writer, v, '\'');
+        },
         .boolean => |boolean| try writer.writeAll(if (boolean) "TRUE" else "FALSE"),
         .text => |text| try quoted(writer, text, '\''),
         .uuid => |v| {
@@ -1886,17 +1961,25 @@ pub fn writeValue(writer: *BoundedBuffer, value: Value) !void {
             try writer.writeAll("TIMESTAMP ");
             try quoted(writer, v, '\'');
         },
+        .date => |v| {
+            try writer.writeAll("DATE ");
+            try quoted(writer, v, '\'');
+        },
         .binary => |v| {
             try writer.writeAll("X");
             try quoted(writer, v, '\'');
         },
         .identifier => |name| try quoted(writer, name, '"'),
-        .type => |kind| try writer.writeAll(switch (kind.base) {
+        .type => |kind| if (kind.numeric) |d| try writer.print("NUMERIC({d}, {d})", .{ d.precision, d.scale }) else try writer.writeAll(switch (kind.base) {
             .bigint => "BIGINT",
             .text => "TEXT",
             .boolean => "BOOLEAN",
             .uuid => "UUID",
             .timestamptz => "TIMESTAMPTZ",
+            .date => "DATE",
+            .json => "JSON",
+            .interval => "INTERVAL",
+            .numeric => unreachable,
             .binary => "BINARY",
         }),
         .nominal => |v| switch (v.value) {
@@ -1936,4 +2019,22 @@ pub fn locationSpan(source: Graph.Source, span: SourceDiagnostic.Span) p.Diagnos
 }
 pub fn project(err: anyerror, at: ?p.Diagnostic.Location, call: ?p.Diagnostic.Location, instance: ?[]const u8) p.Diagnostic {
     return @import("SourceDiagnostic.zig").project(err, at, call, instance);
+}
+
+fn callableSignature(self: *Self, expected: Graph.Ref, actual: Graph.Ref, depth: usize) anyerror!void {
+    try self.tick();
+    if (depth >= self.limits.depth) return error.SourceDepthLimit;
+    const want = self.graph.getDefinition(expected);
+    const got = self.graph.getDefinition(actual);
+    if (want.kind != got.kind or want.parameters.len != got.parameters.len) return error.CallableSignatureMismatch;
+    if (want.kind != .function and (want.effects == null or got.effects == null)) return error.MissingCallableContract;
+    for (want.parameters, got.parameters) |left, right| {
+        if (!std.mem.eql(u8, left.name, right.name)) return error.CallableSignatureMismatch;
+        try self.sameParameterKind(expected.file, left.kind, actual.file, right.kind, depth + 1);
+    }
+    if ((want.return_type == null) != (got.return_type == null)) return error.CallableSignatureMismatch;
+    if (want.return_type) |ret| if (!types.Scalar.eql(try types.resolve(self.graph, expected.file, ret), try types.resolve(self.graph, actual.file, got.return_type.?))) return error.CallableSignatureMismatch;
+    if (!@import("Effects.zig").same(want.effects orelse &.{}, got.effects orelse &.{}) or
+        !@import("Refinements.zig").same(want.preconditions, got.preconditions) or
+        !@import("Refinements.zig").same(want.postconditions, got.postconditions)) return error.CallableSignatureMismatch;
 }

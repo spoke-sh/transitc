@@ -59,7 +59,7 @@ AS BEGIN
 END;
 ```
 
-Parameters are `BIGINT`, `TEXT`, `BOOLEAN`, `UUID`, `TIMESTAMPTZ`, `BINARY`,
+Parameters are `BIGINT`, `TEXT`, `BOOLEAN`, `UUID`, `TIMESTAMPTZ`, `DATE`, `NUMERIC(p,s)`, `JSON`, `INTERVAL`, `BINARY`,
 `IDENTIFIER`, `TYPE`, `SCHEMA_BINDING`,
 `ROW(field kind, ...)`, `MODULE interface_name`, `MODULE [OF] constructor_name`,
 named domains/variants or exact `TABLE(...)`, `STREAM(...)` and `QUEUE(...)`
@@ -122,8 +122,8 @@ remains the default cache location unless `--out` is passed on the CLI.
 Compile-time expressions
 include parameter references, module and instance references, `ROW(field => expr, ...)`
 literals and `.field` projections, `SCHEMA_BINDING('name')`, signed integer/text/Boolean
-literals, `UUID '...'`, `TIMESTAMPTZ '...'` / `TIMESTAMP '...'` and `X'...'` binary
-literals, `NAME 'identifier'`, `TYPE BIGINT|TEXT|BOOLEAN|UUID|TIMESTAMPTZ|BINARY`, named type operands and constructors, parentheses, checked
+literals, `NUMERIC(p,s) 'decimal'`, `DATE 'YYYY-MM-DD'`, `JSON 'text'`, `INTERVAL(months,days,nanos)`, `UUID '...'`, `TIMESTAMPTZ '...'` / `TIMESTAMP '...'` and `X'...'` binary
+literals, `NAME 'identifier'`, `TYPE BIGINT|TEXT|BOOLEAN|UUID|TIMESTAMPTZ|DATE|JSON|INTERVAL|BINARY`, `TYPE NUMERIC(p,s)`, named type operands and constructors, parentheses, checked
 integer `+`, `-`, `*`, comparisons and Boolean AND/OR/NOT. Conditional bodies use
 `IF expression THEN ... [ELSE ...] END IF;`. Conditions must be Boolean.
 Expressions have no ambient environment, time, random, database or effect access.
@@ -169,6 +169,16 @@ type operands encode an admitted logical type. Holes inside strings, comments or
 quoted identifiers are inert. Module operands cannot become SQL tokens. Expanded
 statements are checked by the ordinary typed SQL owners before emission. Runtime
 positional parameters are not part of this fully bound target profile.
+
+Compile-time MATCH checks programs and their control statements in every arm.
+Symbolic scalar holes bind to temporary typed inputs, preserving physical and
+nominal descriptors without inventing values. Only the selected concrete arm is
+emitted. No temporary catalog fields or checking-only program identities escape
+into artifacts. Resource names and shapes stay concrete; a symbolic IF may not
+add programs, resources, schemas or exports. Whole-input ROW helper arguments
+combined with symbolic scalar holes remain unsupported; pass individual fields.
+Quoted `__transit$symbolic_` input names are reserved during symbolic checking.
+
 
 ## Executable target
 
@@ -334,9 +344,12 @@ without establishing a complete artifact.
 
 ## Typed source specialization
 
-Nominal domains, closed variants and Table instance exports are compile-time
-forms. They provide source type checking and do not install runtime domain types,
-validate external IDs, grant access or dispatch on live request values.
+Nominal domains, variant constructors and Table instance exports are source
+forms. They provide source type checking and do not install runtime domain types
+or grant access. Compile-time matching specializes a concrete constructor. The
+separate [runtime MATCH profile](application-source/DYNAMIC_VARIANTS_V1.md) validates
+a closed ordinary record and dispatches within an ordered program; it does not
+authenticate the origin of raw scalar IDs.
 
 ```text
 CREATE PUBLIC DOMAIN MachineId AS BIGINT IDENTITY 'example.machine-id';
@@ -344,13 +357,14 @@ CREATE PUBLIC DOMAIN SiteId AS BIGINT IDENTITY 'example.site-id';
 CREATE PUBLIC VARIANT Target AS (Machine(id MachineId), Site(id SiteId));
 ```
 
-A domain wraps BIGINT, TEXT, BOOLEAN, UUID, TIMESTAMPTZ or BINARY. Its identity is 1–128 UTF-8 bytes,
+A domain wraps BIGINT, TEXT, BOOLEAN, UUID, TIMESTAMPTZ, DATE, NUMERIC(p,s), JSON, INTERVAL or BINARY. Its identity is 1–128 UTF-8 bytes,
 compared exactly; its definition fixes the base type. Import the original public
 declaration to share a domain. Independent declarations with the same identity
 reject, even with equal base types. Paths, aliases and physical representations
 are not nominal identity. Constructors such as `MachineId(7)` accept a base
 value; implicit conversion, rebranding, unwrapping, arithmetic and ordering
-reject. Equality/inequality require the same domain. Named parameter kinds and
+reject. Equality/inequality require the same domain and an admitted base-type
+comparison; JSON and INTERVAL domains have no source comparison operators. Named parameter kinds and
 `TYPE imported.MachineId` retain that type through module interfaces.
 
 A variant has 1–64 unique constructors, each with at most 64 unique scalar/domain
@@ -379,7 +393,7 @@ export without re-instantiation. An instance has at most 64 unique exports.
 A typed Table parameter can also forward its existing handle through `EXPORT TABLE rows AS alias;`.
 A parameter such as `rows TABLE(id MachineId PRIMARY KEY)` requires an exact
 ordered column/key/nullability/collation signature. Signature columns use the
-six admitted scalar types (`BIGINT`, `TEXT`, `BOOLEAN`, `UUID`, `TIMESTAMPTZ`, `BINARY`) or nominal domains, with optional NULL/NOT NULL, PRIMARY KEY
+admitted source scalar types (`BIGINT`, `TEXT`, `BOOLEAN`, `UUID`, `TIMESTAMPTZ`, `DATE`, `NUMERIC(p,s)`, `JSON`, `INTERVAL`, `BINARY`) or nominal domains, with optional NULL/NOT NULL, PRIMARY KEY
 and COLLATE clauses. Omitted collation matches the native `none` descriptor;
 explicit collation must match exactly. Runtime schema limits also apply. Defaults, CHECK constraints
 and other semantic column options cannot be hidden by a smaller signature.
@@ -845,3 +859,77 @@ are native counters, not application business-outcome counts. Exact output
 and state assertions remain separate. Zero counts are useful for a fresh empty
 case, not as proof that submitted work finished. These tests use the real local
 database and clock; no virtual-time, effect replay or provider claim follows.
+
+### DATE source values
+
+DATE literals use exactly `YYYY-MM-DD`, with Gregorian calendar validation from
+the shared SQL semantics owner, years 0001–9999 and no timezone. Parameters,
+domains, compile-time variant fields, comparisons, TYPE operands and resource
+signatures preserve DATE. Ordinary DATE values compare by exact day; nominal
+DATE domains admit only same-domain equality/inequality. Arithmetic and implicit
+conversion to/from timestamps or strings reject. Formatting does not change a
+literal's spelling or day.
+
+The existing typed SQL binder validates DATE assignments and predicates before
+erasure. Test expectations use the shared typed DATE codec, with SQL NULL kept
+separate. Ordered program schemas/values and runtime helper parameters/returns
+still reject DATE through the pinned owner (`ProgramTypeMismatch`); a source DATE
+domain does not evade that restriction. Runtime MATCH therefore cannot decode a
+DATE payload. See the [surface matrix](application-source/SQL_SURFACES_V1.md).
+
+### Explicit query cardinality
+
+`LET result ONE = SELECT ...;` and `LET result OPTIONAL = SELECT ...;` add checked
+row-presence evidence. Their [contract](application-source/CARDINALITY_V1.md)
+defines ordered validation, guarded projection, nullable fields, branch-local
+refinement and the retained native cell-state/many-row boundaries.
+
+## Bounded callable obligations
+
+Guards and atomic procedures admit ordered `REQUIRES` and `ENSURES` clauses for
+scalar non-nullness, constant BIGINT bounds and matching scalar/domain equality.
+Each clause lowers to an explicit runtime REQUIRE after single argument
+evaluation; postconditions validate the captured result before caller effects.
+See [bounded callable obligations](application-source/REFINEMENTS_V1.md) for the
+closed predicate grammar, limits, error order and atomic rollback contract.
+
+## Callable module arguments
+
+Direct module/interface parameters may use `FUNCTION OF`, `GUARD OF` or
+`PROCEDURE OF` followed by a checked helper prototype. Exact signatures retain
+parameter/result types, resource operations and ordered validation clauses.
+Guard/procedure arguments require explicit `EFFECTS` lists, checked against the
+complete inlined body. See [callable composition](application-source/CALLABLES_V1.md)
+for binding, authority, purity and atomicity boundaries.
+
+### Lossless JSON and INTERVAL source values
+
+`JSON 'text'`, `INTERVAL(months, days, nanos)`, their source parameters, TYPE
+operands and nominal domain bases preserve their native descriptors. JSON parsing
+uses the shared bounded parser: 65,536 bytes, depth 16, 4,096 tokens, 256 fields
+per object, valid UTF-8 and unique decoded keys. Numbers remain lexical text;
+SQL quoting is applied to the validated payload. JSON null is a value, distinct
+from SQL NULL. Intervals contain signed i32 months/days and signed i64 nanoseconds,
+with no normalization or implicit microsecond-duration conversion.
+
+Neither type admits source equality, ordering, arithmetic or extraction, including
+through a nominal domain. Hashing source argument bytes/components records build
+identity; it does not confer a runtime JSON hash or equality trait. Whitespace or
+key-order changes can therefore change a source binding identity even when a
+runtime consumer would observe the same JSON object.
+
+Concrete Table/Stream/Queue values and Table domain annotations use the ordinary
+SQL binder. Symbolic Table parameters in compile-time MATCH remain refused with
+`UnsupportedComparison` by the pinned prepared-parameter owner; no witness value
+or unselected-arm check is fabricated. INTERVAL helpers/program values remain
+refused by the native schema owner.
+
+JSON runtime values can pass through typed helpers and native JSON_INTEGER /
+JSON_VALUE calls. These native projections intentionally return SQL NULL for both
+missing members and JSON null. JSON_INTEGER accepts only exact signed i64 integer
+tokens; fractions, exponents, strings and containers refuse. JSON_VALUE returns
+string, number-lexeme or boolean text, and refuses containers. These operations do
+not establish row absence or preserve all source cell states. JSON literals from
+source parameters cannot be inserted into a program expression: the pinned
+program grammar has no JSON literal. Feed ordinary JSON through a resource input
+or native JSON_OBJECT instead. Current runtime authority still applies.

@@ -11,10 +11,11 @@ const types = @import("SourceTypes.zig");
 const Operands = @import("TypedOperands.zig");
 const Annotations = @import("ProgramAnnotations.zig");
 const ProgramCheck = @import("ProgramCheck.zig");
+const Symbolic = @import("SymbolicProgram.zig");
 
 const CallOrigin = Operands.CallOrigin;
 const Symbol = struct { original: []const u8, emitted: []const u8 };
-const ResourceBinding = struct { name: []const u8, table: *const types.Table };
+const ResourceBinding = @import("Effects.zig").Binding;
 const ResolvedCallee = struct {
     ref: Graph.Ref,
     bindings: []const types.Binding = &.{},
@@ -71,6 +72,7 @@ writer: Compiler.BoundedBuffer,
 sites: *std.ArrayList(Operands.Site),
 origins: *std.ArrayList(Operands.Origin),
 obligations: *std.ArrayList(Annotations.Obligation),
+symbolic_parameters: *Symbolic.Parameters,
 next_id: usize = 0,
 in_queue_predicate: bool = false,
 queue_name: []const u8 = "",
@@ -85,10 +87,12 @@ pub fn validateAll(compiler: *Compiler) !void {
         compiler.file = file_idx;
         compiler.offset = def.span.start;
         compiler.context = .{ .name = def.name };
+        try @import("Refinements.zig").validate(graph, file_idx, def);
+        try @import("Effects.zig").validate(def);
         for (def.parameters) |param| {
             compiler.context = .{ .name = param.name };
             switch (param.kind) {
-                .integer, .text, .boolean, .uuid, .timestamptz, .binary => {},
+                .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary => {},
                 .named => |name| {
                     const ref = try graph.resolve(file_idx, name);
                     if (graph.getDefinition(ref).kind != .domain) return error.InvalidParameterType;
@@ -106,7 +110,7 @@ pub fn validateAll(compiler: *Compiler) !void {
                     if (def.kind != .procedure) return error.InvalidParameterType;
                     try validateSignatureColumns(graph, file_idx, cols, .queue);
                 },
-                .identifier, .type, .schema_binding, .module, .module_of => return error.InvalidParameterType,
+                .identifier, .type, .schema_binding, .module, .module_of, .callable => return error.InvalidParameterType,
             }
         }
         if (def.return_type) |return_type| {
@@ -184,7 +188,7 @@ fn validateHelperRowFields(graph: Graph, file: usize, fields: []const s.Paramete
     if (depth >= 16) return error.SourceDepthLimit;
     for (fields) |field| {
         switch (field.kind) {
-            .integer, .text, .boolean, .uuid, .timestamptz, .binary => {},
+            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary => {},
             .named => |name| {
                 const ref = try graph.resolve(file, name);
                 if (graph.getDefinition(ref).kind != .domain) return error.InvalidParameterType;
@@ -208,7 +212,7 @@ fn buildHelperRowParam(scratch: std.mem.Allocator, out_alloc: std.mem.Allocator,
     const expected_fields = try out_alloc.alloc(Annotations.RowField, fields.len);
     for (fields, 0..) |field, idx| {
         switch (field.kind) {
-            .integer, .text, .boolean, .uuid, .timestamptz, .binary, .named => {
+            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary, .named => {
                 const scalar_ty = try parameterScalar(graph, file, field.kind);
                 struct_fields[idx] = .{ .name = field.name, .type = scalar_ty.physical(), .nullable = false };
                 domain_fields[idx] = .{ .name = field.name, .domain = scalar_ty.domain };
@@ -308,6 +312,11 @@ fn visitCallGraph(compiler: *Compiler, base_offsets: []const usize, visited: []u
     const tokens = def.program.?.tokens;
     var i: usize = 0;
     while (i < tokens.len) : (i += 1) {
+        if (std.mem.indexOfScalar(u32, def.program.?.match_arms, tokens[i].start) != null) {
+            // The structural parser identified a pattern, not a callable.
+            while (i < tokens.len and !tokenWord(text, tokens[i], "THEN")) : (i += 1) {}
+            continue;
+        }
         if (def.kind != .function and tokenWord(text, tokens[i], "CHECK") and i + 1 < tokens.len and tokenWord(text, tokens[i + 1], "GUARD")) {
             const call_offset = tokens[i].start;
             i += 2;
@@ -396,7 +405,7 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
 
     for (def.parameters) |param| {
         switch (param.kind) {
-            .integer, .text, .boolean, .uuid, .timestamptz, .binary, .named => {
+            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary, .named => {
                 const scalar_ty = try parameterScalar(graph, ref.file, param.kind);
                 try in_cols.append(scratch, .{
                     .id = in_cols.items.len + 1,
@@ -461,6 +470,7 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
     var origins: std.ArrayList(Operands.Origin) = .empty;
     var obligations: std.ArrayList(Annotations.Obligation) = .empty;
 
+    var symbolic_parameters: Symbolic.Parameters = .empty;
     var lowerer: Self = .{
         .compiler = compiler,
         .catalog = &temp_catalog,
@@ -470,6 +480,7 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
         .sites = &sites,
         .origins = &origins,
         .obligations = &obligations,
+        .symbolic_parameters = &symbolic_parameters,
         .queue_name = "__transit$in",
         .input_emitted = "\"__transit$req\"",
     };
@@ -494,7 +505,7 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
     };
     for (def.parameters) |param| {
         switch (param.kind) {
-            .integer, .text, .boolean, .uuid, .timestamptz, .binary, .named, .row => {
+            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary, .named, .row => {
                 const hygienic = try lowerer.freshHygienic(param.name);
                 try env.symbols.append(scratch, .{ .original = param.name, .emitted = hygienic });
                 try lowerer.emitFixed("LET", origin_base);
@@ -526,13 +537,17 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
             });
         },
         .guard => {
+            try lowerer.refinements(&env, def.preconditions);
             try lowerer.lowerGuardProgram(&env, def.program.?, 0);
+            try lowerer.refinements(&env, def.postconditions);
         },
         .procedure => {
             if (def.return_type != null) env.return_binding = try lowerer.freshHygienic("ret");
             try lowerer.emitFixed("BEGIN ATOMIC", origin_base);
+            try lowerer.refinements(&env, def.preconditions);
             var idx: usize = 0;
             try lowerer.lowerBlock(&env, body_tokens, &idx, true, 0);
+            try lowerer.refinements(&env, def.postconditions);
             try lowerer.emitFixed("END ;", origin_base);
         },
         else => unreachable,
@@ -542,13 +557,15 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
     const sql = lowerer.writer.bytes.items;
     var at: f.Sql.Location = .{ .offset = std.math.maxInt(usize) };
     const check_fn = struct {
-        fn run(comp: *Compiler, cat: *Catalog, raw_sql: []const u8, loc: *f.Sql.Location, sc: std.mem.Allocator, st: []const Operands.Site, org: []const Operands.Origin, obs: []const Annotations.Obligation) !void {
+        fn run(comp: *Compiler, cat: *Catalog, raw_sql: []const u8, loc: *f.Sql.Location, sc: std.mem.Allocator, definition: s.Definition, resources: []const ResourceBinding, st: []const Operands.Site, org: []const Operands.Origin, obs: []const Annotations.Obligation) !void {
             var analysis = try ProgramCheck.analyze(cat, raw_sql, loc);
             defer analysis.deinit();
+            try @import("Effects.zig").check(sc, cat, definition.effects, resources, analysis.parsed.program.body.instructions, &comp.context);
             _ = try Annotations.check(sc, sc, comp.graph, cat, analysis.parsed.program, &analysis.bound, raw_sql, st, org, obs, &comp.context, &comp.work, comp.limits.work);
         }
     }.run;
-    check_fn(compiler, &temp_catalog, sql, &at, scratch, sites.items, origins.items, obligations.items) catch |err| {
+    var check_catalog = try Symbolic.catalog(scratch, temp_catalog, sql, symbolic_parameters.items, &at);
+    check_fn(compiler, &check_catalog, sql, &at, scratch, def, res_bindings.items, sites.items, origins.items, obligations.items) catch |err| {
         const err_offset = compiler.context.offset orelse at.offset;
         for (origins.items) |origin| if (err_offset >= origin.start and err_offset < origin.end) {
             if (origin.file) |origin_file| compiler.file = origin_file;
@@ -570,6 +587,7 @@ pub fn lowerProgram(
     sites: *std.ArrayList(Operands.Site),
     origins: *std.ArrayList(Operands.Origin),
     obligations: *std.ArrayList(Annotations.Obligation),
+    symbolic_parameters: *Symbolic.Parameters,
 ) ![]const u8 {
     errdefer origins.clearRetainingCapacity();
     if (tokens.len < 4) return error.InvalidSourceSyntax;
@@ -587,6 +605,12 @@ pub fn lowerProgram(
         .sites = sites,
         .origins = origins,
         .obligations = obligations,
+        .symbolic_parameters = symbolic_parameters,
+    };
+    // Type-only inputs cannot be named by authored SQL. Helpers are checked
+    // independently against their declared row shapes before specialization.
+    if (compiler.symbolic) for (tokens) |token| {
+        if (token.kind == .quoted and std.mem.startsWith(u8, try self.decodeProgramName(text, token), "__transit$symbolic_")) return error.UnsupportedSymbolicProgram;
     };
     var env: Env = .{
         .file = file,
@@ -656,6 +680,8 @@ pub fn lowerProgram(
 fn hasHelperCalls(graph: Graph, file: usize, bindings: []const types.Binding, text: []const u8, tokens: []const s.Token) bool {
     var i: usize = 0;
     while (i < tokens.len) : (i += 1) {
+        if (tokenWord(text, tokens[i], "MATCH")) return true;
+        if (tokenWord(text, tokens[i], "LET") and i + 2 < tokens.len and (tokenWord(text, tokens[i + 2], "ONE") or tokenWord(text, tokens[i + 2], "OPTIONAL"))) return true;
         if (tokenWord(text, tokens[i], "CHECK") and i + 1 < tokens.len and tokenWord(text, tokens[i + 1], "GUARD")) return true;
         if (tokenWord(text, tokens[i], "CALL") and i + 1 < tokens.len and tokens[i + 1].kind == .word) {
             const after = if (i + 3 < tokens.len and tokenSymbol(text, tokens[i + 2], '.')) i + 4 else i + 2;
@@ -687,6 +713,10 @@ fn parameterScalar(graph: Graph, file: usize, kind: s.Kind) !types.Scalar {
         .boolean => .{ .base = .boolean },
         .uuid => .{ .base = .uuid },
         .timestamptz => .{ .base = .timestamptz },
+        .date => .{ .base = .date },
+        .json => .{ .base = .json },
+        .interval => .{ .base = .interval },
+        .numeric => |d| try types.numericScalar(d),
         .binary => .{ .base = .binary },
         .named => |name| try types.domain(graph, try graph.resolve(file, name)),
         else => error.InvalidParameterType,
@@ -1042,9 +1072,13 @@ fn lowerGuardProgram(self: *Self, env: *Env, prog: s.Template.Syntax, depth: usi
 fn lowerBlock(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic: bool, depth: usize) anyerror!void {
     if (depth > self.compiler.limits.depth) return error.SourceDepthLimit;
     const text = self.compiler.graph.sources[env.file].text;
-    while (i.* < tokens.len and !tokenWord(text, tokens[i.*], "END") and !tokenWord(text, tokens[i.*], "ELSE") and !tokenWord(text, tokens[i.*], "ON")) {
+    while (i.* < tokens.len and !tokenWord(text, tokens[i.*], "END") and !tokenWord(text, tokens[i.*], "ELSE") and !tokenWord(text, tokens[i.*], "ON") and !tokenWord(text, tokens[i.*], "WHEN")) {
         try self.compiler.tick();
         const start_tok = tokens[i.*];
+        if (tokenWord(text, start_tok, "MATCH")) {
+            try self.lowerMatch(env, tokens, i, atomic, depth + 1);
+            continue;
+        }
         if (tokenWord(text, start_tok, "CHECK")) {
             i.* += 2; // CHECK GUARD
             try self.inlineHelperCall(env, tokens, i, .guard, atomic, start_tok.start, depth + 1, null);
@@ -1144,6 +1178,8 @@ fn lowerBlock(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic
             const var_tok = tokens[i.*];
             i.* += 1;
             const decoded = try self.decodeProgramName(text, var_tok);
+            const cardinality: ?Annotations.Cardinality = if (i.* < tokens.len and tokenWord(text, tokens[i.*], "ONE")) .one else if (i.* < tokens.len and tokenWord(text, tokens[i.*], "OPTIONAL")) .optional else null;
+            if (cardinality != null) i.* += 1;
             var new_hygienic: ?[]const u8 = null;
             if (env.rename_locals) {
                 for (env.symbols.items) |sym| if (std.mem.eql(u8, sym.original, decoded)) {
@@ -1157,6 +1193,7 @@ fn lowerBlock(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic
                 try self.emitOriginalToken(env, text, tokens, i.* - 1);
             }
             try self.requireEmitSymbol(env, tokens, i, "=");
+            if (cardinality != null and (i.* >= tokens.len or !tokenWord(text, tokens[i.*], "SELECT"))) return error.InvalidSourceTemplate;
             if (i.* < tokens.len and tokenWord(text, tokens[i.*], "SELECT")) {
                 try self.requireEmitWord(env, tokens, i, "SELECT");
                 if (tokenSymbol(text, tokens[i.*], '*')) {
@@ -1180,6 +1217,24 @@ fn lowerBlock(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic
                 try self.lowerExpression(env, tokens, i, 0, true, depth + 1);
             }
             try self.requireEmitSymbol(env, tokens, i, ";");
+            if (cardinality) |selected| {
+                const origin_ = self.makeOrigin(env, var_tok.start);
+                if (selected == .one) {
+                    // Keep the optional read inaccessible until its ordered
+                    // whole-record presence check has succeeded.
+                    const read = new_hygienic.?;
+                    try self.emitFixed("REQUIRE", origin_);
+                    try self.emitQuotedRaw(read, origin_);
+                    try self.emitFixed("IS NOT NULL ELSE 'ExpectedOneRow'; LET", origin_);
+                    const narrowed = try self.freshHygienic(decoded);
+                    try self.emitQuotedRaw(narrowed, origin_);
+                    try self.emitFixed("=", origin_);
+                    try self.emitQuotedRaw(read, origin_);
+                    try self.emitFixed(";", origin_);
+                    new_hygienic = narrowed;
+                }
+                try self.obligations.append(self.output, .{ .target = .{ .binding = new_hygienic.? }, .expected = .{ .result = selected }, .name = decoded });
+            }
             if (new_hygienic) |h| try env.symbols.append(self.scratch, .{ .original = decoded, .emitted = h });
         } else if (tokenWord(text, start_tok, "REQUIRE")) {
             try self.requireEmitWord(env, tokens, i, "REQUIRE");
@@ -1229,6 +1284,125 @@ fn lowerBlock(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic
         self.hoist = null;
         try self.applyHoist(mark, &hoisted);
     }
+}
+
+fn matchName(self: *Self, env: *const Env, tokens: []const s.Token, i: *usize) !s.Name {
+    const text = self.compiler.graph.sources[env.file].text;
+    var parts: [3][]const u8 = undefined;
+    var count: usize = 0;
+    while (true) {
+        if (i.* >= tokens.len or tokens[i.*].kind != .word or count == parts.len) return error.InvalidSourceName;
+        parts[count] = try self.decodeProgramName(text, tokens[i.*]);
+        count += 1;
+        i.* += 1;
+        if (i.* >= tokens.len or !tokenSymbol(text, tokens[i.*], '.')) break;
+        i.* += 1;
+    }
+    return switch (count) {
+        1 => .{ .member = parts[0] },
+        2 => .{ .qualifier = parts[0], .member = parts[1] },
+        3 => .{ .qualifier = parts[0], .member = parts[1], .constructor = parts[2] },
+        else => unreachable,
+    };
+}
+
+fn matchField(self: *Self, binding: []const u8, field: []const u8, origin_: Operands.Origin) !void {
+    try self.emitQuotedRaw(binding, origin_);
+    try self.emitFixed(".", origin_);
+    try self.emitQuotedRaw(field, origin_);
+}
+
+fn lowerMatch(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic: bool, depth: usize) anyerror!void {
+    const text = self.compiler.graph.sources[env.file].text;
+    const origin_ = self.makeOrigin(env, tokens[i.*].start);
+    self.setError(env, tokens[i.*].start);
+    i.* += 1;
+    const value = try self.freshHygienic("variant");
+    try self.emitFixed("LET", origin_);
+    try self.emitQuotedRaw(value, origin_);
+    try self.emitFixed("=", origin_);
+    try self.lowerExpression(env, tokens, i, 0, false, depth + 1);
+    try self.emitFixed(";", origin_);
+    if (i.* >= tokens.len or !tokenWord(text, tokens[i.*], "AS")) return error.InvalidSourceSyntax;
+    i.* += 1;
+    const ref = try self.compiler.graph.resolve(env.file, try self.matchName(env, tokens, i));
+    const definition = self.compiler.graph.getDefinition(ref);
+    if (definition.kind != .variant) return error.InvalidVariantConstructor;
+    try self.obligations.append(self.output, .{ .target = .{ .binding = value }, .expected = .{ .variant = ref }, .name = definition.name });
+
+    // Immutable input, evaluated once. Inactive payloads must be NULL and the
+    // selected record must be present. Its scalar fields are descriptor-checked.
+    try self.emitFixed("REQUIRE", origin_);
+    try self.emitQuotedRaw(value, origin_);
+    try self.emitFixed("IS NOT NULL AND (", origin_);
+    for (definition.constructors, 0..) |constructor, arm_index| {
+        try self.compiler.tick();
+        if (arm_index != 0) try self.emitFixed("OR", origin_);
+        try self.emitFixed("(", origin_);
+        try self.matchField(value, "tag", origin_);
+        try self.emitFixed("=", origin_);
+        try self.emitFixed(try std.fmt.allocPrint(self.scratch, "'{s}'", .{constructor.name}), origin_);
+        for (definition.constructors, 0..) |other, other_index| {
+            try self.compiler.tick();
+            try self.emitFixed("AND", origin_);
+            try self.matchField(value, other.name, origin_);
+            try self.emitFixed(if (arm_index == other_index) "IS NOT NULL" else "IS NULL", origin_);
+        }
+        try self.emitFixed(")", origin_);
+    }
+    try self.emitFixed(") ELSE 'InvalidVariant';", origin_);
+
+    var seen: [64]bool = @splat(false);
+    var count: usize = 0;
+    while (i.* < tokens.len and tokenWord(text, tokens[i.*], "WHEN")) {
+        self.setError(env, tokens[i.*].start);
+        i.* += 1;
+        const selected = try types.constructor(self.compiler.graph, env.file, try self.matchName(env, tokens, i));
+        if (!std.meta.eql(selected.definition, ref)) return error.SourceTypeMismatch;
+        if (seen[selected.index]) return error.DuplicateSourceMatchArm;
+        seen[selected.index] = true;
+        count += 1;
+        const constructor = definition.constructors[selected.index];
+        const saved = env.symbols.items.len;
+        try self.emitFixed("IF", origin_);
+        try self.matchField(value, "tag", origin_);
+        try self.emitFixed("=", origin_);
+        try self.emitFixed(try std.fmt.allocPrint(self.scratch, "'{s}' THEN", .{constructor.name}), origin_);
+        if (i.* >= tokens.len or !tokenSymbol(text, tokens[i.*], '(')) return error.InvalidSourceSyntax;
+        i.* += 1;
+        var field_index: usize = 0;
+        while (i.* < tokens.len and !tokenSymbol(text, tokens[i.*], ')')) {
+            if (field_index == constructor.fields.len) return error.SourceArgumentCount;
+            const binder = tokens[i.*];
+            const name = try self.decodeProgramName(text, binder);
+            for (env.symbols.items) |symbol| if (std.mem.eql(u8, symbol.original, name)) return error.DuplicateProgramVariable;
+            for (env.bindings) |binding| if (std.mem.eql(u8, binding.name, name)) return error.DuplicateSourceName;
+            for (env.fn_params) |parameter| if (std.mem.eql(u8, parameter.name, name)) return error.DuplicateSourceName;
+            for (env.row_vars) |row| if (std.mem.eql(u8, row.original, name)) return error.DuplicateSourceName;
+            for (self.compiler.graph.files[env.file].imports) |import| if (std.mem.eql(u8, import.alias, name)) return error.DuplicateSourceName;
+            const local = try self.freshHygienic(name);
+            try self.emitFixed("LET", origin_);
+            try self.emitQuotedRaw(local, origin_);
+            try self.emitFixed("=", origin_);
+            try self.matchField(value, constructor.name, origin_);
+            try self.emitFixed(".", origin_);
+            try self.emitQuotedRaw(constructor.fields[field_index].name, origin_);
+            try self.emitFixed(";", origin_);
+            try env.symbols.append(self.scratch, .{ .original = name, .emitted = local });
+            field_index += 1;
+            i.* += 1;
+            if (i.* < tokens.len and tokenSymbol(text, tokens[i.*], ',')) i.* += 1 else break;
+        }
+        if (field_index != constructor.fields.len) return error.SourceArgumentCount;
+        if (i.* + 1 >= tokens.len or !tokenSymbol(text, tokens[i.*], ')') or !tokenWord(text, tokens[i.* + 1], "THEN")) return error.InvalidSourceSyntax;
+        i.* += 2;
+        try self.lowerBlock(env, tokens, i, atomic, depth + 1);
+        env.symbols.shrinkRetainingCapacity(saved);
+        try self.emitFixed("END IF;", origin_);
+    }
+    if (count != definition.constructors.len) return error.NonExhaustiveSourceMatch;
+    if (i.* + 2 >= tokens.len or !tokenWord(text, tokens[i.*], "END") or !tokenWord(text, tokens[i.* + 1], "MATCH") or !tokenSymbol(text, tokens[i.* + 2], ';')) return error.InvalidSourceSyntax;
+    i.* += 3;
 }
 
 const HoistMark = struct { writer: usize, sites: usize, origins: usize, obligations: usize };
@@ -1643,7 +1817,7 @@ fn inlineHelperCall(self: *Self, caller_env: *Env, tokens: []const s.Token, i: *
                     try callee_env.symbols.append(self.scratch, .{ .original = param.name, .emitted = hygienic });
                 }
             },
-            .integer, .text, .boolean, .uuid, .timestamptz, .binary, .named => {
+            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary, .named => {
                 const expected_scalar = try parameterScalar(self.compiler.graph, callee_ref.file, param.kind);
                 const hygienic = try self.freshHygienic(param.name);
                 const mark = self.beginHoistScope();
@@ -1670,12 +1844,14 @@ fn inlineHelperCall(self: *Self, caller_env: *Env, tokens: []const s.Token, i: *
     }
     callee_env.resources = res_bindings.items;
     callee_env.row_vars = row_vars.items;
+    try self.refinements(&callee_env, callee.preconditions);
     if (kind == .guard) {
         try self.lowerGuardProgram(&callee_env, callee.program.?, depth + 1);
     } else {
         var body_cursor: usize = 0;
         try self.lowerBlock(&callee_env, callee.program.?.tokens, &body_cursor, atomic, depth + 1);
     }
+    try self.refinements(&callee_env, callee.postconditions);
 }
 
 fn resolveResourceArgument(self: *Self, caller_env: *const Env, arg_tokens: []const s.Token, expected_kind: types.ResourceKind, arg_offset: usize) !*const types.Table {
@@ -1875,8 +2051,10 @@ fn emitValueHole(self: *Self, env: *const Env, tokens: []const s.Token, i: *usiz
         self.setError(env, dollar_tok.start);
         return error.UnknownSourceOperand;
     };
+    if (value.scalar()) |scalar_| if (scalar_.base == .json) return error.ProgramTypeMismatch;
     switch (value) {
-        .integer, .text, .boolean, .uuid, .timestamptz, .binary, .nominal => {},
+        .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary, .nominal => {},
+        .symbolic => if (!self.compiler.symbolic) return error.InvalidSourceOperand,
         .table, .stream, .queue, .identifier => {
             self.setError(env, dollar_tok.start);
             return error.UnsupportedLogOperand;
@@ -1889,7 +2067,13 @@ fn emitValueHole(self: *Self, env: *const Env, tokens: []const s.Token, i: *usiz
     i.* += 2;
     if (self.writer.len() != 0) try self.writer.writeByte(' ');
     const start = self.writer.len();
-    try Compiler.writeValue(&self.writer, value);
+    if (value == .symbolic) {
+        const name_ = try std.fmt.allocPrint(self.scratch, "__transit$symbolic_{d}", .{self.symbolic_parameters.items.len});
+        try self.symbolic_parameters.append(self.scratch, .{ .name = name_, .scalar = value.symbolic });
+        try self.writer.writeAll(self.input_emitted);
+        try self.writer.writeByte('.');
+        try Compiler.quoted(&self.writer, name_, '"');
+    } else try Compiler.writeValue(&self.writer, value);
     try self.sites.append(self.output, .{ .start = start, .end = self.writer.len(), .value = value });
     var rec = self.makeOrigin(env, dollar_tok.start);
     rec.start = start;
@@ -2035,7 +2219,7 @@ fn expandFunctionCall(self: *Self, caller_env: *const Env, resolved_callee: Reso
             .call = caller_env.call,
         };
         const uses = countParamUses(callee_text, expr_tokens, param.name);
-        const duplicate_branch = ret_scalar.domain != null or ret_scalar.base == .uuid or ret_scalar.base == .timestamptz or ret_scalar.base == .binary;
+        const duplicate_branch = ret_scalar.domain != null or ret_scalar.base == .uuid or ret_scalar.base == .timestamptz or ret_scalar.base == .binary or ret_scalar.base == .json;
         const effective_uses = if (has_unused and duplicate_branch and !self.in_queue_predicate) uses * 2 else uses;
         const caller_text = self.compiler.graph.sources[caller_env.file].text;
         if (param.kind == .row and arg_tokens.len >= 3 and tokenWord(caller_text, arg_tokens[0], "ROW") and tokenSymbol(caller_text, arg_tokens[1], '(')) {
@@ -2136,7 +2320,7 @@ fn expandFunctionCall(self: *Self, caller_env: *const Env, resolved_callee: Reso
             try self.emitFixed("IS NULL AND", call_origin);
         }
         try self.emitFixed("FALSE THEN", call_origin);
-        if (ret_scalar.domain != null or ret_scalar.base == .uuid or ret_scalar.base == .timestamptz or ret_scalar.base == .binary) {
+        if (ret_scalar.domain != null or ret_scalar.base == .uuid or ret_scalar.base == .timestamptz or ret_scalar.base == .binary or ret_scalar.base == .json) {
             try self.emitFixed("(", call_origin);
             var dup_cursor: usize = 0;
             try self.lowerExpression(&fn_env, expr_tokens, &dup_cursor, 0, false, depth + 1);
@@ -2146,7 +2330,7 @@ fn expandFunctionCall(self: *Self, caller_env: *const Env, resolved_callee: Reso
                 .bigint => "0",
                 .text => "''",
                 .boolean => "FALSE",
-                .uuid, .timestamptz, .binary => unreachable,
+                .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary => unreachable,
             }, call_origin);
         }
         try self.emitFixed("ELSE (", call_origin);
@@ -2171,6 +2355,8 @@ fn emitHoistedLet(self: *Self, caller_env: *const Env, h_name: []const u8, expec
         .sites = &hoist.sites,
         .origins = &hoist.origins,
         .obligations = &hoist.obligations,
+        .symbolic_parameters = self.symbolic_parameters,
+        .input_emitted = self.input_emitted,
         .next_id = self.next_id,
     };
     const origin = sub.makeOrigin(caller_env, arg_offset);
@@ -2202,6 +2388,7 @@ fn validateUnusedQueueArg(self: *Self, fp: FnParam, call_offset: usize, depth: u
         .sites = &sub_sites,
         .origins = &sub_origins,
         .obligations = &sub_obs,
+        .symbolic_parameters = self.symbolic_parameters,
         .next_id = self.next_id,
         .in_queue_predicate = true,
         .queue_name = self.queue_name,
@@ -2226,7 +2413,8 @@ fn validateUnusedQueueArg(self: *Self, fp: FnParam, call_offset: usize, depth: u
             _ = try Annotations.check(sc, sc, comp.graph, cat, analysis.parsed.program, &analysis.bound, raw_sql, st, org, obs, &comp.context, &comp.work, comp.limits.work);
         }
     }.run;
-    run_check(self.compiler, self.catalog, sql, &at, self.scratch, sub_sites.items, sub_origins.items, sub_obs.items) catch |err| {
+    var check_catalog = try Symbolic.catalog(self.scratch, self.catalog.*, sql, self.symbolic_parameters.items, &at);
+    run_check(self.compiler, &check_catalog, sql, &at, self.scratch, sub_sites.items, sub_origins.items, sub_obs.items) catch |err| {
         const err_offset = self.compiler.context.offset orelse at.offset;
         for (sub_origins.items) |o| if (err_offset >= o.start and err_offset < o.end) {
             if (o.file) |of| self.compiler.file = of;
@@ -2533,4 +2721,35 @@ fn tokenWord(text: []const u8, tok: s.Token, expected: []const u8) bool {
 
 fn tokenSymbol(text: []const u8, tok: s.Token, expected: u8) bool {
     return tok.kind == .symbol and tok.end - tok.start == 1 and text[tok.start] == expected;
+}
+
+fn refinementName(self: *Self, env: *const Env, name: []const u8, origin: Operands.Origin) !void {
+    if (std.mem.eql(u8, name, "result")) return self.emitQuotedRaw(env.return_binding orelse return error.InvalidRefinementBinding, origin);
+    for (env.symbols.items) |symbol| if (std.mem.eql(u8, symbol.original, name)) return self.emitQuotedRaw(symbol.emitted, origin);
+    return error.InvalidRefinementBinding;
+}
+fn refinements(self: *Self, env: *const Env, clauses: []const s.Refinement) !void {
+    for (clauses) |clause| {
+        try self.compiler.tick();
+        const origin = self.makeOrigin(env, clause.span.start);
+        try self.emitFixed("REQUIRE", origin);
+        for (clause.terms, 0..) |term, i| {
+            if (i != 0) try self.emitFixed("AND", origin);
+            try self.refinementName(env, term.left, origin);
+            try self.emitFixed(@import("Refinements.zig").operator(term.op), origin);
+            if (term.right) |right| switch (right) {
+                .name => |name| try self.refinementName(env, name, origin),
+                .integer => |n| {
+                    var buffer: [32]u8 = undefined;
+                    try self.emitFixed(try std.fmt.bufPrint(&buffer, "{d}", .{n}), origin);
+                },
+            };
+        }
+        try self.emitFixed("ELSE", origin);
+        // Refusal text is data, with the same quoting as every source value.
+        var buffer: Compiler.BoundedBuffer = .{ .allocator = self.scratch, .limit = self.writer.limit };
+        try Compiler.quoted(&buffer, clause.refusal, '\'');
+        try self.emitFixed(buffer.bytes.items, origin);
+        try self.emitFixed(";", origin);
+    }
 }

@@ -1,0 +1,31 @@
+CREATE FUNCTION Identity(payload JSON, unused BIGINT) RETURNS JSON AS BEGIN RETURN payload; END;
+CREATE PROCEDURE Save(events STREAM(id BIGINT NOT NULL, number BIGINT, text TEXT, payload JSON), id BIGINT, payload JSON)
+EFFECTS (PRODUCE events)
+REQUIRES payload IS NOT NULL ELSE 'SqlNull'
+AS BEGIN ATOMIC
+  LET number = JSON_INTEGER(payload, '$.number');
+  LET text = JSON_VALUE(payload, '$.value');
+  PRODUCE INTO events VALUES (id, number, text, payload);
+END;
+CREATE MODULE Setup(lease TEXT) AS BEGIN
+  CREATE PUBLIC STREAM json_events(id BIGINT NOT NULL, number BIGINT, text TEXT, payload JSON);
+  CREATE PUBLIC QUEUE json_requests(id BIGINT NOT NULL, payload JSON) WITH(lease_duration=$lease,max_lease_duration=$lease);
+  CREATE PUBLIC DATAFLOW json_route FROM QUEUE json_requests AS request AS BEGIN
+    BEGIN ATOMIC CALL Save(json_events, request.id, Identity(request.payload, 1)); END;
+  END;
+  AUTHORIZE DATAFLOW json_route AS ROLE CURRENT_ROLE;
+  ACTIVATE DATAFLOW json_route;
+END;
+CREATE TARGET default AS BEGIN USE Setup('120s'); END;
+CREATE TEST TARGET tests AS BEGIN
+  TEST 'exact JSON extraction' USING MODULES (Setup('30s')) AS BEGIN
+    ENQUEUE INTO json_requests VALUES(1, JSON '{"number":9007199254740993,"value":false}');
+    ASSERT WORKFLOW NAME 'json_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, number, text, payload FROM json_events) EQUAL ((1,9007199254740993,'false',JSON '{"number":9007199254740993,"value":false}'));
+  END;
+  TEST 'JSON null is a value' USING MODULES (Setup('30s')) AS BEGIN
+    ENQUEUE INTO json_requests VALUES(2, JSON 'null');
+    ASSERT WORKFLOW NAME 'json_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME id, number, text, payload FROM json_events) EQUAL ((2,NULL,NULL,JSON 'null'));
+  END;
+END;

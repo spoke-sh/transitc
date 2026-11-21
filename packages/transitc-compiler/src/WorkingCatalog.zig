@@ -221,6 +221,7 @@ fn createLog(self: *Self, sql: []const u8, location: *f.Sql.Location) ![32]u8 {
     var hash = std.crypto.hash.sha2.Sha256.init(.{});
     hash.update(@tagName(entry.kind));
     hash.update(&try schema.fingerprint());
+    entry.hashLogPolicy(&hash);
     return hash.finalResult();
 }
 pub fn querySchema(self: *Self, sql: []const u8) !f.Types.Type {

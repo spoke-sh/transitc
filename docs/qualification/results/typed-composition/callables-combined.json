@@ -1,0 +1,148 @@
+{
+  "format": "transit_test_v1",
+  "definition": "f311e893f8d2f4c21f426790172fadfebe7eb2364615eb1566c09f11d39bb0bb",
+  "compiler_revision": "development",
+  "compiler_digest": "696d03503a89aad04eb9f6f675a8d9561394e9852faf5143407eb0f6bbce6126",
+  "runtime": {
+    "revision": "f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6",
+    "executable_digest": [
+      220,
+      161,
+      83,
+      79,
+      36,
+      21,
+      190,
+      255,
+      47,
+      110,
+      203,
+      108,
+      182,
+      238,
+      199,
+      124,
+      53,
+      97,
+      67,
+      62,
+      129,
+      133,
+      83,
+      167,
+      140,
+      43,
+      6,
+      92,
+      169,
+      163,
+      155,
+      121
+    ]
+  },
+  "target": "tests",
+  "input_digest": "b65c3d84bc27956ed9ac41c0acd37fd5d7d8f8d17ad972d49a55d3329ce118cb",
+  "sql_digest": "f78b163dbdab09b96f7ebef846431a092fd84058852740464f058ce26652a433",
+  "complete": false,
+  "ok": false,
+  "compiler_peak_bytes": 6808204,
+  "cases": [
+    {
+      "name": "imported nested callable",
+      "identity": "80c4bbec19383295e5604fe50ea9c3e962fbb6a1fd10d7124669161056734d79",
+      "sql_digest": "342a26fa85ba31d75654211d5ec84263ff6480ed248f1bd35a6030a0a10c7ad6",
+      "location": {
+        "source": "root/build.transit",
+        "source_encoding": "utf8",
+        "source_truncated": false,
+        "statement": null,
+        "offset": "450",
+        "length": "392",
+        "line": "11",
+        "byte_column": "3"
+      },
+      "status": "failed",
+      "error_code": "TestDeadline",
+      "observation": {
+        "actions": 8,
+        "rows": 0,
+        "bytes": 0,
+        "operation": null,
+        "failure": null,
+        "resources": {
+          "memory_peak_bytes": 83804367,
+          "storage_reserved_bytes": 4141797
+        }
+      },
+      "action_location": {
+        "source": "root/build.transit",
+        "source_encoding": "utf8",
+        "source_truncated": false,
+        "statement": null,
+        "offset": "652",
+        "length": "76",
+        "line": "13",
+        "byte_column": "5"
+      }
+    },
+    {
+      "name": "returning callable rollback",
+      "identity": "f45b987f85d4c35e43b97c986acf405caaeb945eae1fef4acb5492de29273e0d",
+      "sql_digest": "b440591f70d9ee68d891a1dc18c95fad6112a61ca790f1b2c8f3f0eddf0c9f7c",
+      "location": {
+        "source": "root/build.transit",
+        "source_encoding": "utf8",
+        "source_truncated": false,
+        "statement": null,
+        "offset": "845",
+        "length": "390",
+        "line": "17",
+        "byte_column": "3"
+      },
+      "status": "not_run",
+      "error_code": null,
+      "observation": {
+        "actions": 0,
+        "rows": 0,
+        "bytes": 0,
+        "operation": null,
+        "failure": null,
+        "resources": {
+          "memory_peak_bytes": 0,
+          "storage_reserved_bytes": 0
+        }
+      },
+      "action_location": null
+    }
+  ],
+  "sources": [
+    {
+      "package": "root",
+      "path": "build.transit",
+      "digest": "ed8ee5599e64dab27cca3471e03a63f0b276407ef54c11e9d299a1749beedadf"
+    },
+    {
+      "package": "root",
+      "path": "pipeline.transit",
+      "digest": "e399079634171ffdf4ffa5d350504c51d6df8946d168318852c66bf3c00b55eb"
+    },
+    {
+      "package": "root",
+      "path": "steps.transit",
+      "digest": "fd38a28a9aad8195b2eb067e95d9571de55f4f33efb6ea35d40029b3623a5c54"
+    }
+  ],
+  "dependencies": [],
+  "limits": {
+    "cases": 128,
+    "actions": 1024,
+    "rows": 10000,
+    "result_bytes": 16777216,
+    "report_bytes": 1048576,
+    "case_ms": 30000,
+    "suite_ms": 300000,
+    "cleanup_ms": 5000,
+    "host_bytes": 268435456,
+    "storage_bytes": 268435456
+  }
+}
