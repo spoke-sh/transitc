@@ -927,6 +927,10 @@
         "DuplicateField": {
           "code": "application.source.type",
           "category": "binding"
+        },
+        "InvalidDecimal": {
+          "code": "application.source.type",
+          "category": "binding"
         }
       }
     }

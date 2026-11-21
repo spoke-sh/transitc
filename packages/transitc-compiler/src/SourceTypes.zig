@@ -6,8 +6,9 @@ const Graph = @import("Graph.zig");
 pub const Scalar = struct {
     base: s.ScalarType,
     domain: ?Graph.Ref = null,
+    numeric: ?s.NumericType = null,
     pub fn eql(left: Scalar, right: Scalar) bool {
-        return left.base == right.base and std.meta.eql(left.domain, right.domain);
+        return left.base == right.base and std.meta.eql(left.numeric, right.numeric) and std.meta.eql(left.domain, right.domain);
     }
     pub fn label(self: Scalar, graph: Graph) []const u8 {
         if (self.domain) |ref| return graph.getDefinition(ref).domain.?.identity;
@@ -18,6 +19,7 @@ pub const Scalar = struct {
             .uuid => "UUID",
             .timestamptz => "TIMESTAMPTZ",
             .date => "DATE",
+            .numeric => "NUMERIC",
             .binary => "BINARY",
         };
     }
@@ -29,18 +31,21 @@ pub const Scalar = struct {
             .uuid => .uuid,
             .timestamptz => .{ .timestamp = .utc },
             .date => .date,
+            .numeric => .{ .decimal = self.numeric.? },
             .binary => .binary,
         };
     }
     pub fn hash(self: Scalar, graph: Graph, into: *std.crypto.hash.sha2.Sha256) void {
         Graph.hashPart(into, @tagName(self.base));
+        if (self.numeric) |d| into.update(&.{ d.precision, d.scale });
         if (self.domain) |ref| {
             Graph.hashPart(into, "domain");
             Graph.hashPart(into, graph.getDefinition(ref).domain.?.identity);
         } else Graph.hashPart(into, "scalar");
     }
 };
-pub const Primitive = union(enum) { integer: i64, text: []const u8, boolean: bool, uuid: []const u8, timestamptz: []const u8, date: []const u8, binary: []const u8 };
+pub const Numeric = struct { coefficient: i128, type: s.NumericType };
+pub const Primitive = union(enum) { integer: i64, text: []const u8, boolean: bool, uuid: []const u8, timestamptz: []const u8, date: []const u8, numeric: Numeric, binary: []const u8 };
 pub const FieldDomain = struct { name: []const u8, domain: ?Graph.Ref = null, fields: []const FieldDomain = &.{} };
 pub const SchemaBinding = struct { logical: []const u8, concrete: []const u8 };
 pub const ReferenceTable = struct { table: *const Table, columns: []const []const u8 };
@@ -100,6 +105,7 @@ pub const Value = union(enum) {
     uuid: []const u8,
     timestamptz: []const u8,
     date: []const u8,
+    numeric: Numeric,
     binary: []const u8,
     identifier: []const u8,
     schema_binding: []const u8,
@@ -123,6 +129,7 @@ pub const Value = union(enum) {
             .uuid => .{ .base = .uuid },
             .timestamptz => .{ .base = .timestamptz },
             .date => .{ .base = .date },
+            .numeric => |v| .{ .base = .numeric, .numeric = v.type },
             .binary => .{ .base = .binary },
             .nominal => |v| v.type,
             .symbolic => |v| v,
@@ -137,6 +144,7 @@ pub const Value = union(enum) {
             .uuid => |v| .{ .uuid = v },
             .timestamptz => |v| .{ .timestamptz = v },
             .date => |v| .{ .date = v },
+            .numeric => |v| .{ .numeric = v },
             .binary => |v| .{ .binary = v },
             .nominal => |v| v.value,
             else => error.SourceTypeMismatch,
@@ -148,13 +156,19 @@ pub const Binding = struct { name: []const u8, value: Value };
 pub fn resolve(graph: Graph, file: usize, kind: s.TypeRef) !Scalar {
     return switch (kind) {
         .scalar => |base| .{ .base = base },
+        .numeric => |d| try numericScalar(d),
         .named => |name| try domain(graph, try graph.resolve(file, name)),
     };
 }
 pub fn domain(graph: Graph, ref: Graph.Ref) !Scalar {
     const definition = graph.getDefinition(ref);
     if (definition.kind != .domain) return error.NotSourceDomain;
-    return .{ .base = definition.domain.?.base, .domain = ref };
+    if (definition.domain.?.numeric) |d| _ = try numericScalar(d);
+    return .{ .base = definition.domain.?.base, .domain = ref, .numeric = definition.domain.?.numeric };
+}
+pub fn numericScalar(d: s.NumericType) !Scalar {
+    try (f.Types.Type{ .decimal = d }).validate(.{});
+    return .{ .base = .numeric, .numeric = d };
 }
 pub fn field(graph: Graph, file: usize, kind: s.Kind) !Scalar {
     return switch (kind) {
@@ -164,6 +178,7 @@ pub fn field(graph: Graph, file: usize, kind: s.Kind) !Scalar {
         .uuid => .{ .base = .uuid },
         .timestamptz => .{ .base = .timestamptz },
         .date => .{ .base = .date },
+        .numeric => |d| try numericScalar(d),
         .binary => .{ .base = .binary },
         .named => |name| try domain(graph, try graph.resolve(file, name)),
         else => error.UnsupportedVariantField,
@@ -187,6 +202,7 @@ pub fn validate(graph: Graph, a: std.mem.Allocator, file_at: *usize, offset: *us
         file_at.* = i;
         offset.* = definition.span.start;
         if (definition.domain) |value| {
+            if (value.numeric) |d| _ = try numericScalar(d);
             if (!std.unicode.utf8ValidateSlice(value.identity)) return error.InvalidDomainIdentity;
             if ((try identities.getOrPut(value.identity)).found_existing) return error.DuplicateDomainIdentity;
         }
@@ -222,6 +238,12 @@ pub fn hashValue(value: Value, graph: Graph, into: *std.crypto.hash.sha2.Sha256,
         .integer => |v| {
             var bytes: [8]u8 = undefined;
             std.mem.writeInt(i64, &bytes, v, .little);
+            into.update(&bytes);
+        },
+        .numeric => |v| {
+            into.update(&.{ v.type.precision, v.type.scale });
+            var bytes: [16]u8 = undefined;
+            std.mem.writeInt(i128, &bytes, v.coefficient, .little);
             into.update(&bytes);
         },
         .boolean => |v| into.update(&.{@intFromBool(v)}),

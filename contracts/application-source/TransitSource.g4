@@ -39,11 +39,12 @@ functionBody: RETURN programExpression SEMI | programInstruction+;
 parameters: LPAREN (parameter (COMMA parameter)*)? RPAREN;
 rowParameters: LPAREN parameter (COMMA parameter)* RPAREN;
 parameter: sourceName parameterKind;
-parameterKind: BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | IDENTIFIER_KIND | TYPE | SCHEMA_BINDING
+parameterKind: BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | numericSourceType | IDENTIFIER_KIND | TYPE | SCHEMA_BINDING
     | MODULE OF? sourceQualifiedName
     | ROW rowParameters
     | (TABLE | STREAM | QUEUE) LPAREN signatureColumn (COMMA signatureColumn)* RPAREN | sourceParameterName;
-sourceBaseType: BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY;
+numericSourceType: NUMERIC LPAREN INTEGER COMMA INTEGER RPAREN;
+sourceBaseType: BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | numericSourceType;
 sourceParameterName: parameterHead (DOT sourceName (DOT sourceName)?)?
     | sourceBaseType DOT sourceName (DOT sourceName)?;
 parameterHead: referenceTypeHead | TRUE | FALSE | NOT;
@@ -94,6 +95,7 @@ sourceAtom: INTEGER | STRING | TRUE | FALSE | NAME STRING
     | UUID STRING
     | (TIMESTAMPTZ | TIMESTAMP) STRING
     | DATE STRING
+    | numericSourceType STRING
     | X STRING
     | SCHEMA_BINDING LPAREN STRING RPAREN
     | SCHEMA_BINDING (DOT sourceName (DOT sourceName)? (LPAREN callArguments? RPAREN)?)?
@@ -241,7 +243,7 @@ plainReferenceTypeHead: typeWord | STRUCT | UNION | LIST | ARRAY | MAP | RANGE |
 sourceWord: typeWord | BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | IDENTIFIER_KIND | SCHEMA_BINDING | MODULE | TABLE;
 typeWord: typeWordWithoutLogs | STREAM | QUEUE;
 typeWordWithoutLogs: typeWordOrdinary | NULL_ | CASE | CAST;
-typeWordOrdinary: ONE | LEASE_DURATION | MAX_LEASE_DURATION | IDENTIFIER | MIGRATION | MIGRATIONS | EMPTY | VERSION | FOR | AT | DECIMAL_ADD | DECIMAL_SUBTRACT | DECIMAL_MULTIPLY | DECIMAL_DIVIDE
+typeWordOrdinary: NUMERIC | ONE | LEASE_DURATION | MAX_LEASE_DURATION | IDENTIFIER | MIGRATION | MIGRATIONS | EMPTY | VERSION | FOR | AT | DECIMAL_ADD | DECIMAL_SUBTRACT | DECIMAL_MULTIPLY | DECIMAL_DIVIDE
     | DECIMAL_RESCALE | RANGE_OVERLAPS | RANGE_CONTAINS | RANGE_ADJACENT | RANGE_COMPARE
     | VECTOR_DISTANCE | TIME_BUCKET | LOCAL_TO_UTC | DATAFLOW | REVISION | AUTHORIZE | ACTIVATE
     | SUSPEND | RESUME | REFRESH | RETIRE | BEGIN | CONSTRAINT | CHECK | FOREIGN | REFERENCES
@@ -350,3 +352,5 @@ LEASE_DURATION: 'LEASE_DURATION';
 MAX_LEASE_DURATION: 'MAX_LEASE_DURATION';
 
 ONE: 'ONE';
+
+NUMERIC: 'NUMERIC';

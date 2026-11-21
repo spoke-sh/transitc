@@ -152,11 +152,14 @@ fn definition(self: Self, def: s.Definition) !void {
         try writer.writeAll(" RETURNS ");
         switch (ret) {
             .scalar => |v| try writer.writeAll(scalarName(v)),
+            .numeric => |v| try self.numericType(v),
             .named => |v| try self.name(v),
         }
     }
     if (def.domain) |domain| {
-        try writer.print(" AS {s} IDENTITY ", .{scalarName(domain.base)});
+        try writer.writeAll(" AS ");
+        if (domain.numeric) |d| try self.numericType(d) else try writer.writeAll(scalarName(domain.base));
+        try writer.writeAll(" IDENTITY ");
         try self.string(domain.identity);
     } else if (def.kind == .variant) {
         try writer.writeAll(" AS (");
@@ -229,6 +232,15 @@ fn expr(self: Self, value: *s.Expr, depth: usize, parent: u8, right: bool) anyer
         .date => |v| {
             try self.w.writeAll("DATE ");
             try self.string(v);
+        },
+        .numeric => |v| {
+            try self.numericType(v.type);
+            try self.w.writeByte(' ');
+            try self.string(v.text);
+        },
+        .numeric_type => |v| {
+            try self.w.writeAll("TYPE ");
+            try self.numericType(v);
         },
         .bytes => |v| {
             try self.w.writeAll("X ");
@@ -476,6 +488,7 @@ fn scalarName(value: s.ScalarType) []const u8 {
         .uuid => "UUID",
         .timestamptz => "TIMESTAMPTZ",
         .date => "DATE",
+        .numeric => unreachable,
         .binary => "BINARY",
     };
 }
@@ -487,6 +500,7 @@ fn kind(self: Self, value: s.Kind) anyerror!void {
         .uuid => try self.w.writeAll("UUID"),
         .timestamptz => try self.w.writeAll("TIMESTAMPTZ"),
         .date => try self.w.writeAll("DATE"),
+        .numeric => |d| try self.numericType(d),
         .binary => try self.w.writeAll("BINARY"),
         .identifier => try self.w.writeAll("IDENTIFIER"),
         .type => try self.w.writeAll("TYPE"),
@@ -521,6 +535,7 @@ fn kind(self: Self, value: s.Kind) anyerror!void {
                 try self.w.print("{s} ", .{column.name});
                 switch (column.type) {
                     .scalar => |v| try self.w.writeAll(scalarName(v)),
+                    .numeric => |v| try self.numericType(v),
                     .named => |v| try self.name(v),
                 }
                 if (column.primary) try self.w.writeAll(" PRIMARY KEY") else if (!column.nullable) try self.w.writeAll(" NOT NULL");
@@ -529,4 +544,8 @@ fn kind(self: Self, value: s.Kind) anyerror!void {
             try self.w.writeByte(')');
         },
     }
+}
+
+fn numericType(self: Self, d: s.NumericType) !void {
+    try self.w.print("NUMERIC({d}, {d})", .{ d.precision, d.scale });
 }

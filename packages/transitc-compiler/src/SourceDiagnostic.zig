@@ -536,6 +536,7 @@ const families = std.StaticStringMap(Family).initComptime(.{
     .{ "InvalidCompilerIdentity", .internal },
     .{ "Overflow", .type },
     .{ "Inexact", .type },
+    .{ "InvalidDecimal", .type },
     .{ "DuplicateField", .type },
     .{ "ReadFailed", .io },
     .{ "WriteFailed", .output },

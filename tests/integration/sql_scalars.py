@@ -1,7 +1,8 @@
-"""Exact ordinary SQL values, independent of source scalar-parameter admission."""
+"""Exact scalar cells including NUMERIC source parameters and independent SQL."""
 from decimal import Decimal
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import sys
@@ -58,6 +59,13 @@ def main():
         workspace = root / 'source'
         workspace.mkdir()
         entry = workspace / 'build.transit'
+        guide = (ROOT / 'docs/handbook/guides/typed-values.md').read_text()
+        example = re.findall(r'^```sql\n(.*?)^```', guide, re.M | re.S)[1]
+        entry.write_text(example)
+        assert build(compiler, workspace, root / 'guide')['ok']
+        entry.write_text(example.replace('123.45', '123.451'))
+        refused = build(compiler, workspace, root / 'guide-refused', expected=1)
+        assert 'Inexact' in json.dumps(refused) and not (root / 'guide-refused').exists(), refused
         for index, (column, value, cause) in enumerate([
             ('amount NUMERIC(5,2)', '1000.00', 'Overflow'),
             ('amount NUMERIC(5,2)', '1.001', 'Inexact'),
@@ -103,7 +111,7 @@ def main():
         fixture.console(oracle)
         assert normalized(result()) == EXPECTED
         summary['values'] = {'source_removed': True, 'independent_sql': True, 'restart': True,
-                             'rows': 3, 'refused_before_publication': 4}
+                             'rows': 3, 'refused_before_publication': 5, 'numeric_guide_failure_and_correction': True}
         passed = True
     finally:
         fixture.cleanup()

@@ -9,7 +9,7 @@ compiler comparison remains at `e7434306334e3692c6f3e123cba0d278fa412196`.
 | --- | --- | --- | --- | --- | --- |
 | BIGINT, TEXT, BOOLEAN, UUID, TIMESTAMPTZ, BINARY | Admitted | Qualified existing profile | Qualified public-data profile | Shared typed codecs | Existing bounded Table diff rules |
 | DATE | Admitted, exact Gregorian day | Qualified DATE fixture | Refused by pinned schema/value owner | Exact DATE and SQL NULL fixture | Existing Table creation/add-column rules; no new conversion policy |
-| NUMERIC | Not admitted as a source parameter or domain base | Qualified native Table literal/projection fixture | Refused by pinned schema/value owner | Exact scalar and SQL NULL fixture | Creation/add-column descriptor tests; conversion changes refuse |
+| NUMERIC | Explicit precision/scale literals, parameters and domain bases | Qualified native Table literal/projection fixture | Refused by pinned schema/value owner | Exact scalar and SQL NULL fixture | Creation/add-column descriptor tests; conversion changes refuse |
 | JSON | Not admitted as a source parameter or domain base | Qualified native Table literal/projection fixture | Native kind exists; source helper type not admitted | Exact scalar and SQL NULL fixture | Creation/add-column descriptor tests; conversion changes refuse |
 | INTERVAL | Not admitted as a source parameter or domain base | Qualified native Table literal/projection fixture | Native SQL interval unavailable; microsecond duration is a different type | Exact scalar and SQL NULL fixture | Creation/add-column descriptor tests; conversion changes refuse |
 | Runtime variant record | Explicit `MATCH operand AS Variant`; closed scalar/domain payload profile | Ordinary STRUCT with required tag and nullable arm records | Qualified decoder and ordered IF lowering | Exact effects and refusals in dispatch fixture | No log/program replacement policy |
@@ -36,3 +36,21 @@ specified by the [runtime variant contract](DYNAMIC_VARIANTS_V1.md#queue-lease-c
 Partitioning, destinations and broader policy/evolution remain outside this
 increment. Ordinary views require upstream DDL, binding, execution, identity and
 authorization before any dependent compiler surface can be admitted.
+
+## NUMERIC source values
+
+`NUMERIC(p,s) 'decimal'`, parameter `NUMERIC(p,s)`, `TYPE NUMERIC(p,s)` and
+`CREATE DOMAIN Name AS NUMERIC(p,s) IDENTITY '...'` carry one exact descriptor.
+Precision is 1–38 and scale is 0–precision. The shared binder parses a coefficient
+without floating point, rejects overflow/inexact scale, and lowering writes the
+coefficient at the declared scale. No input string is spliced into emitted SQL.
+Zero has a canonical unsigned spelling. Descriptor matching is exact; no integer,
+float, implicit rescale or foreign domain conversion is admitted.
+
+Source comparisons use exact coefficients after descriptor equality. Nominal
+values allow only same-domain equality/inequality. Arithmetic, explicit rounding
+functions and NUMERIC program values remain separate, unsupported source
+surfaces. Source identity hashing includes precision, scale and coefficient; it
+does not change the hashing of preexisting types. The independent decimal checker
+uses Python Decimal, and the installed scalar fixture compares source parameters
+with independently authored ordinary SQL and exact wire coefficients.

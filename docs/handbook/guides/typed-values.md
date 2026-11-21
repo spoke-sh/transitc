@@ -38,13 +38,42 @@ The repository fixture exercises both endpoints, the epoch, a leap day and NULL:
 transitc test -f tests/fixtures/application-date/build.transit
 ```
 
+## Exact decimal amounts
+
+Declare precision and scale at every NUMERIC source boundary:
+
+```sql
+CREATE DOMAIN Amount AS NUMERIC(18,2) IDENTITY 'example.amount';
+CREATE MODULE Ledger(element TYPE, amount Amount) AS BEGIN
+  CREATE PUBLIC TABLE ledger (id BIGINT PRIMARY KEY, amount $element NOT NULL);
+  INSERT INTO ledger VALUES (1, $amount);
+END;
+CREATE TARGET default AS BEGIN
+  USE Ledger(TYPE Amount, Amount(NUMERIC(18,2) '123.45'));
+END;
+```
+
+Build this in an empty directory. Change `123.45` to `123.451`: the build fails
+with `Inexact` before publication. Restore an exactly representable amount to
+correct it. Precision ranges from 1 to 38, and scale from 0 to precision.
+The compiler never converts decimal values through floating point.
+
+Parameters can use `NUMERIC(18,2)` directly; `TYPE NUMERIC(18,2)` supplies a physical
+column type. A domain constructor requires its exact base descriptor. A BIGINT,
+a different precision/scale or a foreign domain cannot substitute for it.
+Plain NUMERIC values with identical descriptors allow comparisons; nominal amounts
+allow same-domain equality and inequality. Source arithmetic and implicit
+rescaling are unavailable. SQL functions with explicit rounding policies are a
+separate runtime surface, not a source conversion.
+
 ## Check the surface before composing
 
 | Value | Source parameters/domains | Ordered programs and helpers |
 | --- | --- | --- |
 | BIGINT, TEXT, BOOLEAN, UUID, TIMESTAMPTZ, BINARY | Supported | Supported public-data subset |
 | DATE | Supported | Not yet supported by Transit |
-| NUMERIC, JSON, INTERVAL | Not yet admitted as source parameter types | Separate qualification required |
+| NUMERIC(p,s) | Supported with exact descriptors | Not yet supported by Transit |
+| JSON, INTERVAL | Not yet admitted as source parameter types | Separate qualification required |
 | Runtime variants | Closed record decoding with `MATCH` | See [runtime variants](runtime-variants.md) |
 
 Ordinary SQL supports more descriptors than this source parameter set. Parser
@@ -55,7 +84,7 @@ scalar equality, and native UNION values cannot yet enter ordered programs.
 ## Ordinary SQL literals
 
 NUMERIC, JSON and INTERVAL can be used directly in Table declarations and
-literals. They do not yet have source parameter or domain types.
+literals. JSON and INTERVAL do not yet have source parameter or domain types.
 
 ```sql
 CREATE PUBLIC TABLE values_example (id BIGINT PRIMARY KEY, amount NUMERIC(38,9), payload JSON, span INTERVAL);

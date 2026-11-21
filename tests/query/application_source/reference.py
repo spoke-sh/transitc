@@ -182,6 +182,18 @@ def parse(source):
     binary = {'+': 'add', '-': 'subtract', '*': 'multiply', '=': 'equal', '<>': 'not_equal',
               '<': 'less', '<=': 'less_equal', '>': 'greater', '>=': 'greater_equal', 'AND': 'and_', 'OR': 'or_'}
 
+    def numeric(ctx):
+        precision, scale = [int(token.getText()) for token in ctx.INTEGER()]
+        if not (0 <= precision <= 255 and 0 <= scale <= 255):
+            raise Refusal(span(ctx)['start'], 'decimal descriptor syntax bound')
+        return {'precision': precision, 'scale': scale}
+
+    def source_type(ctx):
+        base = ctx.sourceBaseType()
+        if base and base.numericSourceType():
+            return {'numeric': numeric(base.numericSourceType())}
+        return {'scalar': ctx.getText().lower()} if base else {'named': name(ctx)}
+
     def expr(ctx):
         rule = parser.ruleNames[ctx.getRuleIndex()]
         if rule == 'expression':
@@ -202,6 +214,8 @@ def parse(source):
                 value = {'integer': -int(child.getText())}
             else:
                 value = {'unary': {'negative': bool(ctx.MINUS()), 'operand': expr(child)}}
+        elif ctx.numericSourceType():
+            value = {'numeric': {'type': numeric(ctx.numericSourceType()), 'text': string(ctx.STRING())}}
         elif ctx.INTEGER():
             value = {'integer': int(ctx.INTEGER().getText())}
         elif ctx.NAME() and ctx.STRING():
@@ -220,7 +234,9 @@ def parse(source):
             value = {'row': [{'name': na.sourceName().getText().lower(), 'value': expr(na.expression())} for na in ctx.namedArgument()]}
         elif ctx.TYPE():
             kind = ctx.sourceType()
-            value = {'type': kind.getText().lower()} if kind.sourceBaseType() else {'named_type': name(kind)}
+            ty = source_type(kind)
+            key = next(iter(ty))
+            value = {{'scalar': 'type', 'numeric': 'numeric_type', 'named': 'named_type'}[key]: ty[key]}
         elif ctx.TRUE() or ctx.FALSE():
             value = {'boolean': bool(ctx.TRUE())}
         elif ctx.STRING():
@@ -329,7 +345,9 @@ def parse(source):
         result = []
         for param in ctx.parameter() if ctx else []:
             kind = param.parameterKind()
-            if kind.SCHEMA_BINDING():
+            if kind.numericSourceType():
+                value = {'numeric': numeric(kind.numericSourceType())}
+            elif kind.SCHEMA_BINDING():
                 value = {'schema_binding': None}
             elif kind.MODULE():
                 value = {'module_of' if kind.OF() else 'module': name(kind.sourceQualifiedName())}
@@ -339,7 +357,7 @@ def parse(source):
                 columns = []
                 for col in kind.signatureColumn():
                     raw_type = col.sourceType()
-                    ty = {'scalar': raw_type.getText().lower()} if raw_type.sourceBaseType() else {'named': name(raw_type)}
+                    ty = source_type(raw_type)
                     nullable = not col.PRIMARY() and (not col.nullability() or not col.nullability().NOT())
                     if col.PRIMARY() and col.nullability() and not col.nullability().NOT():
                         raise Refusal(span(col)['start'], 'nullable primary key')
@@ -435,7 +453,9 @@ def parse(source):
             else:
                 def_name = definition.sourceName().getText().lower()
             if definition.DOMAIN():
-                domain = {'base': definition.sourceBaseType().getText().lower(), 'identity': string(definition.STRING())}
+                base = definition.sourceBaseType()
+                decimal = numeric(base.numericSourceType()) if base.numericSourceType() else None
+                domain = {'base': 'numeric' if decimal else base.getText().lower(), 'numeric': decimal, 'identity': string(definition.STRING())}
                 if not 1 <= len(domain['identity'].encode()) <= 128:
                     raise Refusal(span(definition)['start'], 'domain identity bound')
             if definition.VARIANT():
@@ -445,7 +465,7 @@ def parse(source):
                     raise Refusal(span(definition)['start'], 'constructor bound/duplicate')
             if definition.sourceType():
                 raw_ret = definition.sourceType()
-                return_type = {'scalar': raw_ret.getText().lower()} if raw_ret.sourceBaseType() else {'named': name(raw_ret)}
+                return_type = source_type(raw_ret)
             program = (template(definition.functionBody(), helper='function_body') if definition.FUNCTION() else
                        (template(definition.programBlock(), helper='guard_body') if definition.BEGIN() else template(definition.guardRequires(), helper='guard_requires')) if definition.GUARD() else
                        template(definition.procedureBody(), helper='procedure_body') if definition.PROCEDURE() else None)

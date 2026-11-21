@@ -1382,5 +1382,45 @@
     "parse": true,
     "compile": "build",
     "error": "Overflow"
+  },
+  {
+    "name": "numeric-source-values",
+    "parse": true,
+    "compile": "build",
+    "source": "CREATE DOMAIN Amount AS NUMERIC(38,9) IDENTITY 'example.amount'; CREATE MODULE Put(n Amount, ty TYPE, raw NUMERIC(1,1)) AS BEGIN CREATE PUBLIC TABLE amounts (id BIGINT PRIMARY KEY, n $ty NOT NULL); INSERT INTO amounts VALUES (1,$n); END; CREATE TARGET default AS BEGIN USE Put(Amount(NUMERIC(38,9) '9007199254740993.123456789'), TYPE Amount, NUMERIC(1,1) '0.1'); END;",
+    "steps": 2
+  },
+  {
+    "name": "numeric-source-type",
+    "parse": true,
+    "compile": "build",
+    "source": "CREATE MODULE Put(n NUMERIC(5,2), ty TYPE) AS BEGIN CREATE PUBLIC TABLE amounts (id BIGINT PRIMARY KEY, n $ty); INSERT INTO amounts VALUES (1,$n); END; CREATE TARGET default AS BEGIN USE Put(NUMERIC(5,2) '-0.01', TYPE NUMERIC(5,2)); END;",
+    "steps": 2
+  },
+  {
+    "name": "numeric-parameter-signature",
+    "parse": true,
+    "source": "CREATE FUNCTION F(n NUMERIC(5,2)) RETURNS NUMERIC(5,2) AS BEGIN RETURN n; END; CREATE INTERFACE I(t TABLE(id BIGINT PRIMARY KEY, n NUMERIC(5,2)));"
+  },
+  {
+    "name": "numeric-scale-missing",
+    "parse": false,
+    "source": "CREATE DOMAIN N AS NUMERIC(5) IDENTITY 'n';"
+  },
+  {
+    "name": "numeric-syntax-bound",
+    "parse": false,
+    "source": "CREATE DOMAIN N AS NUMERIC(256,2) IDENTITY 'n';"
+  },
+  {
+    "name": "numeric-scale-not-integer",
+    "parse": false,
+    "source": "CREATE DOMAIN N AS NUMERIC(5,2.0) IDENTITY 'n';"
+  },
+  {
+    "name": "numeric-source-scalar-fixture",
+    "source": "CREATE MODULE Exact(large NUMERIC(38,9), minimum NUMERIC(38,9)) AS BEGIN\n  CREATE PUBLIC TABLE exact_values (id BIGINT PRIMARY KEY, amount NUMERIC(38, 9), payload JSON, span INTERVAL);\n  INSERT INTO exact_values VALUES\n    (1, $large, JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', INTERVAL(1, -2, 3)),\n    (2, $minimum, JSON 'null', INTERVAL(-2147483648, 2147483647, -9223372036854775808)),\n    (3, NULL, NULL, NULL);\nEND;\nCREATE MODULE Setup() AS BEGIN\n  USE Exact(NUMERIC(38,9) '9007199254740993.123456789', NUMERIC(38,9) '-99999999999999999999999999999.999999999');\nEND;\nCREATE TARGET default AS BEGIN USE Setup(); END;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'exact decimal JSON and interval components' USING MODULES (Setup()) AS BEGIN\n    ASSERT ROWS (SELECT id, amount, payload, span FROM exact_values) EQUAL (\n      (1, 9007199254740993.123456789, JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', INTERVAL(1, -2, 3)),\n      (2, -99999999999999999999999999999.999999999, JSON 'null', INTERVAL(-2147483648, 2147483647, -9223372036854775808)),\n      (3, NULL, NULL, NULL)\n    );\n  END;\nEND;\n",
+    "parse": true,
+    "compile": "test_suite"
   }
 ]

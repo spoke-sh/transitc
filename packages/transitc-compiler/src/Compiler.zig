@@ -567,6 +567,7 @@ fn validateParameterKind(self: *Self, file: usize, kind: s.Kind, depth: usize) a
             if (self.graph.getDefinition(ctor).kind != .module) return error.NotModuleConstructor;
         },
         .row => |fields| for (fields) |f_item| try self.validateParameterKind(file, f_item.kind, depth + 1),
+        .numeric => |d| _ = try types.numericScalar(d),
         else => {},
     }
 }
@@ -600,6 +601,7 @@ fn sameParameterKind(self: *Self, left_file: usize, left: s.Kind, right_file: us
     if (depth >= self.limits.depth) return error.SourceDepthLimit;
     if (std.meta.activeTag(left) != std.meta.activeTag(right)) return error.ModuleInterfaceMismatch;
     switch (left) {
+        .numeric => |d| if (!std.meta.eql(d, right.numeric)) return error.ModuleInterfaceMismatch,
         .module => |m| try self.signature(try self.graph.resolve(left_file, m), try self.graph.resolve(right_file, right.module), depth),
         .module_of => |m| if (!std.meta.eql(try self.graph.resolve(left_file, m), try self.graph.resolve(right_file, right.module_of))) return error.ModuleInterfaceMismatch,
         .named => |n| if (!std.meta.eql(try self.graph.resolve(left_file, n), try self.graph.resolve(right_file, right.named))) return error.ModuleInterfaceMismatch,
@@ -644,7 +646,7 @@ fn argumentDepth(self: *Self, file: usize, kind: s.Kind, value: Value, depth: us
             if (std.meta.activeTag(value) != @field(std.meta.Tag(Value), @tagName(tag))) return error.SourceTypeMismatch;
             try types.signature(self.graph, file, columns, @field(value, @tagName(tag)), &self.context);
         },
-        .integer, .text, .boolean, .uuid, .timestamptz, .date, .binary => {
+        .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .binary => {
             if (!types.Scalar.eql(try types.field(self.graph, file, kind), value.scalar() orelse return error.SourceTypeMismatch)) return error.SourceTypeMismatch;
         },
         .module => |name| {
@@ -1366,7 +1368,7 @@ fn construct(self: *Self, file: usize, call: s.Call, bindings: []const Binding, 
         const kind = try types.domain(self.graph, try self.graph.resolve(file, call.name));
         if (call.arguments.len != 1) return error.SourceArgumentCount;
         const value = try self.expression(file, call.arguments[0], bindings, depth + 1);
-        if (!types.Scalar.eql(.{ .base = kind.base }, value.scalar() orelse return error.SourceTypeMismatch)) return error.SourceTypeMismatch;
+        if (!types.Scalar.eql(.{ .base = kind.base, .numeric = kind.numeric }, value.scalar() orelse return error.SourceTypeMismatch)) return error.SourceTypeMismatch;
         if (value == .symbolic) return .{ .symbolic = kind };
         return .{ .nominal = .{ .type = kind, .value = try value.primitive() } };
     }
@@ -1438,6 +1440,12 @@ fn expression(self: *Self, file: usize, expr: *const s.Expr, bindings: []const B
             };
             break :blk .{ .date = value };
         },
+        .numeric => |value| blk: {
+            const kind = try types.numericScalar(value.type);
+            const atom = try f.Types.Semantics.bind(value.text, kind.physical());
+            break :blk .{ .numeric = .{ .type = value.type, .coefficient = atom.decimal } };
+        },
+        .numeric_type => |value| .{ .type = try types.numericScalar(value) },
         .bytes => |value| blk: {
             if (value.len % 2 != 0) {
                 if (self.report) |r| {
@@ -1512,6 +1520,7 @@ fn expression(self: *Self, file: usize, expr: *const s.Expr, bindings: []const B
                 const r = try right.primitive();
                 const equal = switch (l) {
                     .integer => |v| v == r.integer,
+                    .numeric => |v| v.coefficient == r.numeric.coefficient,
                     .boolean => |v| v == r.boolean,
                     .text => |v| std.mem.eql(u8, v, r.text),
                     .uuid => |v| std.mem.eql(u8, &(f.Types.Semantics.bind(v, .uuid) catch unreachable).uuid, &(f.Types.Semantics.bind(r.uuid, .uuid) catch unreachable).uuid),
@@ -1545,6 +1554,7 @@ fn expression(self: *Self, file: usize, expr: *const s.Expr, bindings: []const B
             }
             const order: std.math.Order = switch (left) {
                 .integer => std.math.order(left.integer, right.integer),
+                .numeric => std.math.order(left.numeric.coefficient, right.numeric.coefficient),
                 .text => std.mem.order(u8, left.text, right.text),
                 .boolean => std.math.order(@intFromBool(left.boolean), @intFromBool(right.boolean)),
                 .uuid => std.mem.order(u8, &(f.Types.Semantics.bind(left.uuid, .uuid) catch unreachable).uuid, &(f.Types.Semantics.bind(right.uuid, .uuid) catch unreachable).uuid),
@@ -1896,6 +1906,7 @@ pub fn quoted(writer: *BoundedBuffer, text: []const u8, quote: u8) !void {
 pub fn writeValue(writer: *BoundedBuffer, value: Value) !void {
     switch (value) {
         .integer => |number| try writer.print("{d}", .{number}),
+        .numeric => |number| try @import("SourceNumeric.zig").write(writer, number),
         .boolean => |boolean| try writer.writeAll(if (boolean) "TRUE" else "FALSE"),
         .text => |text| try quoted(writer, text, '\''),
         .uuid => |v| {
@@ -1915,13 +1926,14 @@ pub fn writeValue(writer: *BoundedBuffer, value: Value) !void {
             try quoted(writer, v, '\'');
         },
         .identifier => |name| try quoted(writer, name, '"'),
-        .type => |kind| try writer.writeAll(switch (kind.base) {
+        .type => |kind| if (kind.numeric) |d| try writer.print("NUMERIC({d}, {d})", .{ d.precision, d.scale }) else try writer.writeAll(switch (kind.base) {
             .bigint => "BIGINT",
             .text => "TEXT",
             .boolean => "BOOLEAN",
             .uuid => "UUID",
             .timestamptz => "TIMESTAMPTZ",
             .date => "DATE",
+            .numeric => unreachable,
             .binary => "BINARY",
         }),
         .nominal => |v| switch (v.value) {

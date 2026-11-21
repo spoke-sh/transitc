@@ -173,7 +173,7 @@ fn checkExpected(self: *Self, expected: Expected, name: []const u8, actual: Valu
                 .boolean => .boolean,
                 .uuid => .uuid,
                 .timestamptz => .timestamp,
-                .date => return error.ProgramTypeMismatch,
+                .date, .numeric => return error.ProgramTypeMismatch,
                 .binary => .binary,
             };
             if (physical_.kind != .null and physical_.kind != want_kind) {
@@ -232,7 +232,7 @@ fn variantRecord(self: *Self, ref: Graph.Ref, actual: Value, physical_: a.Types.
             if (annotation.domain != null and !std.meta.eql(annotation.domain, scalar.domain)) return error.SourceDomainMismatch;
             // The closed record descriptor validates physical payload types;
             // MATCH validates tag/presence before exposing the nominal aliases.
-            try self.checkExpected(.{ .scalar = .{ .base = scalar.base } }, parameter.name, .{}, physical_field, offset);
+            try self.checkExpected(.{ .scalar = .{ .base = scalar.base, .numeric = scalar.numeric } }, parameter.name, .{}, physical_field, offset);
             if (nominal(annotation) and annotation.domain == null) return error.SourceDomainMismatch;
             item.* = .{ .name = parameter.name, .value = .{ .domain = scalar.domain } };
         }

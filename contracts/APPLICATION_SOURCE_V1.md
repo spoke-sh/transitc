@@ -59,7 +59,7 @@ AS BEGIN
 END;
 ```
 
-Parameters are `BIGINT`, `TEXT`, `BOOLEAN`, `UUID`, `TIMESTAMPTZ`, `DATE`, `BINARY`,
+Parameters are `BIGINT`, `TEXT`, `BOOLEAN`, `UUID`, `TIMESTAMPTZ`, `DATE`, `NUMERIC(p,s)`, `BINARY`,
 `IDENTIFIER`, `TYPE`, `SCHEMA_BINDING`,
 `ROW(field kind, ...)`, `MODULE interface_name`, `MODULE [OF] constructor_name`,
 named domains/variants or exact `TABLE(...)`, `STREAM(...)` and `QUEUE(...)`
@@ -122,8 +122,8 @@ remains the default cache location unless `--out` is passed on the CLI.
 Compile-time expressions
 include parameter references, module and instance references, `ROW(field => expr, ...)`
 literals and `.field` projections, `SCHEMA_BINDING('name')`, signed integer/text/Boolean
-literals, `DATE 'YYYY-MM-DD'`, `UUID '...'`, `TIMESTAMPTZ '...'` / `TIMESTAMP '...'` and `X'...'` binary
-literals, `NAME 'identifier'`, `TYPE BIGINT|TEXT|BOOLEAN|UUID|TIMESTAMPTZ|DATE|BINARY`, named type operands and constructors, parentheses, checked
+literals, `NUMERIC(p,s) 'decimal'`, `DATE 'YYYY-MM-DD'`, `UUID '...'`, `TIMESTAMPTZ '...'` / `TIMESTAMP '...'` and `X'...'` binary
+literals, `NAME 'identifier'`, `TYPE BIGINT|TEXT|BOOLEAN|UUID|TIMESTAMPTZ|DATE|BINARY`, `TYPE NUMERIC(p,s)`, named type operands and constructors, parentheses, checked
 integer `+`, `-`, `*`, comparisons and Boolean AND/OR/NOT. Conditional bodies use
 `IF expression THEN ... [ELSE ...] END IF;`. Conditions must be Boolean.
 Expressions have no ambient environment, time, random, database or effect access.
@@ -357,7 +357,7 @@ CREATE PUBLIC DOMAIN SiteId AS BIGINT IDENTITY 'example.site-id';
 CREATE PUBLIC VARIANT Target AS (Machine(id MachineId), Site(id SiteId));
 ```
 
-A domain wraps BIGINT, TEXT, BOOLEAN, UUID, TIMESTAMPTZ, DATE or BINARY. Its identity is 1–128 UTF-8 bytes,
+A domain wraps BIGINT, TEXT, BOOLEAN, UUID, TIMESTAMPTZ, DATE, NUMERIC(p,s) or BINARY. Its identity is 1–128 UTF-8 bytes,
 compared exactly; its definition fixes the base type. Import the original public
 declaration to share a domain. Independent declarations with the same identity
 reject, even with equal base types. Paths, aliases and physical representations
@@ -392,7 +392,7 @@ export without re-instantiation. An instance has at most 64 unique exports.
 A typed Table parameter can also forward its existing handle through `EXPORT TABLE rows AS alias;`.
 A parameter such as `rows TABLE(id MachineId PRIMARY KEY)` requires an exact
 ordered column/key/nullability/collation signature. Signature columns use the
-seven admitted source scalar types (`BIGINT`, `TEXT`, `BOOLEAN`, `UUID`, `TIMESTAMPTZ`, `DATE`, `BINARY`) or nominal domains, with optional NULL/NOT NULL, PRIMARY KEY
+admitted source scalar types (`BIGINT`, `TEXT`, `BOOLEAN`, `UUID`, `TIMESTAMPTZ`, `DATE`, `NUMERIC(p,s)`, `BINARY`) or nominal domains, with optional NULL/NOT NULL, PRIMARY KEY
 and COLLATE clauses. Omitted collation matches the native `none` descriptor;
 explicit collation must match exactly. Runtime schema limits also apply. Defaults, CHECK constraints
 and other semantic column options cannot be hidden by a smaller signature.
