@@ -105,3 +105,20 @@ test "JSON source literals do not bypass the native program grammar" {
         \\CREATE TARGET default AS BEGIN USE Run(JSON 'null'); END;
     ));
 }
+
+test "unselected JSON source holes cannot enter program literals through symbolic checking" {
+    try std.testing.expectError(error.ProgramTypeMismatch, compile(std.testing.allocator,
+        \\CREATE VARIANT Choice AS (Run(data JSON), Skip(data JSON));
+        \\CREATE MODULE Emit(data JSON) AS BEGIN
+        \\  CREATE PUBLIC DATAFLOW route FROM QUEUE work AS request AS BEGIN LET payload = $data; END;
+        \\END;
+        \\CREATE MODULE Choose(choice Choice) AS BEGIN
+        \\  CREATE PUBLIC QUEUE work(id BIGINT NOT NULL);
+        \\  MATCH choice
+        \\    WHEN Choice.Run(selected) THEN USE Emit(selected);
+        \\    WHEN Choice.Skip(selected) THEN CREATE PUBLIC TABLE t(id BIGINT);
+        \\  END MATCH;
+        \\END;
+        \\CREATE TARGET default AS BEGIN USE Choose(Choice.Skip(JSON 'null')); END;
+    ));
+}

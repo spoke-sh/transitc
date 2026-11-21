@@ -2051,7 +2051,7 @@ fn emitValueHole(self: *Self, env: *const Env, tokens: []const s.Token, i: *usiz
         self.setError(env, dollar_tok.start);
         return error.UnknownSourceOperand;
     };
-    if (value.scalar()) |scalar_| if (scalar_.base == .json and value != .symbolic) return error.ProgramTypeMismatch;
+    if (value.scalar()) |scalar_| if (scalar_.base == .json) return error.ProgramTypeMismatch;
     switch (value) {
         .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary, .nominal => {},
         .symbolic => if (!self.compiler.symbolic) return error.InvalidSourceOperand,
