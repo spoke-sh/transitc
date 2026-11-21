@@ -1181,5 +1181,362 @@
     "name": "guard-requires-and-row-helper-parameters",
     "source": "CREATE DOMAIN OrgId AS UUID IDENTITY 'platform.org_id'; CREATE GUARD tenancy.require_scope(scope ROW(id UUID, org_id OrgId, rev BIGINT), expected_org OrgId, min_rev BIGINT) AS REQUIRE scope IS NOT NULL ELSE 'MissingScope', REQUIRE scope.org_id = expected_org AND scope.rev >= min_rev ELSE 'ForbiddenScope'; CREATE FUNCTION tenancy.next_rev(scope ROW(id UUID, rev BIGINT)) RETURNS BIGINT AS BEGIN RETURN scope.rev + 1; END; CREATE PROCEDURE networking.record_audit(audits TABLE(id UUID PRIMARY KEY, org_id OrgId NOT NULL, payload BINARY NOT NULL, recorded_at TIMESTAMPTZ NOT NULL), item ROW(id UUID, org_id OrgId), payload BINARY, recorded_at TIMESTAMPTZ) AS BEGIN ATOMIC INSERT INTO audits VALUES (item.id, item.org_id, payload, recorded_at) ON CONFLICT (id) DO ASSERT SAME ROW; END;",
     "parse": true
+  },
+  {
+    "name": "runtime-match-record",
+    "source": "CREATE VARIANT Target AS (Machine(id BIGINT), Site(id BIGINT)); CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE requests (target STRUCT(tag TEXT NOT NULL, machine STRUCT(id BIGINT NOT NULL), site STRUCT(id BIGINT NOT NULL)) NOT NULL); CREATE PUBLIC DATAFLOW process FROM QUEUE requests AS request AS BEGIN MATCH request.target AS Target WHEN Target.Machine(machine_id) THEN REQUIRE machine_id = 7 ELSE 'WrongMachine'; WHEN Target.Site(site_id) THEN REQUIRE site_id = 7 ELSE 'WrongSite'; END MATCH; END; END;",
+    "parse": true,
+    "compile": "build"
+  },
+  {
+    "name": "runtime-match-exhaustiveness",
+    "source": "CREATE VARIANT Target AS (Machine(id BIGINT), Site(id BIGINT)); CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE requests (target STRUCT(tag TEXT NOT NULL, machine STRUCT(id BIGINT NOT NULL), site STRUCT(id BIGINT NOT NULL)) NOT NULL); CREATE PUBLIC DATAFLOW process FROM QUEUE requests AS request AS BEGIN MATCH request.target AS Target WHEN Target.Machine(machine_id) THEN REQUIRE machine_id = 7 ELSE 'WrongMachine'; END MATCH; END; END;",
+    "parse": true,
+    "compile": "build",
+    "error": "NonExhaustiveSourceMatch"
+  },
+  {
+    "name": "runtime-match-unselected-syntax",
+    "source": "CREATE VARIANT Target AS (Machine(id BIGINT), Site(id BIGINT)); CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE requests (target STRUCT(tag TEXT NOT NULL, machine STRUCT(id BIGINT NOT NULL), site STRUCT(id BIGINT NOT NULL)) NOT NULL); CREATE PUBLIC DATAFLOW process FROM QUEUE requests AS request AS BEGIN MATCH request.target AS Target WHEN Target.Machine(machine_id) THEN REQUIRE machine_id = 7 ELSE 'WrongMachine'; WHEN Target.Site(site_id) THEN SELECT broken; END MATCH; END; END;",
+    "parse": false
+  },
+  {
+    "name": "runtime-match-missing-as",
+    "source": "CREATE VARIANT Target AS (Machine(id BIGINT), Site(id BIGINT)); CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE requests (target STRUCT(tag TEXT NOT NULL, machine STRUCT(id BIGINT NOT NULL), site STRUCT(id BIGINT NOT NULL)) NOT NULL); CREATE PUBLIC DATAFLOW process FROM QUEUE requests AS request AS BEGIN MATCH request.target Target WHEN Target.Machine(machine_id) THEN REQUIRE machine_id = 7 ELSE 'WrongMachine'; WHEN Target.Site(site_id) THEN REQUIRE site_id = 7 ELSE 'WrongSite'; END MATCH; END; END;",
+    "parse": false
+  },
+  {
+    "name": "queue-lease-options",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE work (id BIGINT NOT NULL) WITH (lease_duration = '120s', max_lease_duration = '120s'); END;",
+    "parse": true,
+    "compile": "build"
+  },
+  {
+    "name": "queue-lease-invalid-policy",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE work (id BIGINT NOT NULL) WITH (lease_duration = '120s'); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "InvalidQueuePolicy"
+  },
+  {
+    "name": "queue-lease-duplicate",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE work (id BIGINT NOT NULL) WITH (lease_duration = '30s', lease_duration = '30s'); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "DuplicateLogOption"
+  },
+  {
+    "name": "queue-lease-unknown-option",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE work (id BIGINT NOT NULL) WITH (retention = '1d'); END;",
+    "parse": false
+  },
+  {
+    "name": "queue-lease-non-string",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE work (id BIGINT NOT NULL) WITH (lease_duration = 120); END;",
+    "parse": false
+  },
+  {
+    "name": "table-lease-refused",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE items (id BIGINT) WITH (lease_duration = '120s'); END;",
+    "parse": false
+  },
+  {
+    "name": "date-domains-and-tests",
+    "source": "CREATE DOMAIN Day AS DATE IDENTITY 'example.day';\nCREATE MODULE Resources(element TYPE) AS BEGIN\n  CREATE PUBLIC TABLE dates (id BIGINT PRIMARY KEY, day $element NOT NULL, nullable_day DATE);\nEND;\nCREATE MODULE Add(id BIGINT, value Day) AS BEGIN\n  INSERT INTO dates VALUES ($id, $value, NULL);\nEND;\nCREATE MODULE Setup() AS BEGIN\n  USE Resources(TYPE Day);\n  USE Add(1, Day(DATE '0001-01-01'));\n  USE Add(2, Day(DATE '1970-01-01'));\n  USE Add(3, Day(DATE '2024-02-29'));\n  USE Add(4, Day(DATE '9999-12-31'));\nEND;\nCREATE TARGET default AS BEGIN USE Setup(); END;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'date values retain exact days and NULL' USING MODULES (Setup()) AS BEGIN\n    ASSERT ROWS (SELECT id, day, nullable_day FROM dates) EQUAL (\n      (1, DATE '0001-01-01', NULL),\n      (2, DATE '1970-01-01', NULL),\n      (3, DATE '2024-02-29', NULL),\n      (4, DATE '9999-12-31', NULL)\n    );\n  END;\nEND;\n",
+    "parse": true,
+    "compile": "test_suite"
+  },
+  {
+    "name": "date-leap",
+    "source": "CREATE MODULE M(value DATE) AS BEGIN CREATE PUBLIC TABLE dates (d DATE); INSERT INTO dates VALUES ($value); END; CREATE TARGET default AS BEGIN USE M(DATE '2024-02-29'); END;",
+    "parse": true,
+    "compile": "build"
+  },
+  {
+    "name": "date-minimum",
+    "source": "CREATE MODULE M(value DATE) AS BEGIN CREATE PUBLIC TABLE dates (d DATE); INSERT INTO dates VALUES ($value); END; CREATE TARGET default AS BEGIN USE M(DATE '0001-01-01'); END;",
+    "parse": true,
+    "compile": "build"
+  },
+  {
+    "name": "date-maximum",
+    "source": "CREATE MODULE M(value DATE) AS BEGIN CREATE PUBLIC TABLE dates (d DATE); INSERT INTO dates VALUES ($value); END; CREATE TARGET default AS BEGIN USE M(DATE '9999-12-31'); END;",
+    "parse": true,
+    "compile": "build"
+  },
+  {
+    "name": "date-invalid-leap",
+    "source": "CREATE MODULE M(value DATE) AS BEGIN CREATE PUBLIC TABLE dates (d DATE); INSERT INTO dates VALUES ($value); END; CREATE TARGET default AS BEGIN USE M(DATE '2023-02-29'); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "InvalidSourceOperand"
+  },
+  {
+    "name": "date-year-zero",
+    "source": "CREATE MODULE M(value DATE) AS BEGIN CREATE PUBLIC TABLE dates (d DATE); INSERT INTO dates VALUES ($value); END; CREATE TARGET default AS BEGIN USE M(DATE '0000-01-01'); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "InvalidSourceOperand"
+  },
+  {
+    "name": "date-timezone-refused",
+    "source": "CREATE MODULE M(value DATE) AS BEGIN CREATE PUBLIC TABLE dates (d DATE); INSERT INTO dates VALUES ($value); END; CREATE TARGET default AS BEGIN USE M(DATE '2024-02-29Z'); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "InvalidSourceOperand"
+  },
+  {
+    "name": "date-timestamp-refused",
+    "source": "CREATE MODULE M(value DATE) AS BEGIN CREATE PUBLIC TABLE dates (d DATE); INSERT INTO dates VALUES ($value); END; CREATE TARGET default AS BEGIN USE M(TIMESTAMP '2024-02-29T00:00:00Z'); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "SourceTypeMismatch"
+  },
+  {
+    "name": "date-program-refused",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE jobs (d DATE NOT NULL); CREATE PUBLIC DATAFLOW p FROM QUEUE jobs AS r AS BEGIN END; END;",
+    "parse": true,
+    "compile": "build",
+    "error": "ProgramTypeMismatch"
+  },
+  {
+    "name": "query-cardinality-cases",
+    "source": "CREATE MODULE RouteOne() AS BEGIN\n    CREATE PUBLIC DATAFLOW cardinality_route FROM QUEUE cardinality_requests AS request AS BEGIN\n      BEGIN ATOMIC\n        LET found ONE = SELECT note FROM cardinality_rows WHERE lookup = request.lookup;\n        PRODUCE INTO cardinality_events VALUES (request.id, 'present', found.note);\n        REQUIRE NOT request.reject ELSE 'LateRefusal';\n      END;\n    END;\nEND;\nCREATE MODULE RouteOptional() AS BEGIN\n    CREATE PUBLIC DATAFLOW cardinality_route FROM QUEUE cardinality_requests AS request AS BEGIN\n      BEGIN ATOMIC\n        LET found OPTIONAL = SELECT note FROM cardinality_rows WHERE lookup = request.lookup;\n        IF found IS NULL THEN\n          PRODUCE INTO cardinality_events VALUES (request.id, 'absent', NULL);\n        ELSE\n          PRODUCE INTO cardinality_events VALUES (request.id, 'present', found.note);\n        END IF;\n        REQUIRE NOT request.reject ELSE 'LateRefusal';\n      END;\n    END;\nEND;\nCREATE MODULE Pipeline(require_one BOOLEAN, lease TEXT) AS BEGIN\n  CREATE PUBLIC QUEUE cardinality_requests (id BIGINT NOT NULL, lookup TEXT NOT NULL, reject BOOLEAN NOT NULL) WITH (lease_duration = $lease, max_lease_duration = $lease);\n  CREATE PUBLIC TABLE cardinality_rows (id BIGINT PRIMARY KEY, lookup TEXT NOT NULL, note TEXT);\n  CREATE PUBLIC STREAM cardinality_events (id BIGINT NOT NULL, presence TEXT NOT NULL, note TEXT);\n  INSERT INTO cardinality_rows VALUES (1, 'single', NULL), (2, 'duplicate', 'a'), (3, 'duplicate', 'b');\n  IF require_one THEN USE RouteOne(); ELSE USE RouteOptional(); END IF;\n  AUTHORIZE DATAFLOW cardinality_route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW cardinality_route;\nEND;\nCREATE TARGET default AS BEGIN USE Pipeline(TRUE, '120s'); END;\nCREATE TARGET optional AS BEGIN USE Pipeline(FALSE, '120s'); END;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'one present NULL' USING MODULES (Pipeline(TRUE, '30s')) AS BEGIN\n    ENQUEUE INTO cardinality_requests VALUES (1, 'single', FALSE);\n    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ((1, 'present', NULL));\n  END;\n  TEST 'one absent' USING MODULES (Pipeline(TRUE, '30s')) AS BEGIN\n    ENQUEUE INTO cardinality_requests VALUES (1, 'missing', FALSE);\n    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ();\n  END;\n  TEST 'one multiple' USING MODULES (Pipeline(TRUE, '30s')) AS BEGIN\n    ENQUEUE INTO cardinality_requests VALUES (1, 'duplicate', FALSE);\n    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ();\n  END;\n  TEST 'one rollback' USING MODULES (Pipeline(TRUE, '30s')) AS BEGIN\n    ENQUEUE INTO cardinality_requests VALUES (1, 'single', TRUE);\n    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ();\n  END;\n  TEST 'optional present NULL' USING MODULES (Pipeline(FALSE, '30s')) AS BEGIN\n    ENQUEUE INTO cardinality_requests VALUES (1, 'single', FALSE);\n    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ((1, 'present', NULL));\n  END;\n  TEST 'optional absent' USING MODULES (Pipeline(FALSE, '30s')) AS BEGIN\n    ENQUEUE INTO cardinality_requests VALUES (1, 'missing', FALSE);\n    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ((1, 'absent', NULL));\n  END;\n  TEST 'optional multiple' USING MODULES (Pipeline(FALSE, '30s')) AS BEGIN\n    ENQUEUE INTO cardinality_requests VALUES (1, 'duplicate', FALSE);\n    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ();\n  END;\n  TEST 'optional rollback' USING MODULES (Pipeline(FALSE, '30s')) AS BEGIN\n    ENQUEUE INTO cardinality_requests VALUES (1, 'single', TRUE);\n    ASSERT WORKFLOW NAME 'cardinality_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, presence, note FROM cardinality_events) EQUAL ();\n  END;\nEND;\n",
+    "parse": true,
+    "compile": "test_suite"
+  },
+  {
+    "name": "cardinality-one",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE items (id BIGINT); CREATE PUBLIC QUEUE jobs (id BIGINT NOT NULL); CREATE PUBLIC DATAFLOW p FROM QUEUE jobs AS request AS BEGIN LET found ONE = SELECT id FROM items; REQUIRE found.id IS NOT NULL ELSE 'Null'; END; END;",
+    "parse": true,
+    "compile": "build"
+  },
+  {
+    "name": "cardinality-optional-refused",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE items (id BIGINT); CREATE PUBLIC QUEUE jobs (id BIGINT NOT NULL); CREATE PUBLIC DATAFLOW p FROM QUEUE jobs AS request AS BEGIN LET found OPTIONAL = SELECT id FROM items; REQUIRE found.id IS NOT NULL ELSE 'Null'; END; END;",
+    "parse": true,
+    "compile": "build",
+    "error": "OptionalRowRequiresPresence"
+  },
+  {
+    "name": "cardinality-optional-narrowed",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE items (id BIGINT); CREATE PUBLIC QUEUE jobs (id BIGINT NOT NULL); CREATE PUBLIC DATAFLOW p FROM QUEUE jobs AS request AS BEGIN LET found OPTIONAL = SELECT id FROM items; REQUIRE found IS NOT NULL ELSE 'Absent'; REQUIRE found.id IS NOT NULL ELSE 'Null'; END; END;",
+    "parse": true,
+    "compile": "build"
+  },
+  {
+    "name": "cardinality-optional-scalar",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE items (id BIGINT); CREATE PUBLIC QUEUE jobs (id BIGINT NOT NULL); CREATE PUBLIC DATAFLOW p FROM QUEUE jobs AS request AS BEGIN LET found OPTIONAL = 7; END; END;",
+    "parse": false
+  },
+  {
+    "name": "cardinality-many-refused",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE items (id BIGINT); CREATE PUBLIC QUEUE jobs (id BIGINT NOT NULL); CREATE PUBLIC DATAFLOW p FROM QUEUE jobs AS request AS BEGIN LET found MANY = SELECT id FROM items; END; END;",
+    "parse": false
+  },
+  {
+    "name": "symbolic-program-specialization",
+    "source": "CREATE DOMAIN MachineId AS BIGINT IDENTITY 'example.machine';\nCREATE DOMAIN SiteId AS BIGINT IDENTITY 'example.site';\nCREATE VARIANT Target AS (Machine(id MachineId), Site(id SiteId));\nCREATE FUNCTION identity_machine(value MachineId) RETURNS MachineId AS BEGIN RETURN value; END;\nCREATE FUNCTION accepts(value MachineId) RETURNS BOOLEAN AS BEGIN RETURN TRUE; END;\nCREATE MODULE EmitMachine(value MachineId) AS BEGIN\n  CREATE PUBLIC DATAFLOW machine_route FROM QUEUE requests AS request WHERE accepts($value) AS BEGIN\n    BEGIN ATOMIC\n      INSERT INTO machines VALUES (identity_machine($value)) ON CONFLICT (id) DO ASSERT SAME ROW;\n    END;\n  END;\n  AUTHORIZE DATAFLOW machine_route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW machine_route;\nEND;\nCREATE MODULE EmitSite(value SiteId) AS BEGIN\n  CREATE PUBLIC DATAFLOW site_route FROM QUEUE requests AS request AS BEGIN\n    BEGIN ATOMIC\n      INSERT INTO sites VALUES ($value) ON CONFLICT (id) DO ASSERT SAME ROW;\n    END;\n  END;\n  AUTHORIZE DATAFLOW site_route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW site_route;\nEND;\nCREATE MODULE Setup(machine TYPE, site TYPE, selected Target) AS BEGIN\n  CREATE PUBLIC TABLE machines (id $machine PRIMARY KEY);\n  CREATE PUBLIC TABLE sites (id $site PRIMARY KEY);\n  CREATE PUBLIC QUEUE requests (id BIGINT NOT NULL);\n  MATCH selected\n    WHEN Target.Machine(value) THEN USE EmitMachine(value);\n    WHEN Target.Site(value) THEN USE EmitSite(value);\n  END MATCH;\nEND;\nCREATE TARGET default AS BEGIN USE Setup(TYPE MachineId, TYPE SiteId, Target.Machine(MachineId(7))); END;\n",
+    "parse": true,
+    "compile": "build",
+    "steps": 6
+  },
+  {
+    "name": "symbolic-program-unselected-domain",
+    "source": "CREATE DOMAIN MachineId AS BIGINT IDENTITY 'example.machine';\nCREATE DOMAIN SiteId AS BIGINT IDENTITY 'example.site';\nCREATE VARIANT Target AS (Machine(id MachineId), Site(id SiteId));\nCREATE FUNCTION identity_machine(value MachineId) RETURNS MachineId AS BEGIN RETURN value; END;\nCREATE FUNCTION accepts(value MachineId) RETURNS BOOLEAN AS BEGIN RETURN TRUE; END;\nCREATE MODULE EmitMachine(value MachineId) AS BEGIN\n  CREATE PUBLIC DATAFLOW machine_route FROM QUEUE requests AS request WHERE accepts($value) AS BEGIN\n    BEGIN ATOMIC\n      INSERT INTO machines VALUES (identity_machine($value)) ON CONFLICT (id) DO ASSERT SAME ROW;\n    END;\n  END;\n  AUTHORIZE DATAFLOW machine_route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW machine_route;\nEND;\nCREATE MODULE EmitSite(value SiteId) AS BEGIN\n  CREATE PUBLIC DATAFLOW site_route FROM QUEUE requests AS request AS BEGIN\n    BEGIN ATOMIC\n      INSERT INTO machines VALUES ($value) ON CONFLICT (id) DO ASSERT SAME ROW;\n    END;\n  END;\n  AUTHORIZE DATAFLOW site_route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW site_route;\nEND;\nCREATE MODULE Setup(machine TYPE, site TYPE, selected Target) AS BEGIN\n  CREATE PUBLIC TABLE machines (id $machine PRIMARY KEY);\n  CREATE PUBLIC TABLE sites (id $site PRIMARY KEY);\n  CREATE PUBLIC QUEUE requests (id BIGINT NOT NULL);\n  MATCH selected\n    WHEN Target.Machine(value) THEN USE EmitMachine(value);\n    WHEN Target.Site(value) THEN USE EmitSite(value);\n  END MATCH;\nEND;\nCREATE TARGET default AS BEGIN USE Setup(TYPE MachineId, TYPE SiteId, Target.Machine(MachineId(7))); END;\n",
+    "parse": true,
+    "compile": "build",
+    "error": "SourceDomainMismatch"
+  },
+  {
+    "name": "exact-sql-scalars",
+    "source": "CREATE MODULE Setup() AS BEGIN\n  CREATE PUBLIC TABLE exact_values (id BIGINT PRIMARY KEY, amount NUMERIC(38, 9), payload JSON, span INTERVAL);\n  INSERT INTO exact_values VALUES\n    (1, 9007199254740993.123456789, JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', INTERVAL(1, -2, 3)),\n    (2, -99999999999999999999999999999.999999999, JSON 'null', INTERVAL(-2147483648, 2147483647, -9223372036854775808)),\n    (3, NULL, NULL, NULL);\nEND;\nCREATE TARGET default AS BEGIN USE Setup(); END;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'exact decimal JSON and interval components' USING MODULES (Setup()) AS BEGIN\n    ASSERT ROWS (SELECT id, amount, payload, span FROM exact_values) EQUAL (\n      (1, 9007199254740993.123456789, JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', INTERVAL(1, -2, 3)),\n      (2, -99999999999999999999999999999.999999999, JSON 'null', INTERVAL(-2147483648, 2147483647, -9223372036854775808)),\n      (3, NULL, NULL, NULL)\n    );\n  END;\nEND;\n",
+    "parse": true,
+    "compile": "test_suite",
+    "cases": 1
+  },
+  {
+    "name": "sql-scalar-decimal-overflow",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE t (id BIGINT PRIMARY KEY, amount NUMERIC(5,2)); INSERT INTO t VALUES (1, 1000.00); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "Overflow"
+  },
+  {
+    "name": "sql-scalar-decimal-scale",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE t (id BIGINT PRIMARY KEY, amount NUMERIC(5,2)); INSERT INTO t VALUES (1, 1.001); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "Inexact"
+  },
+  {
+    "name": "sql-scalar-json-duplicate",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE t (id BIGINT PRIMARY KEY, payload JSON); INSERT INTO t VALUES (1, JSON '{\"a\":1,\"a\":2}' ); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "DuplicateField"
+  },
+  {
+    "name": "sql-scalar-interval-overflow",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE t (id BIGINT PRIMARY KEY, span INTERVAL); INSERT INTO t VALUES (1, INTERVAL(2147483648,0,0)); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "Overflow"
+  },
+  {
+    "name": "numeric-source-values",
+    "parse": true,
+    "compile": "build",
+    "source": "CREATE DOMAIN Amount AS NUMERIC(38,9) IDENTITY 'example.amount'; CREATE MODULE Put(n Amount, ty TYPE, raw NUMERIC(1,1)) AS BEGIN CREATE PUBLIC TABLE amounts (id BIGINT PRIMARY KEY, n $ty NOT NULL); INSERT INTO amounts VALUES (1,$n); END; CREATE TARGET default AS BEGIN USE Put(Amount(NUMERIC(38,9) '9007199254740993.123456789'), TYPE Amount, NUMERIC(1,1) '0.1'); END;",
+    "steps": 2
+  },
+  {
+    "name": "numeric-source-type",
+    "parse": true,
+    "compile": "build",
+    "source": "CREATE MODULE Put(n NUMERIC(5,2), ty TYPE) AS BEGIN CREATE PUBLIC TABLE amounts (id BIGINT PRIMARY KEY, n $ty); INSERT INTO amounts VALUES (1,$n); END; CREATE TARGET default AS BEGIN USE Put(NUMERIC(5,2) '-0.01', TYPE NUMERIC(5,2)); END;",
+    "steps": 2
+  },
+  {
+    "name": "numeric-parameter-signature",
+    "parse": true,
+    "source": "CREATE FUNCTION F(n NUMERIC(5,2)) RETURNS NUMERIC(5,2) AS BEGIN RETURN n; END; CREATE INTERFACE I(t TABLE(id BIGINT PRIMARY KEY, n NUMERIC(5,2)));"
+  },
+  {
+    "name": "numeric-scale-missing",
+    "parse": false,
+    "source": "CREATE DOMAIN N AS NUMERIC(5) IDENTITY 'n';"
+  },
+  {
+    "name": "numeric-syntax-bound",
+    "parse": false,
+    "source": "CREATE DOMAIN N AS NUMERIC(256,2) IDENTITY 'n';"
+  },
+  {
+    "name": "numeric-scale-not-integer",
+    "parse": false,
+    "source": "CREATE DOMAIN N AS NUMERIC(5,2.0) IDENTITY 'n';"
+  },
+  {
+    "name": "numeric-source-scalar-fixture",
+    "source": "CREATE MODULE Exact(large NUMERIC(38,9), minimum NUMERIC(38,9), payload JSON, json_null JSON, normal INTERVAL, extreme INTERVAL) AS BEGIN\n  CREATE PUBLIC TABLE exact_values (id BIGINT PRIMARY KEY, amount NUMERIC(38, 9), payload JSON, span INTERVAL);\n  INSERT INTO exact_values VALUES\n    (1, $large, $payload, $normal),\n    (2, $minimum, $json_null, $extreme),\n    (3, NULL, NULL, NULL);\nEND;\nCREATE MODULE Setup() AS BEGIN\n  USE Exact(NUMERIC(38,9) '9007199254740993.123456789', NUMERIC(38,9) '-99999999999999999999999999999.999999999', JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', JSON 'null', INTERVAL(1, -2, 3), INTERVAL(-2147483648, 2147483647, -9223372036854775808));\nEND;\nCREATE TARGET default AS BEGIN USE Setup(); END;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'exact decimal JSON and interval components' USING MODULES (Setup()) AS BEGIN\n    ASSERT ROWS (SELECT id, amount, payload, span FROM exact_values) EQUAL (\n      (1, 9007199254740993.123456789, JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', INTERVAL(1, -2, 3)),\n      (2, -99999999999999999999999999999.999999999, JSON 'null', INTERVAL(-2147483648, 2147483647, -9223372036854775808)),\n      (3, NULL, NULL, NULL)\n    );\n  END;\nEND;\n",
+    "parse": true,
+    "compile": "test_suite"
+  },
+  {
+    "name": "bounded-refinement-fixture",
+    "source": "CREATE PROCEDURE Bounded(events STREAM(id BIGINT NOT NULL, amount BIGINT NOT NULL), id BIGINT, amount BIGINT, returned BIGINT) RETURNS BIGINT\nREQUIRES amount IS NOT NULL ELSE 'MissingAmount'\nREQUIRES amount >= 1 AND amount <= 10 ELSE 'AmountBounds'\nENSURES result = amount ELSE 'ChangedAmount'\nAS BEGIN ATOMIC\n  PRODUCE INTO events VALUES (id, amount);\n  RETURN returned;\nEND;\nCREATE MODULE Setup(lease TEXT) AS BEGIN\n  CREATE PUBLIC STREAM refined_events (id BIGINT NOT NULL, amount BIGINT NOT NULL);\n  CREATE PUBLIC STREAM refined_after (id BIGINT NOT NULL, amount BIGINT NOT NULL);\n  CREATE PUBLIC QUEUE refined_requests (id BIGINT NOT NULL, amount BIGINT, returned BIGINT) WITH (lease_duration = $lease, max_lease_duration = $lease);\n  CREATE PUBLIC DATAFLOW refined_route FROM QUEUE refined_requests AS request AS BEGIN\n    BEGIN ATOMIC\n      LET answer = CALL Bounded(refined_events, request.id, request.amount, request.returned);\n      PRODUCE INTO refined_after VALUES (request.id, answer);\n    END;\n  END;\n  AUTHORIZE DATAFLOW refined_route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW refined_route;\nEND;\nCREATE TARGET default AS BEGIN USE Setup('120s'); END;\nCREATE PROCEDURE BoundOnly(events STREAM(id BIGINT NOT NULL, amount BIGINT NOT NULL), amount BIGINT)\nREQUIRES amount IS NOT NULL ELSE 'MissingAmount'\nREQUIRES amount >= 1 AND amount <= 10 ELSE 'AmountBounds'\nAS BEGIN ATOMIC\n  PRODUCE INTO events VALUES (1, amount);\nEND;\nCREATE PROCEDURE ReturnOnly(events STREAM(id BIGINT NOT NULL, amount BIGINT NOT NULL), returned BIGINT) RETURNS BIGINT\nENSURES result = 5 ELSE 'ChangedAmount'\nAS BEGIN ATOMIC\n  PRODUCE INTO events VALUES (1, 5);\n  RETURN returned;\nEND;\nCREATE MODULE BoundProbe() AS BEGIN\n  CREATE PUBLIC QUEUE probe_requests (amount BIGINT);\n  CREATE PUBLIC STREAM probe_events (id BIGINT NOT NULL, amount BIGINT NOT NULL);\n  CREATE PUBLIC DATAFLOW probe_route FROM QUEUE probe_requests AS request AS BEGIN\n    BEGIN ATOMIC CALL BoundOnly(probe_events, request.amount); END;\n  END;\n  AUTHORIZE DATAFLOW probe_route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW probe_route;\nEND;\nCREATE MODULE ReturnProbe() AS BEGIN\n  CREATE PUBLIC QUEUE probe_requests (amount BIGINT);\n  CREATE PUBLIC STREAM probe_events (id BIGINT NOT NULL, amount BIGINT NOT NULL);\n  CREATE PUBLIC DATAFLOW probe_route FROM QUEUE probe_requests AS request AS BEGIN\n    BEGIN ATOMIC CALL ReturnOnly(probe_events, request.amount); END;\n  END;\n  AUTHORIZE DATAFLOW probe_route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW probe_route;\nEND;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'bounds accepted' USING MODULES (BoundProbe()) AS BEGIN\n    ENQUEUE INTO probe_requests VALUES (5);\n    ASSERT WORKFLOW NAME 'probe_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, amount FROM probe_events) EQUAL ((1, 5));\n  END;\n  TEST 'missing amount' USING MODULES (BoundProbe()) AS BEGIN\n    ENQUEUE INTO probe_requests VALUES (NULL);\n    ASSERT WORKFLOW NAME 'probe_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, amount FROM probe_events) EQUAL ();\n  END;\n  TEST 'lower bound' USING MODULES (BoundProbe()) AS BEGIN\n    ENQUEUE INTO probe_requests VALUES (0);\n    ASSERT WORKFLOW NAME 'probe_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, amount FROM probe_events) EQUAL ();\n  END;\n  TEST 'upper bound' USING MODULES (BoundProbe()) AS BEGIN\n    ENQUEUE INTO probe_requests VALUES (11);\n    ASSERT WORKFLOW NAME 'probe_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, amount FROM probe_events) EQUAL ();\n  END;\n  TEST 'postcondition rollback' USING MODULES (ReturnProbe()) AS BEGIN\n    ENQUEUE INTO probe_requests VALUES (6);\n    ASSERT WORKFLOW NAME 'probe_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, amount FROM probe_events) EQUAL ();\n  END;\nEND;\n",
+    "parse": true,
+    "compile": "test_suite"
+  },
+  {
+    "name": "refinement-signed-extremes",
+    "source": "CREATE GUARD G(n BIGINT) REQUIRES n >= -9223372036854775808 AND n <= 9223372036854775807 ELSE 'Bounds' AS REQUIRE TRUE ELSE 'No';",
+    "parse": true
+  },
+  {
+    "name": "refinement-unknown-predicate",
+    "source": "CREATE GUARD G(n BIGINT) REQUIRES n BETWEEN 1 AND 10 ELSE 'Bounds' AS REQUIRE TRUE ELSE 'No';",
+    "parse": false
+  },
+  {
+    "name": "refinement-state-observation",
+    "source": "CREATE GUARD G(n BIGINT) REQUIRES EXISTS(SELECT id FROM t) ELSE 'Missing' AS REQUIRE TRUE ELSE 'No';",
+    "parse": false
+  },
+  {
+    "name": "callable-nested-instances",
+    "source": "CREATE PROCEDURE Prototype(events STREAM(id BIGINT NOT NULL), id BIGINT) RETURNS BIGINT\nEFFECTS (PRODUCE events)\nREQUIRES id >= 1 ELSE 'Positive'\nENSURES result = id ELSE 'SameResult'\nAS BEGIN ATOMIC PRODUCE INTO events VALUES (id); RETURN id; END;\nCREATE PROCEDURE Save(events STREAM(id BIGINT NOT NULL), id BIGINT) RETURNS BIGINT\nEFFECTS (PRODUCE events)\nREQUIRES id >= 1 ELSE 'Positive'\nENSURES result = id ELSE 'SameResult'\nAS BEGIN ATOMIC\n  LET result_value = CALL Prototype(events, id);\n  RETURN result_value;\nEND;\nCREATE MODULE Pipeline(events IDENTIFIER, requests IDENTIFIER, route IDENTIFIER, command PROCEDURE OF Prototype) AS BEGIN\n  CREATE PUBLIC STREAM $events (id BIGINT NOT NULL);\n  CREATE PUBLIC QUEUE $requests (id BIGINT NOT NULL);\n  CREATE PUBLIC DATAFLOW $route FROM QUEUE $requests AS request AS BEGIN\n    BEGIN ATOMIC\n      LET saved = CALL command($events, request.id);\n      REQUIRE saved = request.id ELSE 'WrongReturn';\n    END;\n  END;\nEND;\nCREATE MODULE Wrap(command PROCEDURE OF Prototype) AS BEGIN\n  USE Pipeline(NAME 'first_events', NAME 'first_requests', NAME 'first_route', command);\nEND;\nCREATE TARGET default AS BEGIN\n  USE Wrap(Save);\n  USE Pipeline(NAME 'second_events', NAME 'second_requests', NAME 'second_route', Save);\nEND;",
+    "parse": true,
+    "compile": "build",
+    "steps": 6
+  },
+  {
+    "name": "callable-function-guard-parameters",
+    "source": "CREATE FUNCTION Identity(id BIGINT) RETURNS BIGINT EFFECTS() AS BEGIN RETURN id; END; CREATE GUARD G(n BIGINT) EFFECTS() AS REQUIRE n > 0 ELSE 'No'; CREATE MODULE M(f FUNCTION OF Identity,g GUARD OF G) AS BEGIN END;",
+    "parse": true
+  },
+  {
+    "name": "callable-invalid-effect-operation",
+    "source": "CREATE PROCEDURE P(t TABLE(id BIGINT PRIMARY KEY)) EFFECTS(UPDATE t) AS BEGIN ATOMIC END;",
+    "parse": false
+  },
+  {
+    "name": "callable-invalid-effect-binding",
+    "source": "CREATE PROCEDURE P(t TABLE(id BIGINT PRIMARY KEY)) EFFECTS(PRODUCE t) AS BEGIN ATOMIC END; CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE t(id BIGINT PRIMARY KEY); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "InvalidEffectBinding"
+  },
+  {
+    "name": "callable-imported-fixture",
+    "source": "IMPORT steps FROM 'steps.transit';\nIMPORT pipes FROM 'pipeline.transit';\nCREATE MODULE First() AS BEGIN\n  USE pipes.Pipeline(steps.Save, NAME 'first_rows', NAME 'first_events', NAME 'first_requests', NAME 'first_route', '120s');\nEND;\nCREATE TARGET default AS BEGIN\n  USE First();\n  USE pipes.Pipeline(steps.Save, NAME 'second_rows', NAME 'second_events', NAME 'second_requests', NAME 'second_route', '120s');\nEND;\nCREATE MODULE Probe(command PROCEDURE OF steps.Emit) AS BEGIN\n  CREATE PUBLIC STREAM events(id BIGINT NOT NULL);\n  CREATE PUBLIC QUEUE requests(id BIGINT NOT NULL, allowed BOOLEAN NOT NULL);\n  CREATE PUBLIC DATAFLOW route FROM QUEUE requests AS request AS BEGIN\n    BEGIN ATOMIC LET answer = CALL command(events,request.id,request.allowed); END;\n  END;\n  AUTHORIZE DATAFLOW route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW route;\nEND;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'imported callable' USING MODULES (Probe(steps.Emit)) AS BEGIN\n    ENQUEUE INTO requests VALUES (7, TRUE);\n    ASSERT WORKFLOW NAME 'route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME * FROM events) EQUAL ((7));\n  END;\n  TEST 'returning callable rollback' USING MODULES (Probe(steps.Emit)) AS BEGIN\n    ENQUEUE INTO requests VALUES (7, FALSE);\n    ASSERT WORKFLOW NAME 'route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME * FROM events) EQUAL ();\n  END;\nEND;\n",
+    "files": [
+      {
+        "path": "steps.transit",
+        "text": "CREATE PUBLIC PROCEDURE Store(accepted TABLE(id BIGINT PRIMARY KEY), events STREAM(id BIGINT NOT NULL), id BIGINT, allowed BOOLEAN) RETURNS BIGINT\nEFFECTS (INSERT accepted, PRODUCE events)\nREQUIRES id >= 1 ELSE 'PositiveId'\nENSURES result = id ELSE 'SameId'\nAS BEGIN ATOMIC\n  INSERT INTO accepted VALUES (id) ON CONFLICT (id) DO ASSERT SAME ROW;\n  PRODUCE INTO events VALUES (id);\n  REQUIRE allowed ELSE 'LateRefusal';\n  RETURN id;\nEND;\nCREATE PUBLIC PROCEDURE Save(accepted TABLE(id BIGINT PRIMARY KEY), events STREAM(id BIGINT NOT NULL), id BIGINT, allowed BOOLEAN) RETURNS BIGINT\nEFFECTS (PRODUCE events, INSERT accepted)\nREQUIRES id >= 1 ELSE 'PositiveId'\nENSURES result = id ELSE 'SameId'\nAS BEGIN ATOMIC\n  LET saved = CALL Store(accepted, events, id, allowed);\n  RETURN saved;\nEND;\n\nCREATE PUBLIC PROCEDURE Emit(events STREAM(id BIGINT NOT NULL), id BIGINT, allowed BOOLEAN) RETURNS BIGINT\nEFFECTS (PRODUCE events)\nREQUIRES id >= 1 ELSE 'PositiveId'\nENSURES result = id ELSE 'SameId'\nAS BEGIN ATOMIC\n  PRODUCE INTO events VALUES(id);\n  REQUIRE allowed ELSE 'LateRefusal';\n  RETURN id;\nEND;\n"
+      },
+      {
+        "path": "pipeline.transit",
+        "text": "IMPORT steps FROM 'steps.transit';\nCREATE PUBLIC MODULE Pipeline(command PROCEDURE OF steps.Store, accepted IDENTIFIER, events IDENTIFIER, requests IDENTIFIER, route IDENTIFIER, lease TEXT) AS BEGIN\n  CREATE PUBLIC TABLE $accepted (id BIGINT PRIMARY KEY);\n  CREATE PUBLIC STREAM $events (id BIGINT NOT NULL);\n  CREATE PUBLIC QUEUE $requests (id BIGINT NOT NULL, allowed BOOLEAN NOT NULL) WITH (lease_duration = $lease, max_lease_duration = $lease);\n  CREATE PUBLIC DATAFLOW $route FROM QUEUE $requests AS request AS BEGIN\n    BEGIN ATOMIC\n      LET saved = CALL command($accepted, $events, request.id, request.allowed);\n      REQUIRE saved = request.id ELSE 'WrongReturn';\n    END;\n  END;\n  AUTHORIZE DATAFLOW $route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW $route;\nEND;\n"
+      }
+    ],
+    "parse": true,
+    "compile": "test_suite"
+  },
+  {
+    "name": "callable-prototype-definitions",
+    "source": "CREATE PUBLIC PROCEDURE Store(accepted TABLE(id BIGINT PRIMARY KEY), events STREAM(id BIGINT NOT NULL), id BIGINT, allowed BOOLEAN) RETURNS BIGINT\nEFFECTS (INSERT accepted, PRODUCE events)\nREQUIRES id >= 1 ELSE 'PositiveId'\nENSURES result = id ELSE 'SameId'\nAS BEGIN ATOMIC\n  INSERT INTO accepted VALUES (id) ON CONFLICT (id) DO ASSERT SAME ROW;\n  PRODUCE INTO events VALUES (id);\n  REQUIRE allowed ELSE 'LateRefusal';\n  RETURN id;\nEND;\nCREATE PUBLIC PROCEDURE Save(accepted TABLE(id BIGINT PRIMARY KEY), events STREAM(id BIGINT NOT NULL), id BIGINT, allowed BOOLEAN) RETURNS BIGINT\nEFFECTS (PRODUCE events, INSERT accepted)\nREQUIRES id >= 1 ELSE 'PositiveId'\nENSURES result = id ELSE 'SameId'\nAS BEGIN ATOMIC\n  LET saved = CALL Store(accepted, events, id, allowed);\n  RETURN saved;\nEND;\n",
+    "parse": true
+  },
+  {
+    "name": "callable-imported-prototype-parameter",
+    "source": "IMPORT steps FROM 'steps.transit';\nCREATE PUBLIC MODULE Pipeline(command PROCEDURE OF steps.Store, accepted IDENTIFIER, events IDENTIFIER, requests IDENTIFIER, route IDENTIFIER, lease TEXT) AS BEGIN\n  CREATE PUBLIC TABLE $accepted (id BIGINT PRIMARY KEY);\n  CREATE PUBLIC STREAM $events (id BIGINT NOT NULL);\n  CREATE PUBLIC QUEUE $requests (id BIGINT NOT NULL, allowed BOOLEAN NOT NULL) WITH (lease_duration = $lease, max_lease_duration = $lease);\n  CREATE PUBLIC DATAFLOW $route FROM QUEUE $requests AS request AS BEGIN\n    BEGIN ATOMIC\n      LET saved = CALL command($accepted, $events, request.id, request.allowed);\n      REQUIRE saved = request.id ELSE 'WrongReturn';\n    END;\n  END;\n  AUTHORIZE DATAFLOW $route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW $route;\nEND;\n",
+    "parse": true
+  },
+  {
+    "name": "lossless-parameters",
+    "source": "CREATE MODULE Exact(large NUMERIC(38,9), minimum NUMERIC(38,9), payload JSON, json_null JSON, normal INTERVAL, extreme INTERVAL) AS BEGIN\n  CREATE PUBLIC TABLE exact_values (id BIGINT PRIMARY KEY, amount NUMERIC(38, 9), payload JSON, span INTERVAL);\n  INSERT INTO exact_values VALUES\n    (1, $large, $payload, $normal),\n    (2, $minimum, $json_null, $extreme),\n    (3, NULL, NULL, NULL);\nEND;\nCREATE MODULE Setup() AS BEGIN\n  USE Exact(NUMERIC(38,9) '9007199254740993.123456789', NUMERIC(38,9) '-99999999999999999999999999999.999999999', JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', JSON 'null', INTERVAL(1, -2, 3), INTERVAL(-2147483648, 2147483647, -9223372036854775808));\nEND;\nCREATE TARGET default AS BEGIN USE Setup(); END;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'exact decimal JSON and interval components' USING MODULES (Setup()) AS BEGIN\n    ASSERT ROWS (SELECT id, amount, payload, span FROM exact_values) EQUAL (\n      (1, 9007199254740993.123456789, JSON '{\"large\":9007199254740993,\"fraction\":1.25,\"value\":null}', INTERVAL(1, -2, 3)),\n      (2, -99999999999999999999999999999.999999999, JSON 'null', INTERVAL(-2147483648, 2147483647, -9223372036854775808)),\n      (3, NULL, NULL, NULL)\n    );\n  END;\nEND;\n",
+    "parse": true
+  },
+  {
+    "name": "lossless-domains",
+    "source": "CREATE DOMAIN Document AS JSON IDENTITY 'example.document'; CREATE DOMAIN Elapsed AS INTERVAL IDENTITY 'example.elapsed'; CREATE MODULE Put(d Document, e Elapsed, t TYPE) AS BEGIN CREATE PUBLIC TABLE samples(id BIGINT PRIMARY KEY,payload $t,elapsed INTERVAL); INSERT INTO samples VALUES(1,$d,$e); END; CREATE TARGET default AS BEGIN USE Put(Document(JSON '{\"wide\":9007199254740993}'),Elapsed(INTERVAL(-2147483648,2147483647,-9223372036854775808)),TYPE Document); END;",
+    "parse": true
+  },
+  {
+    "name": "lossless-context-names",
+    "source": "CREATE MODULE Json(interval JSON) AS BEGIN END; CREATE TARGET default AS BEGIN USE Json(JSON 'null'); END;",
+    "parse": true
+  },
+  {
+    "name": "interval-too-large",
+    "source": "CREATE TARGET default AS BEGIN USE Put(INTERVAL(2147483648,0,0)); END;",
+    "parse": false
+  },
+  {
+    "name": "interval-bad-arity",
+    "source": "CREATE TARGET default AS BEGIN USE Put(INTERVAL(1,2)); END;",
+    "parse": false
+  },
+  {
+    "name": "interval-fraction",
+    "source": "CREATE TARGET default AS BEGIN USE Put(INTERVAL(1,2,3.5)); END;",
+    "parse": false
+  },
+  {
+    "name": "json-malformed-semantic",
+    "source": "CREATE TARGET default AS BEGIN USE Put(JSON '{'); END;",
+    "parse": true
+  },
+  {
+    "name": "json-helper-fixture",
+    "source": "CREATE FUNCTION Identity(payload JSON, unused BIGINT) RETURNS JSON AS BEGIN RETURN payload; END;\nCREATE PROCEDURE Save(events STREAM(id BIGINT NOT NULL, number BIGINT, text TEXT, payload JSON), id BIGINT, payload JSON)\nEFFECTS (PRODUCE events)\nREQUIRES payload IS NOT NULL ELSE 'SqlNull'\nAS BEGIN ATOMIC\n  LET number = JSON_INTEGER(payload, '$.number');\n  LET text = JSON_VALUE(payload, '$.value');\n  PRODUCE INTO events VALUES (id, number, text, payload);\nEND;\nCREATE MODULE Setup(lease TEXT) AS BEGIN\n  CREATE PUBLIC STREAM json_events(id BIGINT NOT NULL, number BIGINT, text TEXT, payload JSON);\n  CREATE PUBLIC QUEUE json_requests(id BIGINT NOT NULL, payload JSON) WITH(lease_duration=$lease,max_lease_duration=$lease);\n  CREATE PUBLIC DATAFLOW json_route FROM QUEUE json_requests AS request AS BEGIN\n    BEGIN ATOMIC CALL Save(json_events, request.id, Identity(request.payload, 1)); END;\n  END;\n  AUTHORIZE DATAFLOW json_route AS ROLE CURRENT_ROLE;\n  ACTIVATE DATAFLOW json_route;\nEND;\nCREATE TARGET default AS BEGIN USE Setup('120s'); END;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'exact JSON extraction' USING MODULES (Setup('30s')) AS BEGIN\n    ENQUEUE INTO json_requests VALUES(1, JSON '{\"number\":9007199254740993,\"value\":false}');\n    ASSERT WORKFLOW NAME 'json_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, number, text, payload FROM json_events) EQUAL ((1,9007199254740993,'false',JSON '{\"number\":9007199254740993,\"value\":false}'));\n  END;\n  TEST 'JSON null is a value' USING MODULES (Setup('30s')) AS BEGIN\n    ENQUEUE INTO json_requests VALUES(2, JSON 'null');\n    ASSERT WORKFLOW NAME 'json_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;\n    ASSERT ROWS (CONSUME id, number, text, payload FROM json_events) EQUAL ((2,NULL,NULL,JSON 'null'));\n  END;\nEND;\n",
+    "parse": true
+  },
+  {
+    "name": "numeric-operators-fixture",
+    "source": "CREATE MODULE Setup() AS BEGIN\n  CREATE PUBLIC TABLE numbers(id BIGINT PRIMARY KEY, amount NUMERIC(20,3));\n  INSERT INTO numbers VALUES(1,9007199254740.125),(2,NULL);\nEND;\nCREATE TARGET default AS BEGIN\n  USE Setup();\n  SELECT DECIMAL_ADD(amount,amount,20,3,REJECT) AS doubled FROM numbers;\n  SELECT DECIMAL_RESCALE(amount,20,2,HALF_EVEN) AS rounded FROM numbers;\nEND;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'exact operations' USING MODULES(Setup()) AS BEGIN\n    ASSERT ROWS(SELECT DECIMAL_ADD(amount,amount,20,3,REJECT) AS doubled FROM numbers) EQUAL ((18014398509480.250),(NULL));\n    ASSERT ROWS(SELECT DECIMAL_RESCALE(amount,20,2,HALF_EVEN) AS rounded FROM numbers) EQUAL ((9007199254740.12),(NULL));\n  END;\nEND;\n",
+    "parse": true
   }
 ]

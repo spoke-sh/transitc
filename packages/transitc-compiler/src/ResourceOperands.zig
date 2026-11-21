@@ -18,9 +18,9 @@ pub fn check(template: s.Syntax, bindings: []const types.Binding) !Operands.Chec
             .queue => if (value != .queue and value != .identifier) return error.SourceTypeMismatch,
             .table => if (value == .reference_table) return error.ReferenceOnlyTableAccess else if (value != .table and value != .identifier) return error.SourceTypeMismatch,
             .value, .operand => if (value == .reference_table) return error.ReferenceOnlyTableAccess else if (value != .integer and value != .text and value != .boolean and
-                value != .uuid and value != .timestamptz and value != .binary and
+                value != .uuid and value != .timestamptz and value != .date and value != .numeric and value != .json and value != .interval and value != .binary and
                 !(value == .nominal and template.kind != .control) and
-                !(template.kind == .program and (value == .table or value == .stream or value == .queue or value == .identifier))) return error.UnsupportedLogOperand,
+                !(template.kind == .program and (value == .symbolic or value == .table or value == .stream or value == .queue or value == .identifier))) return error.UnsupportedLogOperand,
         }
     }
     return .{ .table = "", .schema = @splat(0), .columns = &.{}, .operands = &.{} };

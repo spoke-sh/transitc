@@ -16,6 +16,9 @@
         "transit_protocol",
         "transit_sql_frontend"
       ],
+      "packages/transitc-compiler/src/Effects.zig": [
+        "transit_sql_frontend"
+      ],
       "packages/transitc-compiler/src/ProgramAnnotations.zig": [
         "transit_sql_frontend"
       ],
@@ -36,6 +39,9 @@
       "packages/transitc-compiler/src/SourceTypes.zig": [
         "transit_sql_frontend"
       ],
+      "packages/transitc-compiler/src/SymbolicProgram.zig": [
+        "transit_sql_frontend"
+      ],
       "packages/transitc-compiler/src/Syntax.zig": [
         "transit_sql_frontend"
       ],
@@ -54,8 +60,20 @@
         "transit_protocol",
         "transit_sql_frontend"
       ],
+      "packages/transitc-compiler/src/callable_test.zig": [
+        "transit_protocol"
+      ],
+      "packages/transitc-compiler/src/cardinality_test.zig": [
+        "transit_protocol"
+      ],
+      "packages/transitc-compiler/src/dynamic_test.zig": [
+        "transit_protocol"
+      ],
       "packages/transitc-compiler/src/format_test.zig": [
         "transit_sql_frontend"
+      ],
+      "packages/transitc-compiler/src/lossless_test.zig": [
+        "transit_protocol"
       ],
       "packages/transitc-compiler/src/migration_test.zig": [
         "transit_protocol"
@@ -63,10 +81,19 @@
       "packages/transitc-compiler/src/program_test.zig": [
         "transit_protocol"
       ],
+      "packages/transitc-compiler/src/refinement_test.zig": [
+        "transit_protocol"
+      ],
       "packages/transitc-compiler/src/resource_test.zig": [
         "transit_protocol"
       ],
+      "packages/transitc-compiler/src/scalar_test.zig": [
+        "transit_protocol"
+      ],
       "packages/transitc-compiler/src/source_test.zig": [
+        "transit_protocol"
+      ],
+      "packages/transitc-compiler/src/symbolic_program_test.zig": [
         "transit_protocol"
       ],
       "packages/transitc-compiler/src/tests.zig": [

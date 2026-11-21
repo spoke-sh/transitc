@@ -106,3 +106,6 @@ renaming `library-unavailable` to `library`, then run `transitc build --fetch` f
 `application` and repeat the check. It succeeds with the same lock content.
 For a local override, use `transitc build --override common=../library`; inspect
 the explicit override in provenance before returning to the locked build.
+
+For requests that choose a resource kind at runtime, see
+[Dispatch runtime variants](runtime-variants.md).

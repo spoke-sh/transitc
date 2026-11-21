@@ -1,0 +1,28 @@
+CREATE PUBLIC PROCEDURE Store(accepted TABLE(id BIGINT PRIMARY KEY), events STREAM(id BIGINT NOT NULL), id BIGINT, allowed BOOLEAN) RETURNS BIGINT
+EFFECTS (INSERT accepted, PRODUCE events)
+REQUIRES id >= 1 ELSE 'PositiveId'
+ENSURES result = id ELSE 'SameId'
+AS BEGIN ATOMIC
+  INSERT INTO accepted VALUES (id) ON CONFLICT (id) DO ASSERT SAME ROW;
+  PRODUCE INTO events VALUES (id);
+  REQUIRE allowed ELSE 'LateRefusal';
+  RETURN id;
+END;
+CREATE PUBLIC PROCEDURE Save(accepted TABLE(id BIGINT PRIMARY KEY), events STREAM(id BIGINT NOT NULL), id BIGINT, allowed BOOLEAN) RETURNS BIGINT
+EFFECTS (PRODUCE events, INSERT accepted)
+REQUIRES id >= 1 ELSE 'PositiveId'
+ENSURES result = id ELSE 'SameId'
+AS BEGIN ATOMIC
+  LET saved = CALL Store(accepted, events, id, allowed);
+  RETURN saved;
+END;
+
+CREATE PUBLIC PROCEDURE Emit(events STREAM(id BIGINT NOT NULL), id BIGINT, allowed BOOLEAN) RETURNS BIGINT
+EFFECTS (PRODUCE events)
+REQUIRES id >= 1 ELSE 'PositiveId'
+ENSURES result = id ELSE 'SameId'
+AS BEGIN ATOMIC
+  PRODUCE INTO events VALUES(id);
+  REQUIRE allowed ELSE 'LateRefusal';
+  RETURN id;
+END;

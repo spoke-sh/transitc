@@ -48,15 +48,15 @@ forms. Syntax acceptance remains distinct from duplicate domain identity, wrong
 argument/interface, impurity, recursion, nominal SQL operand and exhaustiveness
 checks. Source type words remain contextual except at the explicit built-in kind sites.
 
-[TypedTarget.lean](TypedTarget.lean) owns eleven scoped laws across three fragments
-(nominal variant specialization, ordered program domain erasure, and five-state
-pure function substitution, ordered guard refusal non-commutativity and hygienic
-atomic procedure rollback and returning values), with premises and exclusions in its header and the
-source contract. The dedicated `test::application-source-types` task also
+[TypedTarget.lean](TypedTarget.lean) owns fourteen scoped laws covering
+nominal variant specialization, ordered program domain erasure, five-state pure
+function substitution, ordered guard refusal, hygienic atomic procedures and
+returns, module instance sharing, schema isolation and reference non-escalation, with premises and exclusions in its header and the
+source contract. The dedicated `test::types` task also
 compares finite independent typed expectations with production checked operands,
 program projections and erased SQL; it does not replace grammar correspondence
 or real CLI execution. Its audit rejects missing theorem output, incomplete
 proofs and unreviewed axioms. The selection law uses `propext` and Lean's
 quotient soundness axiom through the library's finite-list filter/count lemmas;
-the other nine laws permit only `propext`. No application or compiler correctness
+the other thirteen laws permit only `propext`. No application or compiler correctness
 axiom is admitted.

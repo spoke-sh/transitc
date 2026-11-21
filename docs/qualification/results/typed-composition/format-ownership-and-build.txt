@@ -1,0 +1,9 @@
+zig fmt --check build.zig build.zig.zon apps packages examples tests/query/application_source/driver.zig
+python3 -B tests/dependencies/check.py
+Compiler/workspace imports match the bounded ownership inventory
+python3 -B tests/runner/launch.py tests/dependencies/diagnostic_inventory.py
+Diagnostic inventory: 33 production owners, 440 owner/error pairs, 45 qualified enum/union surfaces, 1 declared error sets, 361 error-return boundaries, 212 grammar productions. Mapping/proof completeness is a separate gate.
+python3 -B tests/runner/launch.py tests/dependencies/diagnostic_mappings.py
+Diagnostic semantic mappings: {"application-source": {"codes": 234, "exceptions": 0, "owner_error_pairs": 301}} (declared scope only; executable owner tests run in just test::unit).
+zig build check
+nixfmt --check flake.nix nix/*.nix

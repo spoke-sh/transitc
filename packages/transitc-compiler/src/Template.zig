@@ -10,8 +10,8 @@ pub const Kind = enum { create, create_schema, insert, update, delete, select, r
 pub const HelperKind = enum { function, guard, procedure };
 const BlockMode = enum { dataflow, function, guard, procedure };
 /// Body boundaries recorded by the parser for comment-preserving layout.
-pub const Block = struct { open: u32, close: u32 };
-pub const Syntax = struct { kind: Kind, tokens: []const Token, holes: []const Hole, identifiers: []const Token = &.{}, blocks: []const Block = &.{} };
+pub const Block = struct { open: u32, close: u32, match: bool = false };
+pub const Syntax = struct { kind: Kind, tokens: []const Token, holes: []const Hole, identifiers: []const Token = &.{}, blocks: []const Block = &.{}, match_arms: []const u32 = &.{} };
 const Self = @This();
 a: std.mem.Allocator,
 text: []const u8,
@@ -25,6 +25,7 @@ allow_holes: bool = true,
 holes: std.ArrayList(Hole) = .empty,
 identifiers: std.ArrayList(Token) = .empty,
 blocks: std.ArrayList(Block) = .empty,
+match_arms: std.ArrayList(u32) = .empty,
 
 pub fn describeToken(text: []const u8, token: Token, buf: *[96]u8) []const u8 {
     return switch (token.kind) {
@@ -759,15 +760,30 @@ fn programExpression(self: *Self, minimum: u8) anyerror!void {
         try self.programExpression(precedence + 1);
     }
 }
+fn variantName(self: *Self) !void {
+    var count: usize = 0;
+    while (true) {
+        if (!self.tag(.word)) return self.invalid();
+        try self.programName();
+        count += 1;
+        if (!self.take(".")) break;
+        if (count == 3) return self.invalid();
+    }
+}
 fn programBlock(self: *Self, atomic: bool, mode: BlockMode) anyerror!void {
     try self.enter();
     defer self.depth -= 1;
     const open = if (self.i > 0) self.tokens[self.i - 1].start else null;
-    while (self.i < self.tokens.len and !self.is("END") and !self.is("ELSE") and !self.is("ON") and !(mode == .procedure and self.is("RETURN"))) {
+    while (self.i < self.tokens.len and !self.is("END") and !self.is("ELSE") and !self.is("ON") and !self.is("WHEN") and !(mode == .procedure and self.is("RETURN"))) {
         const start = self.at();
         if (self.take("LET")) {
             try self.programName();
+            const cardinality = self.take("ONE") or self.take("OPTIONAL");
             try self.require("=");
+            if (cardinality and !self.is("SELECT")) {
+                self.failExpected("'SELECT' after result cardinality");
+                return self.invalid();
+            }
             if (self.take("CALL")) {
                 if (mode == .guard) {
                     self.location.* = start;
@@ -819,6 +835,28 @@ fn programBlock(self: *Self, atomic: bool, mode: BlockMode) anyerror!void {
             try self.require("ATOMIC");
             try self.programBlock(true, mode);
             try self.require("END");
+        } else if (self.take("MATCH")) {
+            try self.programExpression(0);
+            try self.require("AS");
+            try self.variantName();
+            const match_open = self.tokens[self.i - 1].start;
+            try self.require("WHEN");
+            while (true) {
+                try self.match_arms.append(self.a, self.at());
+                try self.variantName();
+                try self.require("(");
+                if (!self.take(")")) {
+                    try self.programName();
+                    while (self.take(",")) try self.programName();
+                    try self.require(")");
+                }
+                try self.require("THEN");
+                try self.programBlock(atomic, mode);
+                if (!self.take("WHEN")) break;
+            }
+            try self.blocks.append(self.a, .{ .open = match_open, .close = self.at(), .match = true });
+            try self.require("END");
+            try self.require("MATCH");
         } else if (self.take("IF")) {
             try self.programExpression(0);
             try self.require("THEN");
@@ -884,7 +922,7 @@ fn finish(self: *Self, kind: Kind) !Syntax {
             return lhs.open < rhs.open;
         }
     }.less);
-    return .{ .kind = kind, .tokens = self.tokens, .holes = try self.holes.toOwnedSlice(self.a), .identifiers = try self.identifiers.toOwnedSlice(self.a), .blocks = try self.blocks.toOwnedSlice(self.a) };
+    return .{ .kind = kind, .tokens = self.tokens, .holes = try self.holes.toOwnedSlice(self.a), .identifiers = try self.identifiers.toOwnedSlice(self.a), .blocks = try self.blocks.toOwnedSlice(self.a), .match_arms = try self.match_arms.toOwnedSlice(self.a) };
 }
 
 fn program(self: *Self) !Kind {
@@ -936,6 +974,19 @@ fn statement(self: *Self) !Kind {
         try self.tableElement();
         while (self.take(",")) try self.tableElement();
         try self.require(")");
+        if (kind == .create_queue and self.take("WITH")) {
+            try self.require("(");
+            while (true) {
+                if (!self.take("lease_duration") and !self.take("max_lease_duration")) {
+                    self.failExpected("'lease_duration' or 'max_lease_duration'");
+                    return self.invalid();
+                }
+                try self.require("=");
+                try self.string();
+                if (!self.take(",")) break;
+            }
+            try self.require(")");
+        }
         return kind;
     }
     if (self.is("AUTHORIZE") or self.is("ACTIVATE") or self.is("SUSPEND") or self.is("RESUME") or self.is("RETIRE")) {

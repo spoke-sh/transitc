@@ -1,0 +1,14 @@
+IMPORT steps FROM 'steps.transit';
+CREATE PUBLIC MODULE Pipeline(command PROCEDURE OF steps.Store, accepted IDENTIFIER, events IDENTIFIER, requests IDENTIFIER, route IDENTIFIER, lease TEXT) AS BEGIN
+  CREATE PUBLIC TABLE $accepted (id BIGINT PRIMARY KEY);
+  CREATE PUBLIC STREAM $events (id BIGINT NOT NULL);
+  CREATE PUBLIC QUEUE $requests (id BIGINT NOT NULL, allowed BOOLEAN NOT NULL) WITH (lease_duration = $lease, max_lease_duration = $lease);
+  CREATE PUBLIC DATAFLOW $route FROM QUEUE $requests AS request AS BEGIN
+    BEGIN ATOMIC
+      LET saved = CALL command($accepted, $events, request.id, request.allowed);
+      REQUIRE saved = request.id ELSE 'WrongReturn';
+    END;
+  END;
+  AUTHORIZE DATAFLOW $route AS ROLE CURRENT_ROLE;
+  ACTIVATE DATAFLOW $route;
+END;

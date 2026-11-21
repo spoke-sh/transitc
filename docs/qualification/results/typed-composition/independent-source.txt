@@ -1,0 +1,9 @@
+warning: Git tree '/home/alex/workspace/spoke-sh/transitc' has uncommitted changes
+this derivation will be built:
+  /nix/store/giihh1xpqhwihnhx6i5dyrhz6gwq2i60-transitc-source-verification.drv
+building '/nix/store/giihh1xpqhwihnhx6i5dyrhz6gwq2i60-transitc-source-verification.drv'...
+transitc-source-verification> Compiler/workspace imports match the bounded ownership inventory
+transitc-source-verification> source grammar evidence: /build/source/.cache/verification/application-source-grammar/run-322h4cv8
+transitc-source-verification> PASS 251 source cases, 177 roundtrips, 10 negative controls
+transitc-source-verification> typed source evidence: /build/source/.cache/verification/application-source-types/run-ckgci972
+transitc-source-verification> PASS 14 Lean laws, 136 finite equalities, 16 typed/SQL and 21 program and 2 runtime MATCH and 4 DATE and 5 NUMERIC and 3 lossless and 2 cardinality and 2 symbolic program and 2 refinement and 3 callable comparisons, 4 refusals, 47 negative controls

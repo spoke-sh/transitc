@@ -69,6 +69,8 @@ def parse(source):
             return
         if helper_mode and rule in ('identifierHole', 'typeHole', 'valueHole', 'checkHole', 'scalarHole', 'tableHole', 'streamHole', 'queueHole'):
             raise Refusal(span(node)['start'], 'hole inside helper')
+        if rule == 'effectClause' and len(node.effect()) > 64:
+            raise Refusal(span(node)['start'], 'effect bound')
         if rule == 'functionBody' and node.programInstruction():
             for child in node.children or []:
                 bounds(child, atomic, 'function')
@@ -182,6 +184,18 @@ def parse(source):
     binary = {'+': 'add', '-': 'subtract', '*': 'multiply', '=': 'equal', '<>': 'not_equal',
               '<': 'less', '<=': 'less_equal', '>': 'greater', '>=': 'greater_equal', 'AND': 'and_', 'OR': 'or_'}
 
+    def numeric(ctx):
+        precision, scale = [int(token.getText()) for token in ctx.INTEGER()]
+        if not (0 <= precision <= 255 and 0 <= scale <= 255):
+            raise Refusal(span(ctx)['start'], 'decimal descriptor syntax bound')
+        return {'precision': precision, 'scale': scale}
+
+    def source_type(ctx):
+        base = ctx.sourceBaseType()
+        if base and base.numericSourceType():
+            return {'numeric': numeric(base.numericSourceType())}
+        return {'scalar': ctx.getText().lower()} if base else {'named': name(ctx)}
+
     def expr(ctx):
         rule = parser.ruleNames[ctx.getRuleIndex()]
         if rule == 'expression':
@@ -202,6 +216,14 @@ def parse(source):
                 value = {'integer': -int(child.getText())}
             else:
                 value = {'unary': {'negative': bool(ctx.MINUS()), 'operand': expr(child)}}
+        elif ctx.sourceInterval():
+            values = [int(part.getText()) for part in ctx.sourceInterval().sourceIntervalPart()]
+            for v, bits in zip(values, (32, 32, 64)):
+                if not -(2**(bits - 1)) <= v < 2**(bits - 1):
+                    raise Refusal(span(ctx)['start'], 'interval component bound')
+            value = {'interval': dict(zip(('months', 'days', 'nanos'), values))}
+        elif ctx.numericSourceType():
+            value = {'numeric': {'type': numeric(ctx.numericSourceType()), 'text': string(ctx.STRING())}}
         elif ctx.INTEGER():
             value = {'integer': int(ctx.INTEGER().getText())}
         elif ctx.NAME() and ctx.STRING():
@@ -210,6 +232,10 @@ def parse(source):
             value = {'uuid': string(ctx.STRING())}
         elif (ctx.TIMESTAMPTZ() or ctx.TIMESTAMP()) and ctx.STRING():
             value = {'timestamptz': string(ctx.STRING())}
+        elif ctx.JSON() and ctx.STRING():
+            value = {'json': string(ctx.STRING())}
+        elif ctx.DATE() and ctx.STRING():
+            value = {'date': string(ctx.STRING())}
         elif ctx.X() and ctx.STRING():
             value = {'bytes': string(ctx.STRING())}
         elif ctx.SCHEMA_BINDING() and ctx.STRING():
@@ -218,12 +244,14 @@ def parse(source):
             value = {'row': [{'name': na.sourceName().getText().lower(), 'value': expr(na.expression())} for na in ctx.namedArgument()]}
         elif ctx.TYPE():
             kind = ctx.sourceType()
-            value = {'type': kind.getText().lower()} if kind.sourceBaseType() else {'named_type': name(kind)}
+            ty = source_type(kind)
+            key = next(iter(ty))
+            value = {{'scalar': 'type', 'numeric': 'numeric_type', 'named': 'named_type'}[key]: ty[key]}
         elif ctx.TRUE() or ctx.FALSE():
             value = {'boolean': bool(ctx.TRUE())}
         elif ctx.STRING():
             value = {'text': string(ctx.STRING())}
-        elif ctx.plainReferenceHead() or ctx.SCHEMA_BINDING() or ctx.ROW():
+        elif ctx.plainReferenceHead() or ctx.SCHEMA_BINDING() or ctx.ROW() or ctx.INTERVAL():
             value = {'construct': call_parts(ctx, ctx.callArguments())} if ctx.LPAREN() else {'reference': name(ctx)}
         else:
             value = expr(ctx.expression())['value']
@@ -323,11 +351,42 @@ def parse(source):
     def body(ctx):
         return [statement_node(stmt) for stmt in ctx.sourceStatement()]
 
+    def refinements(clauses):
+        if len(clauses) > 16:
+            raise Refusal(span(clauses[16])['start'], 'clause bound')
+        result = []
+        for clause in clauses:
+            terms = []
+            for term in clause.refinementTerm():
+                right = None
+                if term.IS():
+                    op = 'present'
+                else:
+                    op = binary[term.sourceComparisonOp().getText()]
+                    if term.INTEGER():
+                        n = int(term.INTEGER().getText()) * (-1 if term.MINUS() else 1)
+                        if not -(2 ** 63) <= n < 2 ** 63:
+                            raise Refusal(span(term)['start'], 'integer bound')
+                        right = {'integer': n}
+                    else:
+                        right = {'name': term.sourceName(1).getText().lower()}
+                terms.append({'left': term.sourceName(0).getText().lower(), 'op': op, 'right': right})
+            refusal = string(clause.STRING())
+            if len(terms) > 16 or not 1 <= len(refusal.encode()) <= 128:
+                raise Refusal(span(clause)['start'], 'refinement bound')
+            result.append({'terms': terms, 'refusal': refusal, 'span': span(clause)})
+        return result
+
     def parameters(ctx):
         result = []
         for param in ctx.parameter() if ctx else []:
             kind = param.parameterKind()
-            if kind.SCHEMA_BINDING():
+            if kind.callableParameter():
+                cp = kind.callableParameter()
+                value = {'callable': {'kind': 'function' if cp.FUNCTION() else 'guard' if cp.GUARD() else 'procedure', 'signature': name(cp.sourceQualifiedName())}}
+            elif kind.numericSourceType():
+                value = {'numeric': numeric(kind.numericSourceType())}
+            elif kind.SCHEMA_BINDING():
                 value = {'schema_binding': None}
             elif kind.MODULE():
                 value = {'module_of' if kind.OF() else 'module': name(kind.sourceQualifiedName())}
@@ -337,7 +396,7 @@ def parse(source):
                 columns = []
                 for col in kind.signatureColumn():
                     raw_type = col.sourceType()
-                    ty = {'scalar': raw_type.getText().lower()} if raw_type.sourceBaseType() else {'named': name(raw_type)}
+                    ty = source_type(raw_type)
                     nullable = not col.PRIMARY() and (not col.nullability() or not col.nullability().NOT())
                     if col.PRIMARY() and col.nullability() and not col.nullability().NOT():
                         raise Refusal(span(col)['start'], 'nullable primary key')
@@ -433,7 +492,9 @@ def parse(source):
             else:
                 def_name = definition.sourceName().getText().lower()
             if definition.DOMAIN():
-                domain = {'base': definition.sourceBaseType().getText().lower(), 'identity': string(definition.STRING())}
+                base = definition.sourceBaseType()
+                decimal = numeric(base.numericSourceType()) if base.numericSourceType() else None
+                domain = {'base': 'numeric' if decimal else base.getText().lower(), 'numeric': decimal, 'identity': string(definition.STRING())}
                 if not 1 <= len(domain['identity'].encode()) <= 128:
                     raise Refusal(span(definition)['start'], 'domain identity bound')
             if definition.VARIANT():
@@ -443,7 +504,7 @@ def parse(source):
                     raise Refusal(span(definition)['start'], 'constructor bound/duplicate')
             if definition.sourceType():
                 raw_ret = definition.sourceType()
-                return_type = {'scalar': raw_ret.getText().lower()} if raw_ret.sourceBaseType() else {'named': name(raw_ret)}
+                return_type = source_type(raw_ret)
             program = (template(definition.functionBody(), helper='function_body') if definition.FUNCTION() else
                        (template(definition.programBlock(), helper='guard_body') if definition.BEGIN() else template(definition.guardRequires(), helper='guard_requires')) if definition.GUARD() else
                        template(definition.procedureBody(), helper='procedure_body') if definition.PROCEDURE() else None)
@@ -458,7 +519,8 @@ def parse(source):
         definitions.append({'name': def_name, 'public': bool(definition.PUBLIC() or definition.EXPORT()),
                             'kind': def_kind, 'parameters': params, 'body': def_body,
                             'span': span(definition), 'domain': domain, 'constructors': constructors,
-                            'return_type': return_type, 'program': program, 'migration': mig,
+                            'return_type': return_type, 'effects': ([{'operation': e.children[0].getText().lower(), 'resource': e.sourceName().getText().lower()} for e in definition.effectClause().effect()] if definition.effectClause() else None), 'preconditions': refinements(definition.precondition()),
+                            'postconditions': refinements(definition.postcondition()), 'program': program, 'migration': mig,
                             'target_of': target_of, 'target_ref': target_ref, 'output_path': output_path,
                             'suite_path': suite_path, 'suites': suites, 'target_options': target_options,
                             'schema': def_schema})

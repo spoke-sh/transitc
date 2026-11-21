@@ -915,6 +915,82 @@
         "PathAlreadyExists": {
           "code": "application.source.output",
           "category": "unavailable"
+        },
+        "OptionalRowRequiresPresence": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "Inexact": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "DuplicateField": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "InvalidDecimal": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "InvalidRefinementBinding": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "UnsupportedRefinementPredicate": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "UnsupportedRefinementContract": {
+          "code": "application.source.unsupported",
+          "category": "unsupported"
+        },
+        "InvalidCallableSignature": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "MissingCallableContract": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "CallableSignatureMismatch": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "DuplicateEffectRequirement": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "InvalidEffectBinding": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "EffectContractMismatch": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "InvalidJson": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "JsonByteBudgetExceeded": {
+          "code": "application.source.limit",
+          "category": "limit"
+        },
+        "JsonDepthExceeded": {
+          "code": "application.source.limit",
+          "category": "limit"
+        },
+        "JsonTokenBudgetExceeded": {
+          "code": "application.source.limit",
+          "category": "limit"
+        },
+        "JsonFieldBudgetExceeded": {
+          "code": "application.source.limit",
+          "category": "limit"
+        },
+        "UnsupportedComparison": {
+          "code": "application.source.unsupported",
+          "category": "unsupported"
         }
       }
     }

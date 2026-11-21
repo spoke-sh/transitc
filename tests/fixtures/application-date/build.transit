@@ -1,0 +1,25 @@
+CREATE DOMAIN Day AS DATE IDENTITY 'example.day';
+CREATE MODULE Resources(element TYPE) AS BEGIN
+  CREATE PUBLIC TABLE dates (id BIGINT PRIMARY KEY, day $element NOT NULL, nullable_day DATE);
+END;
+CREATE MODULE Add(id BIGINT, value Day) AS BEGIN
+  INSERT INTO dates VALUES ($id, $value, NULL);
+END;
+CREATE MODULE Setup() AS BEGIN
+  USE Resources(TYPE Day);
+  USE Add(1, Day(DATE '0001-01-01'));
+  USE Add(2, Day(DATE '1970-01-01'));
+  USE Add(3, Day(DATE '2024-02-29'));
+  USE Add(4, Day(DATE '9999-12-31'));
+END;
+CREATE TARGET default AS BEGIN USE Setup(); END;
+CREATE TEST TARGET tests AS BEGIN
+  TEST 'date values retain exact days and NULL' USING MODULES (Setup()) AS BEGIN
+    ASSERT ROWS (SELECT id, day, nullable_day FROM dates) EQUAL (
+      (1, DATE '0001-01-01', NULL),
+      (2, DATE '1970-01-01', NULL),
+      (3, DATE '2024-02-29', NULL),
+      (4, DATE '9999-12-31', NULL)
+    );
+  END;
+END;

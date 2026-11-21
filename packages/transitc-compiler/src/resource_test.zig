@@ -146,3 +146,29 @@ test "program validation preserves atomic and lifecycle boundaries" {
     try std.testing.expectError(error.ApplicationHostUnavailable, compile("CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE q (id BIGINT NOT NULL); CREATE PUBLIC DATAFLOW p FROM QUEUE q AS request AS BEGIN LET secret = SECRET('key'); END; END;"));
     try std.testing.expectError(error.SourceDomainMismatch, compile("CREATE DOMAIN Id AS BIGINT IDENTITY 'id'; CREATE MODULE M(ty TYPE) AS BEGIN CREATE PUBLIC TABLE state (id $ty PRIMARY KEY); CREATE PUBLIC QUEUE q (id BIGINT NOT NULL); CREATE PUBLIC DATAFLOW p FROM QUEUE q AS request AS BEGIN BEGIN ATOMIC INSERT INTO state VALUES (request.id) ON CONFLICT (id) DO ASSERT SAME ROW; END; END; END; CREATE TARGET default AS BEGIN USE M(TYPE Id); END;"));
 }
+
+test "Queue leases bind native policy and participate in resource and program identities" {
+    const prefix = "CREATE MODULE LeaseQueue() AS BEGIN CREATE PUBLIC QUEUE work (id BIGINT NOT NULL)";
+    const suffix = "; EXPORT QUEUE work AS jobs; END; " ++
+        "CREATE MODULE Route(input QUEUE(id BIGINT NOT NULL)) AS BEGIN " ++
+        "CREATE PUBLIC DATAFLOW route FROM QUEUE $input AS request AS BEGIN REQUIRE TRUE ELSE 'No'; END; END; " ++
+        "CREATE TARGET default AS BEGIN USE LeaseQueue() AS input; USE Route(input.jobs); END;";
+    const plain = try compile(prefix ++ suffix);
+    defer plain.deinit();
+    const explicit = try compile(prefix ++ " WITH (lease_duration = '30s', max_lease_duration = '30s')" ++ suffix);
+    defer explicit.deinit();
+    const longer = try compile(prefix ++ " WITH (lease_duration = '120s', max_lease_duration = '120s')" ++ suffix);
+    defer longer.deinit();
+    const reordered = try compile(prefix ++ " WITH (max_lease_duration = '2m', lease_duration = '2m')" ++ suffix);
+    defer reordered.deinit();
+    for (plain.steps, explicit.steps, longer.steps, reordered.steps) |before, same, after, equivalent| {
+        try std.testing.expectEqualSlices(u8, &before.plan_digest, &same.plan_digest);
+        try std.testing.expect(!std.mem.eql(u8, &before.plan_digest, &after.plan_digest));
+        try std.testing.expectEqualSlices(u8, &after.plan_digest, &equivalent.plan_digest);
+    }
+    try std.testing.expect(!std.mem.eql(u8, &plain.steps[1].bindings_digest, &longer.steps[1].bindings_digest));
+    try std.testing.expectEqualSlices(u8, &longer.steps[1].bindings_digest, &reordered.steps[1].bindings_digest);
+    try std.testing.expectError(error.DuplicateLogOption, compile(prefix ++ " WITH (lease_duration = '30s', lease_duration = '30s')" ++ suffix));
+    try std.testing.expectError(error.InvalidQueuePolicy, compile(prefix ++ " WITH (lease_duration = '120s')" ++ suffix));
+    try std.testing.expectError(error.InvalidSourceTemplate, compile(prefix ++ " WITH (retention = '1d')" ++ suffix));
+}

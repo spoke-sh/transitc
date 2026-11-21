@@ -10,7 +10,8 @@ const Context = @import("SourceDiagnostic.zig").Context;
 
 pub const Field = struct { name: []const u8, value: Type };
 pub const Type = struct { kind: a.Types.Kind, nullable: bool, domain: ?[]const u8, fields: []const Field };
-pub const Node = struct { id: a.Id, source_offset: usize, kind: []const u8, type: Type };
+pub const Cardinality = enum { one, optional };
+pub const Node = struct { id: a.Id, source_offset: usize, kind: []const u8, type: Type, cardinality: ?Cardinality = null };
 pub const Association = struct { column: []const u8, domain: ?[]const u8, value: ?a.Id };
 pub const Event = struct {
     kind: enum { acquire, let, read, require, atomic_begin, atomic_end, branch_begin, branch_else, branch_end, insert, append, failure_begin, failure_end },
@@ -28,6 +29,11 @@ pub const RowField = struct {
 pub const Expected = union(enum) {
     scalar: types.Scalar,
     row: []const RowField,
+    /// Decoder input owned by runtime MATCH lowering. Its hygienic binding is
+    /// inaccessible to source; payload aliases are introduced after validation.
+    variant: Graph.Ref,
+    /// Result presence is separate from field nullability and cell states.
+    result: Cardinality,
 };
 pub const Obligation = struct {
     target: union(enum) {
@@ -37,7 +43,7 @@ pub const Obligation = struct {
     expected: Expected,
     name: []const u8,
 };
-const Value = struct { domain: ?Graph.Ref = null, fields: []const Named = &.{} };
+const Value = struct { domain: ?Graph.Ref = null, fields: []const Named = &.{}, cardinality: ?Cardinality = null, require_presence: bool = false };
 const Named = struct { name: []const u8, value: Value };
 const Self = @This();
 scratch: std.mem.Allocator,
@@ -158,6 +164,8 @@ fn project(self: *Self, value: Value, physical_: a.Types.Value, depth: usize) an
 }
 fn checkExpected(self: *Self, expected: Expected, name: []const u8, actual: Value, physical_: a.Types.Value, offset: usize) anyerror!void {
     switch (expected) {
+        .result => if (physical_.kind != .record or actual.cardinality == null) return error.ProgramTypeMismatch,
+        .variant => |ref| _ = try self.variantRecord(ref, actual, physical_, offset),
         .scalar => |want_scalar| {
             const want_kind: a.Types.Kind = switch (want_scalar.base) {
                 .bigint => .integer,
@@ -165,7 +173,9 @@ fn checkExpected(self: *Self, expected: Expected, name: []const u8, actual: Valu
                 .boolean => .boolean,
                 .uuid => .uuid,
                 .timestamptz => .timestamp,
+                .date, .numeric, .interval => return error.ProgramTypeMismatch,
                 .binary => .binary,
+                .json => .json,
             };
             if (physical_.kind != .null and physical_.kind != want_kind) {
                 self.context.* = .{ .offset = offset, .name = name, .expected = want_scalar.label(self.graph), .actual = @tagName(physical_.kind) };
@@ -177,6 +187,7 @@ fn checkExpected(self: *Self, expected: Expected, name: []const u8, actual: Valu
             }
         },
         .row => |want_fields| {
+            try self.requirePresent(actual, offset);
             if (physical_.kind == .null) return;
             if (physical_.kind != .record) {
                 self.context.* = .{ .offset = offset, .name = name, .expected = "ROW", .actual = @tagName(physical_.kind) };
@@ -199,11 +210,46 @@ fn checkExpected(self: *Self, expected: Expected, name: []const u8, actual: Valu
         },
     }
 }
+fn variantRecord(self: *Self, ref: Graph.Ref, actual: Value, physical_: a.Types.Value, offset: usize) !Value {
+    const definition = self.graph.getDefinition(ref);
+    self.context.* = .{ .offset = offset, .name = definition.name, .expected = "variant record with tag and one nullable record per constructor", .actual = @tagName(physical_.kind) };
+    if (physical_.kind != .record or physical_.fields.len != definition.constructors.len + 1 or actual.domain != null) return error.ProgramTypeMismatch;
+    const tag = physicalField(physical_, "tag") orelse return error.ProgramTypeMismatch;
+    if (tag.kind != .text or tag.nullable or nominal(field(actual, "tag"))) return error.ProgramTypeMismatch;
+    const fields = try self.scratch.alloc(Named, definition.constructors.len + 1);
+    fields[0] = .{ .name = "tag", .value = .{} };
+    for (definition.constructors, fields[1..]) |constructor, *result| {
+        try self.tick();
+        if (std.mem.eql(u8, constructor.name, "tag")) return error.ProgramTypeMismatch;
+        const arm = physicalField(physical_, constructor.name) orelse return error.ProgramTypeMismatch;
+        if (arm.kind != .record or !arm.nullable or arm.fields.len != constructor.fields.len) return error.ProgramTypeMismatch;
+        const payload = try self.scratch.alloc(Named, constructor.fields.len);
+        for (constructor.fields, payload) |parameter, *item| {
+            try self.tick();
+            const scalar = try types.field(self.graph, ref.file, parameter.kind);
+            const physical_field = physicalField(arm, parameter.name) orelse return error.ProgramTypeMismatch;
+            if (physical_field.nullable) return error.ProgramTypeMismatch;
+            const annotation = field(field(actual, constructor.name), parameter.name);
+            if (annotation.domain != null and !std.meta.eql(annotation.domain, scalar.domain)) return error.SourceDomainMismatch;
+            // The closed record descriptor validates physical payload types;
+            // MATCH validates tag/presence before exposing the nominal aliases.
+            try self.checkExpected(.{ .scalar = .{ .base = scalar.base, .numeric = scalar.numeric } }, parameter.name, .{}, physical_field, offset);
+            if (nominal(annotation) and annotation.domain == null) return error.SourceDomainMismatch;
+            item.* = .{ .name = parameter.name, .value = .{ .domain = scalar.domain } };
+        }
+        result.* = .{ .name = constructor.name, .value = .{ .fields = payload } };
+    }
+    return .{ .fields = fields };
+}
+fn physicalField(value: a.Types.Value, name: []const u8) ?a.Types.Value {
+    for (value.fields) |item| if (std.mem.eql(u8, item.name, name)) return item.value;
+    return null;
+}
 fn checkObligation(self: *Self, ob: Obligation, actual: Value, physical_: a.Types.Value, offset: usize) !void {
     return self.checkExpected(ob.expected, ob.name, actual, physical_, offset);
 }
 fn node(self: *Self, id: a.Id, offset: usize, kind: []const u8, value: Value) !void {
-    try self.nodes.append(self.output, .{ .id = id, .source_offset = self.origin(offset), .kind = kind, .type = try self.project(value, try self.physical(id), 0) });
+    try self.nodes.append(self.output, .{ .id = id, .source_offset = self.origin(offset), .kind = kind, .type = try self.project(value, try self.physical(id), 0), .cardinality = value.cardinality });
 }
 fn expression(self: *Self, input: *const a.Expression) anyerror!Value {
     self.context.* = .{ .offset = input.span.start };
@@ -216,7 +262,11 @@ fn expression(self: *Self, input: *const a.Expression) anyerror!Value {
             for (self.columns) |column| if (std.mem.eql(u8, column.name, name)) break :blk column.value;
             break :blk .{};
         },
-        .field => |item| field(try self.expression(item.base), item.name),
+        .field => |item| blk: {
+            const base = try self.expression(item.base);
+            try self.requirePresent(base, item.base.span.start);
+            break :blk field(base, item.name);
+        },
         .unary => |item| blk: {
             const operand = try self.expression(item.operand);
             if (item.operator != .is_null and item.operator != .is_not_null) try self.ordinary(operand, input.span.start);
@@ -237,10 +287,13 @@ fn expression(self: *Self, input: *const a.Expression) anyerror!Value {
             try self.condition(item.condition);
             const yes = try self.expression(item.yes);
             const no = try self.expression(item.no);
-            if ((try self.physical(item.yes.id)).kind == .null) break :blk no;
-            if ((try self.physical(item.no.id)).kind == .null) break :blk yes;
+            if ((try self.physical(item.yes.id)).kind == .null) break :blk optional(no);
+            if ((try self.physical(item.no.id)).kind == .null) break :blk optional(yes);
             try self.agree(yes, no, input.span.start);
-            break :blk yes;
+            var joined = yes;
+            if (yes.cardinality != no.cardinality) joined = optional(joined);
+            joined.require_presence = yes.require_presence or no.require_presence;
+            break :blk joined;
         },
         .call => |item| blk: {
             for (item.arguments) |argument| try self.ordinary(try self.expression(argument), argument.span.start);
@@ -276,6 +329,29 @@ fn expression(self: *Self, input: *const a.Expression) anyerror!Value {
 fn condition(self: *Self, input: *const a.Expression) !void {
     try self.ordinary(try self.expression(input), input.span.start);
 }
+fn optional(value: Value) Value {
+    var result = value;
+    if (result.cardinality != null) result.cardinality = .optional;
+    return result;
+}
+fn requirePresent(self: *Self, value: Value, offset: usize) !void {
+    if (value.require_presence and value.cardinality != .one) {
+        self.context.* = .{ .offset = offset };
+        return error.OptionalRowRequiresPresence;
+    }
+}
+/// Only direct, whole-record presence checks discharge this obligation. The
+/// captured row is immutable; this establishes no continuing resource existence.
+fn narrowPresence(self: *Self, condition_: *const a.Expression, truth: bool) void {
+    if (condition_.value != .unary) return;
+    const unary = condition_.value.unary;
+    if (!((unary.operator == .is_not_null and truth) or (unary.operator == .is_null and !truth))) return;
+    if (unary.operand.value != .name) return;
+    for (self.symbols.items) |*symbol| if (std.mem.eql(u8, symbol.name, unary.operand.value.name) and symbol.value.cardinality != null) {
+        symbol.value.cardinality = .one;
+        return;
+    };
+}
 fn select(self: *Self, input: a.Select) !Value {
     const resource = try self.catalog.findResourceQualified(input.schema, input.target);
     const record_ = try self.record(resource);
@@ -286,9 +362,9 @@ fn select(self: *Self, input: a.Select) !Value {
     if (input.columns) |names| {
         const fields = try self.scratch.alloc(Named, names.len);
         for (names, fields) |name, *out| out.* = .{ .name = name, .value = field(record_, name) };
-        return .{ .fields = fields };
+        return .{ .fields = fields, .cardinality = .optional };
     }
-    return record_;
+    return .{ .fields = record_.fields, .cardinality = .optional };
 }
 fn event(self: *Self, kind: @FieldType(Event, "kind"), id: ?a.Id, offset: usize, resource: ?*const types.Table, expressions: []const *a.Expression) !void {
     const columns = try self.output.alloc(Association, if (resource) |value| value.domains.len else 0);
@@ -319,7 +395,7 @@ fn block(self: *Self, instructions: []const a.Instruction) anyerror!void {
         const offset = instruction.span.start;
         switch (instruction.value) {
             .let => |binding| {
-                const value = switch (binding.value) {
+                var value = switch (binding.value) {
                     .expression => |input| try self.expression(input),
                     .select => |input| try self.select(input),
                     else => return error.ApplicationHostUnavailable,
@@ -328,7 +404,15 @@ fn block(self: *Self, instructions: []const a.Instruction) anyerror!void {
                 for (self.obligations, 0..) |ob, idx| if (ob.target == .binding and std.mem.eql(u8, ob.target.binding, binding.name)) {
                     self.obligation_used[idx] = true;
                     const err_offset = if (binding.value == .expression) binding.value.expression.span.start else offset;
-                    try self.checkObligation(ob, value, phys, err_offset);
+                    if (ob.expected == .variant) {
+                        value = try self.variantRecord(ob.expected.variant, value, phys, err_offset);
+                    } else {
+                        try self.checkObligation(ob, value, phys, err_offset);
+                        if (ob.expected == .result) {
+                            value.cardinality = ob.expected.result;
+                            value.require_presence = true;
+                        }
+                    }
                 };
                 try self.symbols.append(self.scratch, .{ .name = binding.name, .value = value });
                 try self.node(id, offset, "binding", value);
@@ -338,6 +422,7 @@ fn block(self: *Self, instructions: []const a.Instruction) anyerror!void {
             .require => |input| {
                 try self.condition(input.condition);
                 try self.event(.require, id, offset, null, &.{});
+                self.narrowPresence(input.condition, true);
             },
             .atomic => |body| {
                 try self.event(.atomic_begin, id, offset, null, &.{});
@@ -350,11 +435,16 @@ fn block(self: *Self, instructions: []const a.Instruction) anyerror!void {
                 try self.condition(input.condition);
                 try self.event(.branch_begin, id, offset, null, &.{});
                 const count = self.symbols.items.len;
+                const before = try self.scratch.dupe(Named, self.symbols.items);
+                self.narrowPresence(input.condition, true);
                 try self.block(input.yes);
                 self.symbols.shrinkRetainingCapacity(count);
+                @memcpy(self.symbols.items, before);
                 try self.event(.branch_else, id, offset, null, &.{});
+                self.narrowPresence(input.condition, false);
                 try self.block(input.no);
                 self.symbols.shrinkRetainingCapacity(count);
+                @memcpy(self.symbols.items, before);
                 try self.event(.branch_end, id, offset, null, &.{});
             },
             .insert => |input| try self.event(.insert, id, offset, try self.write(input.target_schema, input.target, input.values), input.values),

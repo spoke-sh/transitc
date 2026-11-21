@@ -152,11 +152,24 @@ fn definition(self: Self, def: s.Definition) !void {
         try writer.writeAll(" RETURNS ");
         switch (ret) {
             .scalar => |v| try writer.writeAll(scalarName(v)),
+            .numeric => |v| try self.numericType(v),
             .named => |v| try self.name(v),
         }
     }
+    if (def.effects) |effects_| {
+        try writer.writeAll(" EFFECTS (");
+        for (effects_, 0..) |effect, i| {
+            if (i != 0) try writer.writeAll(", ");
+            try writer.print("{s} {s}", .{ @import("Effects.zig").label(effect.operation), effect.resource });
+        }
+        try writer.writeByte(')');
+    }
+    try self.refinements("REQUIRES", def.preconditions);
+    try self.refinements("ENSURES", def.postconditions);
     if (def.domain) |domain| {
-        try writer.print(" AS {s} IDENTITY ", .{scalarName(domain.base)});
+        try writer.writeAll(" AS ");
+        if (domain.numeric) |d| try self.numericType(d) else try writer.writeAll(scalarName(domain.base));
+        try writer.writeAll(" IDENTITY ");
         try self.string(domain.identity);
     } else if (def.kind == .variant) {
         try writer.writeAll(" AS (");
@@ -225,6 +238,24 @@ fn expr(self: Self, value: *s.Expr, depth: usize, parent: u8, right: bool) anyer
         .timestamptz => |v| {
             try self.w.writeAll("TIMESTAMP ");
             try self.string(v);
+        },
+        .json => |v| {
+            try self.w.writeAll("JSON ");
+            try self.string(v);
+        },
+        .interval => |v| try self.w.print("INTERVAL({d}, {d}, {d})", .{ v.months, v.days, v.nanos }),
+        .date => |v| {
+            try self.w.writeAll("DATE ");
+            try self.string(v);
+        },
+        .numeric => |v| {
+            try self.numericType(v.type);
+            try self.w.writeByte(' ');
+            try self.string(v.text);
+        },
+        .numeric_type => |v| {
+            try self.w.writeAll("TYPE ");
+            try self.numericType(v);
         },
         .bytes => |v| {
             try self.w.writeAll("X ");
@@ -471,6 +502,10 @@ fn scalarName(value: s.ScalarType) []const u8 {
         .boolean => "BOOLEAN",
         .uuid => "UUID",
         .timestamptz => "TIMESTAMPTZ",
+        .date => "DATE",
+        .json => "JSON",
+        .interval => "INTERVAL",
+        .numeric => unreachable,
         .binary => "BINARY",
     };
 }
@@ -481,6 +516,10 @@ fn kind(self: Self, value: s.Kind) anyerror!void {
         .boolean => try self.w.writeAll("BOOLEAN"),
         .uuid => try self.w.writeAll("UUID"),
         .timestamptz => try self.w.writeAll("TIMESTAMPTZ"),
+        .date => try self.w.writeAll("DATE"),
+        .json => try self.w.writeAll("JSON"),
+        .interval => try self.w.writeAll("INTERVAL"),
+        .numeric => |d| try self.numericType(d),
         .binary => try self.w.writeAll("BINARY"),
         .identifier => try self.w.writeAll("IDENTIFIER"),
         .type => try self.w.writeAll("TYPE"),
@@ -489,6 +528,14 @@ fn kind(self: Self, value: s.Kind) anyerror!void {
         .module => |v| {
             try self.w.writeAll("MODULE ");
             try self.name(v);
+        },
+        .callable => |v| {
+            try self.w.print("{s} OF ", .{switch (v.kind) {
+                .function => "FUNCTION",
+                .guard => "GUARD",
+                .procedure => "PROCEDURE",
+            }});
+            try self.name(v.signature);
         },
         .module_of => |v| {
             try self.w.writeAll("MODULE OF ");
@@ -515,6 +562,7 @@ fn kind(self: Self, value: s.Kind) anyerror!void {
                 try self.w.print("{s} ", .{column.name});
                 switch (column.type) {
                     .scalar => |v| try self.w.writeAll(scalarName(v)),
+                    .numeric => |v| try self.numericType(v),
                     .named => |v| try self.name(v),
                 }
                 if (column.primary) try self.w.writeAll(" PRIMARY KEY") else if (!column.nullable) try self.w.writeAll(" NOT NULL");
@@ -522,5 +570,28 @@ fn kind(self: Self, value: s.Kind) anyerror!void {
             }
             try self.w.writeByte(')');
         },
+    }
+}
+
+fn numericType(self: Self, d: s.NumericType) !void {
+    try self.w.print("NUMERIC({d}, {d})", .{ d.precision, d.scale });
+}
+
+fn refinements(self: Self, keyword: []const u8, clauses: []const s.Refinement) !void {
+    for (clauses) |clause| {
+        try self.w.print(" {s} ", .{keyword});
+        for (clause.terms, 0..) |term, i| {
+            if (i != 0) try self.w.writeAll(" AND ");
+            try self.w.print("{s} {s}", .{ term.left, @import("Refinements.zig").operator(term.op) });
+            if (term.right) |right| {
+                try self.w.writeByte(' ');
+                switch (right) {
+                    .integer => |n| try self.w.print("{d}", .{n}),
+                    .name => |name_| try self.w.writeAll(name_),
+                }
+            }
+        }
+        try self.w.writeAll(" ELSE ");
+        try self.string(clause.refusal);
     }
 }
