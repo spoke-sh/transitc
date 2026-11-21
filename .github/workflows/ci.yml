@@ -22,6 +22,7 @@ jobs:
         run: nix flake check --print-build-logs
       - name: Execute source grammar and typed correspondence checks
         run: |
+          mkdir -p .cache
           nix build .#checks.x86_64-linux.source --out-link .cache/source-result --print-build-logs
           cp -RL .cache/source-result .cache/source-evidence
       - run: nix develop --command just check test::release
