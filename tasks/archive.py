@@ -43,7 +43,7 @@ def smoke(binary, version, revision):
         run('build', '--out', 'reviewed')
         assert 'CREATE TABLE' in (root / 'reviewed/application.sql').read_text()
         source.write_text('invalid source;')
-        assert json.loads(run('build', '--format', 'json', status=1).stdout)['ok'] is False
+        assert json.loads(run('build', '--format', 'json', status=1).stdout)['outcome'] == 'not_submitted'
         run('unknown', status=2)
         source.write_text((ROOT / "examples/tests/build.transit").read_text())
         missing = json.loads(run("test", "--runtime", "/unavailable", "--format", "json", status=1).stdout)

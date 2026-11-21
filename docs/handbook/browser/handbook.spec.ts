@@ -40,6 +40,7 @@ test("keyboard, responsive menu and theme controls", async ({ page }, info) => {
   await expect(page.locator("main")).toBeVisible();
   if (info.project.name.startsWith("mobile")) {
     await page.getByRole("button", { name: "Toggle navigation bar" }).click();
+    await page.getByRole("button", { name: "← Back to main menu" }).click();
     await page.locator(".navbar-sidebar").getByRole("link", { name: "CLI", exact: true }).click();
   } else {
     await page.locator(".navbar").getByRole("link", { name: "CLI", exact: true }).click();
