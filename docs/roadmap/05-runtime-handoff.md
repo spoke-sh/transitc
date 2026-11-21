@@ -1,7 +1,9 @@
 # Milestone 5 runtime handoff
 
-These gates are against Transit `f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`,
-which supplies both pure packages and the compiled-case host. The frozen compiler
+These gates were established against Transit `f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`,
+the previous shared-package and compiled-case host pin. The
+[completion record](../qualification/composition-completion.md) tracks the
+candidate scalar-analysis API and compatible host qualification. The frozen compiler
 comparison remains `e7434306334e3692c6f3e123cba0d278fa412196`. This document requests
 ordinary runtime contracts; it does not authorize a compiler bypass or a pin
 update without qualification.
@@ -20,8 +22,9 @@ The type gate is owned by
 [`ApplicationSchema.zig`](https://github.com/spoke-sh/transit/blob/f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6/packages/zig/transit-sql-frontend/src/ApplicationSchema.zig)
 and the value/SELECT boundary by
 [`ApplicationData.zig`](https://github.com/spoke-sh/transit/blob/f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6/packages/zig/transit-query-direct/src/ApplicationData.zig).
-The requests above need their own upstream design and implementation; no upstream
-runtime files or pins have been modified in this compiler increment.
+The requests above still need their own upstream design and implementation. The
+completion slice adds scalar analysis APIs; it does not implement these runtime
+extensions.
 
 ## Compiled-case deadline investigation
 

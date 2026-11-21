@@ -64,3 +64,35 @@ generated dynamic dispatch, cardinality and refinement assertions all passed in
 retains every result and I/O pressure samples; no case was retried inside that
 schedule. These controls support the storage-latency diagnosis and preserve the
 original SQL, but do not replace the required complete candidate schedules.
+
+
+## Candidate checking changes
+
+Transit candidate `8fcf3ca0ca4aeb2d39af6601f7462712a3b208fe` adds separate,
+bounded scalar environments for program binding and Queue-predicate analysis.
+Neither API adds fields to the authored Queue or invents values for unknown
+scalars. Native installation and predicate compilation continue to reject
+unresolved names. transitc uses these APIs while checking every specialization
+arm and emits only the selected concrete program.
+
+The independent source suite passes 58 symbolic-program comparisons, including
+64-column whole-input ROWs, nominal field identities, nullable fields, imported
+and nested helpers, callable arguments, and concrete SQL/fingerprint controls.
+Boolean filter leaves, helper expansion, `AND`, `OR`, and `NOT` cover both variant
+arms and both boolean values. The boolean cases exposed an intermediate
+regression when parameter binding was separated before predicate validation;
+they fail against that earlier compiler and pass against the corrected one.
+Column-to-column and arithmetic acquisition predicates retain their native
+refusals. The complete typed suite passes its 49 mutation controls.
+
+Frontend package tests and the upstream 71 fast checks, 20 contract checks, and
+locked handbook gate pass at this candidate. The first clean storage/query lane
+was stopped after 12 completed tasks because its source revision was superseded
+by the predicate fix. Its partial evidence is retained and is not a lane pass.
+The required clean lane has restarted on the candidate revision.
+
+Full candidate qualification is still pending: the clean upstream lane, remote
+archive/empty-cache admission, installed composition phases, the three complete
+42-case isolated schedules, and the final CI/native-archive matrix. Earlier
+whole-row execution and protocol checks against the preceding candidate do not
+substitute for these final gates. Milestone 5 remains in progress.
