@@ -29,7 +29,8 @@
 }
 
 /* Inline links must remain recognizable without color perception. */
-.markdown a:not(.hash-link) {
+.markdown a:not(.hash-link),
+.footer__copyright a {
   text-decoration: underline;
   text-underline-offset: 0.15em;
 }
