@@ -62,6 +62,22 @@ acquire a service dependency from this integration fixture.
 failures/publication, independent syntax/formatting, and bounded typed/program
 correspondence respectively. Each evidence category keeps its premises.
 
+`just test::composition` runs the installed generated/handwritten SQL journeys
+and the explicit isolated-case inventory in `composition.json`. Independent
+installed phases and fixture suites continue after a failure, then the aggregate
+fails. Cases inside a failed suite retain the host's ordinary abort behavior and
+remain visible as `not_run`. Missing, duplicate or reordered cases cannot pass.
+The standalone composition scripts own installed journeys; this task owns their
+isolated counterparts. It is also included in `test::integration`.
+
+For a predeclared three-run qualification, use `just test::composition 3`. All
+three isolated passes are scheduled before execution and every result is retained
+under `.cache/checks/composition/`; a failure never resets the run count. Installed
+journeys run once. The compiler and runtime digests are fixed for the schedule;
+do not rebuild either executable while it runs. Case, suite and cleanup budgets
+remain 30 seconds, five minutes and five seconds. Temporary test installations
+are private; publish reviewed reports, not credentials or runtime directories.
+
 ## Upstream identity and updates
 
 The compiled-case runtime and both Zig package dependencies pin merged Transit

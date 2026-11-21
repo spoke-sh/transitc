@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import signal
 import subprocess
 import sys
 import tempfile
@@ -65,15 +66,26 @@ def execute(compiler, destination, phases, fixtures):
                 assert outcome.returncode == 0, f'installed phase exited {outcome.returncode}'
             else:
                 with (destination / (name + '.json')).open('w') as stdout, (destination / (name + '.stderr')).open('w') as stderr:
-                    outcome = subprocess.run([str(compiler), 'test', '-f',
-                                              str(ROOT / 'tests/fixtures' / selected / 'build.transit'),
-                                              '--format', 'json'], cwd=ROOT, stdout=stdout, stderr=stderr, timeout=330)
-                result['exit_code'] = outcome.returncode
+                    with subprocess.Popen([str(compiler), 'test', '-f',
+                                           str(ROOT / 'tests/fixtures' / selected / 'build.transit'),
+                                           '--format', 'json'], cwd=ROOT, stdout=stdout, stderr=stderr,
+                                          start_new_session=True) as process:
+                        try:
+                            result['exit_code'] = process.wait(timeout=330)
+                        except BaseException:
+                            # Own the compiler and its host descendants together.
+                            # The outer guard cannot leave a native case running.
+                            try:
+                                os.killpg(process.pid, signal.SIGKILL)
+                            except ProcessLookupError:
+                                pass
+                            process.wait()
+                            raise
                 result['report'] = capture.identity(destination / (name + '.json'))
                 result['stderr'] = capture.identity(destination / (name + '.stderr'))
                 suite = json.loads((destination / (name + '.json')).read_text())
                 result['cases'] = [{key: case[key] for key in ('name', 'status', 'error_code')} for case in suite['cases']]
-                assert outcome.returncode == 0 and result['stderr']['bytes'] == 0, 'isolated suite failed'
+                assert result['exit_code'] == 0 and result['stderr']['bytes'] == 0, 'isolated suite failed'
                 validate(suite, fixtures[selected])
                 assert suite['compiler_digest'] == report['compiler_sha256'], 'compiler changed during schedule'
                 assert bytes(suite['runtime']['executable_digest']).hex() == report['runtime_sha256'], 'runtime changed during schedule'
