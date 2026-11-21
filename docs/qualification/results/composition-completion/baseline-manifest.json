@@ -1,0 +1,77 @@
+{
+  "status": "investigation; not slice qualification",
+  "compiler_revision": "7e57ba1de5ab17cd8ba79a4a3e6a44ac1b712f8b-dirty",
+  "compiler_sha256": "4006708eaad8cf7f8acfd5f6160ebca5773f2a29fffdd9706d1a5d1982a2cf3d",
+  "runtime_revision": "f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6",
+  "runtime_sha256": "dca1534f2415beff2f6ecb6cb6eec77c3561433e818553a78c2b065ca9a39b79",
+  "files": [
+    {
+      "path": "baseline/application-typed-queue.json",
+      "sha256": "922b08d83f9c9a475669aa6149bd934d6977bae5f45ece609e84620aae55e8fb"
+    },
+    {
+      "path": "baseline/application-variant-encoding.json",
+      "sha256": "819c1b20dc9c1461b85d6024ddb52c53aaf04686ccee6e88e95cab9dbfaa12e1"
+    },
+    {
+      "path": "baseline/application-dynamic-dispatch.json",
+      "sha256": "eed06f8e9e4d90b48ddbe9ca2075bcde0c4fd856da6f86f3cf8c78e46af63041"
+    },
+    {
+      "path": "baseline/application-cardinality.json",
+      "sha256": "81550694ca410b12ec987fa29380740af2069dae6e17111c5724a475eddcff36"
+    },
+    {
+      "path": "baseline/application-refinements.json",
+      "sha256": "b200be2710540583a593eccd53c1da0b3f5a91376cb906460d813942e32b3ff7"
+    },
+    {
+      "path": "baseline/application-callables.json",
+      "sha256": "e52016982ec6d71bf39a1bc719a449a3b3a768c71ebe656605cd25c28b13afb6"
+    },
+    {
+      "path": "reproducer/case.json",
+      "sha256": "bda5157fb2cab4a56b31a655288c6bdbb70e9aac79c5df6ef9aee1ec7d4b5531"
+    },
+    {
+      "path": "diagnostic/identity.json",
+      "sha256": "e1c5b9d899d7bfcf86d871d16219ea5d9a673896ed4fe28a466bd65b4e231f4c"
+    },
+    {
+      "path": "diagnostic/application-cardinality.txt",
+      "sha256": "dc592bb74f9fd6abede83eeb09dcc34e6e0aed631464c07c8ada79e2a69e59fa",
+      "source_sha256": "8ab1788de9b203ad317c2007a121614ed62c2fcb3c53354c46061b55a96d0825",
+      "redaction": "Workflow pending operation identity omitted; counters and phases unchanged."
+    },
+    {
+      "path": "diagnostic/application-cardinality.json",
+      "sha256": "6554a50400917ffd962716fe842651d78c96ac0f78a03c058226b81ca7b39247"
+    },
+    {
+      "path": "diagnostic/application-refinements.txt",
+      "sha256": "6ca078218036f6bf73202f03515d705f28b29784fa80d3c7b44798116aa6d6dc",
+      "source_sha256": "fc2aee9ecdfd254732d1f2862d719b9c2d1ad91d089fd1a0b340dd21ec9aa2d0",
+      "redaction": "Workflow pending operation identity omitted; counters and phases unchanged."
+    },
+    {
+      "path": "diagnostic/application-refinements.json",
+      "sha256": "150b015a8a3eb503a8b11bd532e620a6b45cc9dae161ebae243b40c7e23d622b"
+    },
+    {
+      "path": "contention/syscalls.txt",
+      "sha256": "9f47d97dc4d32dfec63a0079d319cfb64842cbf1f5e18dd20f8ff57a1bfd4550"
+    },
+    {
+      "path": "contention/pressure-before.txt",
+      "sha256": "db7480f7bc4b29b77370f0f21841ed2b7f4c5eb9ffd05572bf5a6e4ab7a31aa3"
+    },
+    {
+      "path": "contention/pressure-after.txt",
+      "sha256": "e9a6cd340020b236e89026d281f777dd72e855410ebdd07b95a804e920412075"
+    },
+    {
+      "path": "contention/report.json",
+      "sha256": "ea53c66973b3152f31d0c70421625be2f465c987b89d417fcf1d67bcf071bede"
+    }
+  ]
+}
