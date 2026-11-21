@@ -1,8 +1,11 @@
-# Extraction roadmap
+# Compiler roadmap
 
-Prepare transitc to receive the compiler without changing the language during
-the move. This is a new roadmap using Transit's numbered milestone structure;
-it does not copy the runtime product backlog or inherit its completion claims.
+Deliver a standalone Transit language toolchain: compose typed `.transit`
+applications, format and check source, emit independently executable SQL, propose
+immutable migrations and test the same programs through a compatible Transit host.
+Milestones 1–4 retain the extraction and release foundation; milestones 5–10
+expand the compiler work transferred from Transit's milestone 12. Runtime SQL,
+authorization, storage, migration application and durable execution stay upstream.
 
 | Order | Milestone | Status | Prerequisites |
 | --- | --- | --- | --- |
@@ -10,6 +13,83 @@ it does not copy the runtime product backlog or inherit its completion claims.
 | 2 | [Dependency boundaries](02-dependency-boundaries.md) | Completed | 1 |
 | 3 | [Compiler and CLI extraction](03-compiler-and-cli.md) | In Progress | 2 |
 | 4 | [Documentation and qualification](04-documentation-and-qualification.md) | In Progress | 3; documentation grows throughout |
+| 5 | [Typed composition and executable SQL](05-typed-composition-and-sql.md) | In Progress | 3; ordinary SQL contract for each new operation |
+| 6 | [Reproducible workspaces and developer tooling](06-workspaces-and-developer-tooling.md) | In Progress | 3; 5 for new source forms |
+| 7 | [Migration synthesis and definition evolution](07-migrations-and-definition-evolution.md) | In Progress | 3; admitted forms from 5 and per-kind Transit receipts; 8 for protected generations |
+| 8 | [Protected workflows and runtime integration](08-protected-workflows.md) | Planned | 5; Transit module-authority, serving and managed-execution contracts |
+| 9 | [Deterministic tests and replay](09-deterministic-tests-and-replay.md) | In Progress | 3 and compatible host; 7/8 for replacement/protected schedules |
+| 10 | [Whole-application and performance qualification](10-application-qualification.md) | Planned | Required profiles of 5–9 and their Transit owners |
+
+Numbering is a reading/delivery sequence, not a requirement to finish every earlier
+milestone before starting independent work. In Progress includes an implemented
+foundation with unfinished acceptance criteria; it does not assert completion of
+the proposed units. This planning change completes no milestone and establishes
+no new runtime or performance evidence.
+
+## Source and ownership
+
+Extracted on 2026-11-20 from Transit
+[`4e47372a2739444d30058934dd0bb8bd703ef65c`](https://github.com/spoke-sh/transit/tree/4e47372a2739444d30058934dd0bb8bd703ef65c):
+the [original compiler milestone](https://github.com/spoke-sh/transit/blob/4e47372a2739444d30058934dd0bb8bd703ef65c/docs/roadmap/12-application-modules-compilation-and-testing.md)
+and its [completion plan](https://github.com/spoke-sh/transit/blob/4e47372a2739444d30058934dd0bb8bd703ef65c/docs/roadmap/application-modules-completion.md).
+Those records retain the D1–D6 rationale, P0–P6 journeys, earlier approved slices
+and source-specific evidence. The local baseline is transitc
+[`77c56a0dd1562fc1bbda070873c38817091ddd5a`](https://github.com/spoke-sh/transitc/tree/77c56a0dd1562fc1bbda070873c38817091ddd5a),
+including `fmt`. Reading newer upstream plans does not change the dependency,
+runtime or frozen-comparison pins below.
+
+| Responsibility | Delivery owner | Required boundary |
+| --- | --- | --- |
+| Source grammar, typed core, lowering, formatting, pure migration/test products | `transitc-compiler` | Resolved bounded inputs; no filesystem, network or runtime services |
+| Capture, exact dependencies/locks, explicit fetch, artifact publication, test orchestration | `transitc-workspace` | Explicit I/O; offline ordinary builds and no implicit migration application |
+| Commands, help, reports and process exit behavior | `apps/transitc-cli` | Thin composition of the public packages |
+| Shared SQL/scalar/protocol/memory and compiled-case definitions | Transit pure packages | One semantic owner, exact immutable distribution and definition checks |
+| SQL execution, current rights, transactions, migration receipts, generations and test host | Transit | Ordinary executable operations; no dependency on transitc or source repositories |
+
+The [package map](../../packages/README.md) and
+[source contract](../../contracts/APPLICATION_SOURCE_V1.md) own implemented
+boundaries. Transit retains [M12](https://github.com/spoke-sh/transit/blob/main/docs/roadmap/12-application-modules-compilation-and-testing.md)
+as its integration/dependency milestone. New package directories are justified by
+actual independent code/dependencies, not by a planning topic alone.
+
+## Original scope mapped to the new sequence
+
+| Original scope | Current plan | Preserved obligation |
+| --- | --- | --- |
+| D1/D4; P0 — one dialect, stages, grammar, bounds and shared checking | 5, 6 | `build.transit` uses the same module semantics; independent grammar, full body parsing, typed origins and executable SQL; upstream owns SQL framing/limits |
+| D2; P1 — recursive packages, instances and encapsulation | 5, 6, 8 | Exact offline dependencies, stable explicit bindings, typed exports and separately enforced runtime privacy |
+| D3; P2 — profiles, functions, guards and procedures | 5, 8 | Typed hygienic composition, ordered refusals, single atomic caller transaction and no implicit privilege |
+| P3 — whole-program types, effects, capabilities, secrets and activation | 5, 8 | Explicit external-input validation, complete settlement paths, protected disclosure and current runtime authority |
+| D5; P4; completion C/F — migrations and replacement | 7 | Explicit basis, immutable history, independent final-definition equivalence and all three generation policies |
+| D6; P5; completion G — tests, simulation and formal evidence | 9; feature-local checks in 5/8 | Production emitter/real host, bounded deterministic schedules, uncertainty, selected TLA+/Lean evidence and native correspondence |
+| P6; completion A/H — reconciliation, full workload, performance and handbook | 4, 10 | Exact evidence revisions, complete inventory, retained failures, measured targets and runnable user documentation |
+
+## Next implementation order
+
+1. Reconcile the support/bounds and outstanding qualification records against one
+   selected compiler/runtime pair. Preserve the completed bootstrap/dependency
+   milestones and the unfinished extraction/release criteria in 3/4.
+2. Review 5.1's dynamic SQL representation and 8.1's runtime privilege contract.
+   Extend recursive-package/formatter/diagnostic evidence in 6 independently.
+3. Extend 7.1 per available runtime kind and measure 7.4 capacity without changing
+   limits implicitly. Start 9.1 when real subject/grant controls exist upstream.
+4. Add profiles, effect/ownership/disclosure and transition checks in 8 as their
+   ordinary runtime operations become executable. Qualify 7.3's replacement
+   policies incrementally; extend 9 with virtual time, effects and replay.
+5. Close the complete application/performance matrix in 10, feeding supported
+   profiles and compatibility into 4's handbook/host/release process.
+
+Each implementation slice must name its contract, runtime prerequisite, accepted
+and rejected examples, diagnostic/formatting changes, independent evidence and
+guide updates. A per-operation upstream handoff suffices; an entire adjacent
+Transit milestone is not an implicit prerequisite. Optional AOT integration with
+Transit M17 reuses this graph and bound SQL semantics after artifact/ABI review.
+
+## Extraction basis and preserved history
+
+The sections below retain the original extraction sequence and evidence. They
+explain the implemented foundation; the sequence above owns subsequent language
+and tooling work.
 
 Source inventory basis: Transit commit
 [`c1f2680d9353175e58ad503e750e7b4da76a84c5`](https://github.com/spoke-sh/transit/tree/c1f2680d9353175e58ad503e750e7b4da76a84c5),
@@ -85,7 +165,7 @@ pass.
 
 Compiler and workspace sources, source contracts, diagnostics, grammar/model
 proofs and build/test command schedules live here. The CLI supports
-`transitc build` and `transitc test`. Transit is the upstream owner of shared SQL,
+`transitc build`, `transitc fmt` and `transitc test`. Transit is the upstream owner of shared SQL,
 protocol, memory and compiled-case test types, plus native database execution.
 Transit contains no compiler snapshot or dependency on transitc.
 

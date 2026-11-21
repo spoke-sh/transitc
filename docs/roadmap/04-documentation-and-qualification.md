@@ -14,6 +14,7 @@ with each earlier slice; this milestone closes coverage and release qualificatio
 | Compose modules | Imports, visibility, parameters, types, resource interfaces | Accepted/rejected source fixtures |
 | Manage dependencies | Fetch, lock, offline build, overrides, cache recovery | Clean/offline runs and digest mismatch rejection |
 | Check and debug source | Human/JSON errors, locations, notes, color, exit codes | Diagnostic snapshots with exact spans |
+| Format source | Fixed style, path discovery, stdin/check modes, safe file replacement | Comment/literal preservation, idempotence and filesystem failure coverage |
 | Inspect outputs | SQL/maps/provenance identities, reuse and publication rules | Deterministic rebuild and partial-write checks |
 | Generate migrations | Immutable basis/history, supported changes, rejected changes | Old/new schema comparisons without execution |
 | Author tests | Compile-only versus runtime execution, expectations, isolation | Compiler products and separately qualified runtime adapter |
