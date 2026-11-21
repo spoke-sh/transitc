@@ -104,13 +104,14 @@ def installed_match(runtime, sql):
         fixture.console("ENQUEUE INTO dynamic_requests VALUES (1, STRUCT('machine', STRUCT(7), NULL), FALSE), (2, STRUCT('site', NULL, STRUCT(7)), FALSE);")
         head = await_head(fixture, 'dynamic_route', lambda h: h['completed'] + h['refused'] >= 2)['observation']['head']
         assert (head['completed'], head['refused']) == (2, 0), head
-        fixture.console("ENQUEUE INTO dynamic_requests VALUES "
-                        "(3, STRUCT('other', STRUCT(7), NULL), FALSE), "
-                        "(4, STRUCT('machine', NULL, NULL), FALSE), "
-                        "(5, STRUCT('machine', STRUCT(7), STRUCT(7)), FALSE), "
-                        "(6, STRUCT('site', NULL, STRUCT(9)), FALSE), "
-                        "(7, STRUCT('machine', STRUCT(7), NULL), TRUE);")
-        head = await_head(fixture, 'dynamic_route', lambda h: h['completed'] + h['refused'] >= 7)['observation']['head']
+        for index, value in enumerate((
+                "(3, STRUCT('other', STRUCT(7), NULL), FALSE)",
+                "(4, STRUCT('machine', NULL, NULL), FALSE)",
+                "(5, STRUCT('machine', STRUCT(7), STRUCT(7)), FALSE)",
+                "(6, STRUCT('site', NULL, STRUCT(9)), FALSE)",
+                "(7, STRUCT('machine', STRUCT(7), NULL), TRUE)"), 3):
+            fixture.console(f"ENQUEUE INTO dynamic_requests VALUES {value};")
+            head = await_head(fixture, 'dynamic_route', lambda h: h['completed'] + h['refused'] >= index)['observation']['head']
         assert (head['completed'], head['refused']) == (2, 5), head
         queries = ('SELECT * FROM dynamic_accepted_machines ORDER BY id; '
                    'SELECT * FROM dynamic_accepted_sites ORDER BY id; CONSUME * FROM dynamic_events;')

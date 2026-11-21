@@ -92,8 +92,8 @@ encoding needs separate compatibility and runtime qualification.
 
 `CREATE PUBLIC QUEUE` accepts `WITH (lease_duration = '120s',
 max_lease_duration = '120s')`. Only these two string options are admitted in this
-source profile. Ordinary Transit LogDdl binds duration units, rejects duplicate
-options and validates the relationship between initial and maximum lease. The
+source profile; concrete TEXT parameters may supply their values. Ordinary Transit
+LogDdl binds duration units, rejects duplicate options and validates the relationship between initial and maximum lease. The
 compiler does not change runtime defaults. The bound millisecond values enter
 resource, module-binding and program-dependency identities; equivalent units and
 option order retain the same policy identity. Explicit defaults retain the frozen

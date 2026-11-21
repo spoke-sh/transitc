@@ -47,7 +47,7 @@ def target(compiler, runtime, one, destination):
     oracle = (SOURCE / (name + '.sql')).read_text()
     (destination / (name + '-oracle.sql')).write_text(oracle)
     from interfaces.installation.server import Fixture
-    from interfaces.installation.server_managed_tables import await_head
+    from interfaces.installation.server_managed_tables import await_head, program_control
     from interfaces.cli.table_console import records
     fixture = Fixture(runtime, parent='/var/tmp')
     fixture.use_private_runtime()
@@ -62,10 +62,17 @@ def target(compiler, runtime, one, destination):
             return sorted(records(fixture.console(f'CONSUME * FROM {prefix}cardinality_events;')[-1]), key=lambda row: row['id'])
         for prefix, declaration in (('', sql), ('oracle_', oracle)):
             fixture.console(declaration)
-            fixture.console(f"ENQUEUE INTO {prefix}cardinality_requests VALUES (1, 'single', FALSE), (2, 'missing', FALSE), (3, 'duplicate', FALSE), (4, 'single', TRUE);")
-            head = await_head(fixture, prefix + 'cardinality_route', lambda h: h['completed'] + h['refused'] >= 4)['observation']['head']
+            for index, value in enumerate(("(1, 'single', FALSE)", "(2, 'missing', FALSE)", "(3, 'duplicate', FALSE)", "(4, 'single', TRUE)"), 1):
+                fixture.console(f"ENQUEUE INTO {prefix}cardinality_requests VALUES {value};")
+                head = await_head(fixture, prefix + 'cardinality_route', lambda h: h['completed'] + h['refused'] >= index)['observation']['head']
+                capture.write_json(destination / (name + '-' + ('oracle' if prefix else 'generated') + f'-case-{index}.json'),
+                                   {'completed': head['completed'], 'refused': head['refused']})
             assert (head['completed'], head['refused']) == (len(expected), 4 - len(expected)), head
             assert rows(prefix) == expected
+            capture.write_json(destination / (name + '-' + ('oracle' if prefix else 'generated') + '-execution.json'),
+                               {'rows': expected, 'completed': head['completed'], 'refused': head['refused']})
+            if not prefix:
+                program_control(fixture, 'SUSPEND DATAFLOW cardinality_route')
         fixture.stop()
         fixture.start()
         fixture.ready()
