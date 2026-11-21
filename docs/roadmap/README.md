@@ -71,8 +71,10 @@ actual independent code/dependencies, not by a planning topic alone.
    [extraction record](../qualification/extraction.md) as the baseline. Keep its
    clean-cache, native archive, compatibility and handbook gates passing as the
    later milestones extend the supported profile.
-2. Review 5.1's dynamic SQL representation and 8.1's runtime privilege contract.
-   Extend recursive-package/formatter/diagnostic evidence in 6 independently.
+2. Review the [milestone 5 implementation plan](05-typed-composition-and-sql.md#implementation-plan-for-review),
+   starting with 5.1's dynamic SQL representation, alongside 8.1's runtime
+   privilege contract. Extend recursive-package/formatter/diagnostic evidence
+   in 6 independently.
 3. Extend 7.1 per available runtime kind and measure 7.4 capacity without changing
    limits implicitly. Start 9.1 when real subject/grant controls exist upstream.
 4. Add profiles, effect/ownership/disclosure and transition checks in 8 as their
