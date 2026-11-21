@@ -88,7 +88,7 @@ pub fn validateAll(compiler: *Compiler) !void {
         for (def.parameters) |param| {
             compiler.context = .{ .name = param.name };
             switch (param.kind) {
-                .integer, .text, .boolean, .uuid, .timestamptz, .binary => {},
+                .integer, .text, .boolean, .uuid, .timestamptz, .date, .binary => {},
                 .named => |name| {
                     const ref = try graph.resolve(file_idx, name);
                     if (graph.getDefinition(ref).kind != .domain) return error.InvalidParameterType;
@@ -184,7 +184,7 @@ fn validateHelperRowFields(graph: Graph, file: usize, fields: []const s.Paramete
     if (depth >= 16) return error.SourceDepthLimit;
     for (fields) |field| {
         switch (field.kind) {
-            .integer, .text, .boolean, .uuid, .timestamptz, .binary => {},
+            .integer, .text, .boolean, .uuid, .timestamptz, .date, .binary => {},
             .named => |name| {
                 const ref = try graph.resolve(file, name);
                 if (graph.getDefinition(ref).kind != .domain) return error.InvalidParameterType;
@@ -208,7 +208,7 @@ fn buildHelperRowParam(scratch: std.mem.Allocator, out_alloc: std.mem.Allocator,
     const expected_fields = try out_alloc.alloc(Annotations.RowField, fields.len);
     for (fields, 0..) |field, idx| {
         switch (field.kind) {
-            .integer, .text, .boolean, .uuid, .timestamptz, .binary, .named => {
+            .integer, .text, .boolean, .uuid, .timestamptz, .date, .binary, .named => {
                 const scalar_ty = try parameterScalar(graph, file, field.kind);
                 struct_fields[idx] = .{ .name = field.name, .type = scalar_ty.physical(), .nullable = false };
                 domain_fields[idx] = .{ .name = field.name, .domain = scalar_ty.domain };
@@ -401,7 +401,7 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
 
     for (def.parameters) |param| {
         switch (param.kind) {
-            .integer, .text, .boolean, .uuid, .timestamptz, .binary, .named => {
+            .integer, .text, .boolean, .uuid, .timestamptz, .date, .binary, .named => {
                 const scalar_ty = try parameterScalar(graph, ref.file, param.kind);
                 try in_cols.append(scratch, .{
                     .id = in_cols.items.len + 1,
@@ -499,7 +499,7 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
     };
     for (def.parameters) |param| {
         switch (param.kind) {
-            .integer, .text, .boolean, .uuid, .timestamptz, .binary, .named, .row => {
+            .integer, .text, .boolean, .uuid, .timestamptz, .date, .binary, .named, .row => {
                 const hygienic = try lowerer.freshHygienic(param.name);
                 try env.symbols.append(scratch, .{ .original = param.name, .emitted = hygienic });
                 try lowerer.emitFixed("LET", origin_base);
@@ -693,6 +693,7 @@ fn parameterScalar(graph: Graph, file: usize, kind: s.Kind) !types.Scalar {
         .boolean => .{ .base = .boolean },
         .uuid => .{ .base = .uuid },
         .timestamptz => .{ .base = .timestamptz },
+        .date => .{ .base = .date },
         .binary => .{ .base = .binary },
         .named => |name| try types.domain(graph, try graph.resolve(file, name)),
         else => error.InvalidParameterType,
@@ -1772,7 +1773,7 @@ fn inlineHelperCall(self: *Self, caller_env: *Env, tokens: []const s.Token, i: *
                     try callee_env.symbols.append(self.scratch, .{ .original = param.name, .emitted = hygienic });
                 }
             },
-            .integer, .text, .boolean, .uuid, .timestamptz, .binary, .named => {
+            .integer, .text, .boolean, .uuid, .timestamptz, .date, .binary, .named => {
                 const expected_scalar = try parameterScalar(self.compiler.graph, callee_ref.file, param.kind);
                 const hygienic = try self.freshHygienic(param.name);
                 const mark = self.beginHoistScope();
@@ -2005,7 +2006,7 @@ fn emitValueHole(self: *Self, env: *const Env, tokens: []const s.Token, i: *usiz
         return error.UnknownSourceOperand;
     };
     switch (value) {
-        .integer, .text, .boolean, .uuid, .timestamptz, .binary, .nominal => {},
+        .integer, .text, .boolean, .uuid, .timestamptz, .date, .binary, .nominal => {},
         .table, .stream, .queue, .identifier => {
             self.setError(env, dollar_tok.start);
             return error.UnsupportedLogOperand;
@@ -2275,7 +2276,7 @@ fn expandFunctionCall(self: *Self, caller_env: *const Env, resolved_callee: Reso
                 .bigint => "0",
                 .text => "''",
                 .boolean => "FALSE",
-                .uuid, .timestamptz, .binary => unreachable,
+                .uuid, .timestamptz, .date, .binary => unreachable,
             }, call_origin);
         }
         try self.emitFixed("ELSE (", call_origin);

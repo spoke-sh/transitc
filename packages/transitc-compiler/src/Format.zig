@@ -226,6 +226,10 @@ fn expr(self: Self, value: *s.Expr, depth: usize, parent: u8, right: bool) anyer
             try self.w.writeAll("TIMESTAMP ");
             try self.string(v);
         },
+        .date => |v| {
+            try self.w.writeAll("DATE ");
+            try self.string(v);
+        },
         .bytes => |v| {
             try self.w.writeAll("X ");
             try self.string(v);
@@ -471,6 +475,7 @@ fn scalarName(value: s.ScalarType) []const u8 {
         .boolean => "BOOLEAN",
         .uuid => "UUID",
         .timestamptz => "TIMESTAMPTZ",
+        .date => "DATE",
         .binary => "BINARY",
     };
 }
@@ -481,6 +486,7 @@ fn kind(self: Self, value: s.Kind) anyerror!void {
         .boolean => try self.w.writeAll("BOOLEAN"),
         .uuid => try self.w.writeAll("UUID"),
         .timestamptz => try self.w.writeAll("TIMESTAMPTZ"),
+        .date => try self.w.writeAll("DATE"),
         .binary => try self.w.writeAll("BINARY"),
         .identifier => try self.w.writeAll("IDENTIFIER"),
         .type => try self.w.writeAll("TYPE"),

@@ -12,6 +12,7 @@ pub const Kind = union(enum) {
     boolean,
     uuid,
     timestamptz,
+    date,
     binary,
     identifier,
     type,
@@ -25,7 +26,7 @@ pub const Kind = union(enum) {
     queue: []const Column,
 };
 pub const Parameter = struct { name: []const u8, kind: Kind };
-pub const ScalarType = enum { bigint, text, boolean, uuid, timestamptz, binary };
+pub const ScalarType = enum { bigint, text, boolean, uuid, timestamptz, date, binary };
 pub const TypeRef = union(enum) { scalar: ScalarType, named: Name };
 pub const Column = struct { name: []const u8, type: TypeRef, nullable: bool = true, primary: bool = false, collation: []const u8 = "none" };
 pub const Constructor = struct { name: []const u8, fields: []const Parameter };
@@ -40,6 +41,7 @@ pub const Expr = struct {
         boolean: bool,
         uuid: []const u8,
         timestamptz: []const u8,
+        date: []const u8,
         bytes: []const u8,
         identifier: []const u8,
         schema_binding: []const u8,
@@ -617,12 +619,13 @@ fn scalarType(self: *Self) !ScalarType {
     if (self.take("BOOLEAN")) return .boolean;
     if (self.take("UUID")) return .uuid;
     if (self.take("TIMESTAMPTZ")) return .timestamptz;
+    if (self.take("DATE")) return .date;
     if (self.take("BINARY")) return .binary;
-    self.failExpected("scalar type ('BIGINT', 'TEXT', 'BOOLEAN', 'UUID', 'TIMESTAMPTZ' or 'BINARY')");
+    self.failExpected("scalar type ('BIGINT', 'TEXT', 'BOOLEAN', 'UUID', 'TIMESTAMPTZ', 'DATE' or 'BINARY')");
     return error.UnsupportedSourceType;
 }
 fn typeRef(self: *Self) !TypeRef {
-    if (self.is("BIGINT") or self.is("TEXT") or self.is("BOOLEAN") or self.is("UUID") or self.is("TIMESTAMPTZ") or self.is("BINARY")) return .{ .scalar = try self.scalarType() };
+    if (self.is("BIGINT") or self.is("TEXT") or self.is("BOOLEAN") or self.is("UUID") or self.is("TIMESTAMPTZ") or self.is("DATE") or self.is("BINARY")) return .{ .scalar = try self.scalarType() };
     return .{ .named = try self.parseName() };
 }
 fn tableSignature(self: *Self) ![]const Column {
@@ -714,7 +717,7 @@ fn parseParameters(self: *Self, require_non_empty: bool) anyerror![]const Parame
             }
             return error.DuplicateSourceName;
         };
-        const kind: Kind = if (self.take("BIGINT")) .integer else if (self.take("TEXT")) .text else if (self.take("BOOLEAN")) .boolean else if (self.take("UUID")) .uuid else if (self.take("TIMESTAMPTZ")) .timestamptz else if (self.take("BINARY")) .binary else if (self.take("IDENTIFIER")) .identifier else if (self.take("TYPE")) .type else if (self.take("SCHEMA_BINDING")) .schema_binding else if (self.take("MODULE")) (if (self.takeKeywordBeforeName("OF")) .{ .module_of = try self.parseName() } else .{ .module = try self.parseName() }) else if (self.takeSignature("ROW")) .{ .row = try self.parseParameters(true) } else if (self.take("TABLE")) .{ .table = try self.tableSignature() } else if (self.takeSignature("STREAM")) .{ .stream = try self.tableSignature() } else if (self.takeSignature("QUEUE")) .{ .queue = try self.tableSignature() } else .{ .named = try self.parseName() };
+        const kind: Kind = if (self.take("BIGINT")) .integer else if (self.take("TEXT")) .text else if (self.take("BOOLEAN")) .boolean else if (self.take("UUID")) .uuid else if (self.take("TIMESTAMPTZ")) .timestamptz else if (self.take("DATE")) .date else if (self.take("BINARY")) .binary else if (self.take("IDENTIFIER")) .identifier else if (self.take("TYPE")) .type else if (self.take("SCHEMA_BINDING")) .schema_binding else if (self.take("MODULE")) (if (self.takeKeywordBeforeName("OF")) .{ .module_of = try self.parseName() } else .{ .module = try self.parseName() }) else if (self.takeSignature("ROW")) .{ .row = try self.parseParameters(true) } else if (self.take("TABLE")) .{ .table = try self.tableSignature() } else if (self.takeSignature("STREAM")) .{ .stream = try self.tableSignature() } else if (self.takeSignature("QUEUE")) .{ .queue = try self.tableSignature() } else .{ .named = try self.parseName() };
         try result.append(self.a, .{ .name = parameter_name, .kind = kind });
         if (self.take(")")) break;
         try self.require(",");
@@ -1132,7 +1135,7 @@ fn expression(self: *Self, minimum: u8) anyerror!*Expr {
             .scalar => |scalar| .{ .type = scalar },
             .named => |name| .{ .named_type = name },
         };
-    } else if (self.take("TRUE")) .{ .boolean = true } else if (self.take("FALSE")) .{ .boolean = false } else if (self.index + 1 < self.tokens.len and self.tokens[self.index + 1].kind == .string and self.take("UUID")) .{ .uuid = try self.string() } else if (self.index + 1 < self.tokens.len and self.tokens[self.index + 1].kind == .string and (self.take("TIMESTAMPTZ") or self.take("TIMESTAMP"))) .{ .timestamptz = try self.string() } else if (self.index + 1 < self.tokens.len and self.tokens[self.index + 1].kind == .string and self.take("X")) .{ .bytes = try self.string() } else if (self.index < self.tokens.len and self.tokens[self.index].kind == .string) .{ .text = try self.string() } else if (self.index < self.tokens.len and self.tokens[self.index].kind == .number) blk: {
+    } else if (self.take("TRUE")) .{ .boolean = true } else if (self.take("FALSE")) .{ .boolean = false } else if (self.index + 1 < self.tokens.len and self.tokens[self.index + 1].kind == .string and self.take("UUID")) .{ .uuid = try self.string() } else if (self.index + 1 < self.tokens.len and self.tokens[self.index + 1].kind == .string and (self.take("TIMESTAMPTZ") or self.take("TIMESTAMP"))) .{ .timestamptz = try self.string() } else if (self.index + 1 < self.tokens.len and self.tokens[self.index + 1].kind == .string and self.take("DATE")) .{ .date = try self.string() } else if (self.index + 1 < self.tokens.len and self.tokens[self.index + 1].kind == .string and self.take("X")) .{ .bytes = try self.string() } else if (self.index < self.tokens.len and self.tokens[self.index].kind == .string) .{ .text = try self.string() } else if (self.index < self.tokens.len and self.tokens[self.index].kind == .number) blk: {
         const token = self.tokens[self.index];
         self.index += 1;
         break :blk .{ .integer = try std.fmt.parseInt(i64, self.text[token.start..token.end], 10) };

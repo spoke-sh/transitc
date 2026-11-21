@@ -59,7 +59,7 @@ AS BEGIN
 END;
 ```
 
-Parameters are `BIGINT`, `TEXT`, `BOOLEAN`, `UUID`, `TIMESTAMPTZ`, `BINARY`,
+Parameters are `BIGINT`, `TEXT`, `BOOLEAN`, `UUID`, `TIMESTAMPTZ`, `DATE`, `BINARY`,
 `IDENTIFIER`, `TYPE`, `SCHEMA_BINDING`,
 `ROW(field kind, ...)`, `MODULE interface_name`, `MODULE [OF] constructor_name`,
 named domains/variants or exact `TABLE(...)`, `STREAM(...)` and `QUEUE(...)`
@@ -122,8 +122,8 @@ remains the default cache location unless `--out` is passed on the CLI.
 Compile-time expressions
 include parameter references, module and instance references, `ROW(field => expr, ...)`
 literals and `.field` projections, `SCHEMA_BINDING('name')`, signed integer/text/Boolean
-literals, `UUID '...'`, `TIMESTAMPTZ '...'` / `TIMESTAMP '...'` and `X'...'` binary
-literals, `NAME 'identifier'`, `TYPE BIGINT|TEXT|BOOLEAN|UUID|TIMESTAMPTZ|BINARY`, named type operands and constructors, parentheses, checked
+literals, `DATE 'YYYY-MM-DD'`, `UUID '...'`, `TIMESTAMPTZ '...'` / `TIMESTAMP '...'` and `X'...'` binary
+literals, `NAME 'identifier'`, `TYPE BIGINT|TEXT|BOOLEAN|UUID|TIMESTAMPTZ|DATE|BINARY`, named type operands and constructors, parentheses, checked
 integer `+`, `-`, `*`, comparisons and Boolean AND/OR/NOT. Conditional bodies use
 `IF expression THEN ... [ELSE ...] END IF;`. Conditions must be Boolean.
 Expressions have no ambient environment, time, random, database or effect access.
@@ -347,7 +347,7 @@ CREATE PUBLIC DOMAIN SiteId AS BIGINT IDENTITY 'example.site-id';
 CREATE PUBLIC VARIANT Target AS (Machine(id MachineId), Site(id SiteId));
 ```
 
-A domain wraps BIGINT, TEXT, BOOLEAN, UUID, TIMESTAMPTZ or BINARY. Its identity is 1–128 UTF-8 bytes,
+A domain wraps BIGINT, TEXT, BOOLEAN, UUID, TIMESTAMPTZ, DATE or BINARY. Its identity is 1–128 UTF-8 bytes,
 compared exactly; its definition fixes the base type. Import the original public
 declaration to share a domain. Independent declarations with the same identity
 reject, even with equal base types. Paths, aliases and physical representations
@@ -382,7 +382,7 @@ export without re-instantiation. An instance has at most 64 unique exports.
 A typed Table parameter can also forward its existing handle through `EXPORT TABLE rows AS alias;`.
 A parameter such as `rows TABLE(id MachineId PRIMARY KEY)` requires an exact
 ordered column/key/nullability/collation signature. Signature columns use the
-six admitted scalar types (`BIGINT`, `TEXT`, `BOOLEAN`, `UUID`, `TIMESTAMPTZ`, `BINARY`) or nominal domains, with optional NULL/NOT NULL, PRIMARY KEY
+seven admitted source scalar types (`BIGINT`, `TEXT`, `BOOLEAN`, `UUID`, `TIMESTAMPTZ`, `DATE`, `BINARY`) or nominal domains, with optional NULL/NOT NULL, PRIMARY KEY
 and COLLATE clauses. Omitted collation matches the native `none` descriptor;
 explicit collation must match exactly. Runtime schema limits also apply. Defaults, CHECK constraints
 and other semantic column options cannot be hidden by a smaller signature.
@@ -848,3 +848,20 @@ are native counters, not application business-outcome counts. Exact output
 and state assertions remain separate. Zero counts are useful for a fresh empty
 case, not as proof that submitted work finished. These tests use the real local
 database and clock; no virtual-time, effect replay or provider claim follows.
+
+### DATE source values
+
+DATE literals use exactly `YYYY-MM-DD`, with Gregorian calendar validation from
+the shared SQL semantics owner, years 0001–9999 and no timezone. Parameters,
+domains, compile-time variant fields, comparisons, TYPE operands and resource
+signatures preserve DATE. Ordinary DATE values compare by exact day; nominal
+DATE domains admit only same-domain equality/inequality. Arithmetic and implicit
+conversion to/from timestamps or strings reject. Formatting does not change a
+literal's spelling or day.
+
+The existing typed SQL binder validates DATE assignments and predicates before
+erasure. Test expectations use the shared typed DATE codec, with SQL NULL kept
+separate. Ordered program schemas/values and runtime helper parameters/returns
+still reject DATE through the pinned owner (`ProgramTypeMismatch`); a source DATE
+domain does not evade that restriction. Runtime MATCH therefore cannot decode a
+DATE payload. See the [surface matrix](application-source/SQL_SURFACES_V1.md).

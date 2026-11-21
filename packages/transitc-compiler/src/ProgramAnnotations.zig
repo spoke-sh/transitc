@@ -169,6 +169,7 @@ fn checkExpected(self: *Self, expected: Expected, name: []const u8, actual: Valu
                 .boolean => .boolean,
                 .uuid => .uuid,
                 .timestamptz => .timestamp,
+                .date => return error.ProgramTypeMismatch,
                 .binary => .binary,
             };
             if (physical_.kind != .null and physical_.kind != want_kind) {

@@ -644,7 +644,7 @@ fn argumentDepth(self: *Self, file: usize, kind: s.Kind, value: Value, depth: us
             if (std.meta.activeTag(value) != @field(std.meta.Tag(Value), @tagName(tag))) return error.SourceTypeMismatch;
             try types.signature(self.graph, file, columns, @field(value, @tagName(tag)), &self.context);
         },
-        .integer, .text, .boolean, .uuid, .timestamptz, .binary => {
+        .integer, .text, .boolean, .uuid, .timestamptz, .date, .binary => {
             if (!types.Scalar.eql(try types.field(self.graph, file, kind), value.scalar() orelse return error.SourceTypeMismatch)) return error.SourceTypeMismatch;
         },
         .module => |name| {
@@ -1427,6 +1427,16 @@ fn expression(self: *Self, file: usize, expr: *const s.Expr, bindings: []const B
             };
             break :blk .{ .timestamptz = value };
         },
+        .date => |value| blk: {
+            _ = f.Types.Semantics.bind(value, .date) catch {
+                if (self.report) |r| {
+                    r.setSpan(file, expr.span.start, expr.span.end);
+                    r.setHeadline("invalid DATE literal '{s}'", .{value});
+                }
+                return error.InvalidSourceOperand;
+            };
+            break :blk .{ .date = value };
+        },
         .bytes => |value| blk: {
             if (value.len % 2 != 0) {
                 if (self.report) |r| {
@@ -1505,6 +1515,7 @@ fn expression(self: *Self, file: usize, expr: *const s.Expr, bindings: []const B
                     .text => |v| std.mem.eql(u8, v, r.text),
                     .uuid => |v| std.mem.eql(u8, &(f.Types.Semantics.bind(v, .uuid) catch unreachable).uuid, &(f.Types.Semantics.bind(r.uuid, .uuid) catch unreachable).uuid),
                     .timestamptz => |v| (f.Types.Semantics.bind(v, .{ .timestamp = .utc }) catch unreachable).timestamp == (f.Types.Semantics.bind(r.timestamptz, .{ .timestamp = .utc }) catch unreachable).timestamp,
+                    .date => |v| (f.Types.Semantics.bind(v, .date) catch unreachable).date == (f.Types.Semantics.bind(r.date, .date) catch unreachable).date,
                     .binary => |v| std.ascii.eqlIgnoreCase(v, r.binary),
                 };
                 break :blk .{ .boolean = if (value.op == .equal) equal else !equal };
@@ -1537,6 +1548,7 @@ fn expression(self: *Self, file: usize, expr: *const s.Expr, bindings: []const B
                 .boolean => std.math.order(@intFromBool(left.boolean), @intFromBool(right.boolean)),
                 .uuid => std.mem.order(u8, &(f.Types.Semantics.bind(left.uuid, .uuid) catch unreachable).uuid, &(f.Types.Semantics.bind(right.uuid, .uuid) catch unreachable).uuid),
                 .timestamptz => std.math.order((f.Types.Semantics.bind(left.timestamptz, .{ .timestamp = .utc }) catch unreachable).timestamp, (f.Types.Semantics.bind(right.timestamptz, .{ .timestamp = .utc }) catch unreachable).timestamp),
+                .date => std.math.order((f.Types.Semantics.bind(left.date, .date) catch unreachable).date, (f.Types.Semantics.bind(right.date, .date) catch unreachable).date),
                 .binary => std.mem.order(u8, left.binary, right.binary),
                 else => return error.SourceTypeMismatch,
             };
@@ -1886,6 +1898,10 @@ pub fn writeValue(writer: *BoundedBuffer, value: Value) !void {
             try writer.writeAll("TIMESTAMP ");
             try quoted(writer, v, '\'');
         },
+        .date => |v| {
+            try writer.writeAll("DATE ");
+            try quoted(writer, v, '\'');
+        },
         .binary => |v| {
             try writer.writeAll("X");
             try quoted(writer, v, '\'');
@@ -1897,6 +1913,7 @@ pub fn writeValue(writer: *BoundedBuffer, value: Value) !void {
             .boolean => "BOOLEAN",
             .uuid => "UUID",
             .timestamptz => "TIMESTAMPTZ",
+            .date => "DATE",
             .binary => "BINARY",
         }),
         .nominal => |v| switch (v.value) {

@@ -210,6 +210,8 @@ def parse(source):
             value = {'uuid': string(ctx.STRING())}
         elif (ctx.TIMESTAMPTZ() or ctx.TIMESTAMP()) and ctx.STRING():
             value = {'timestamptz': string(ctx.STRING())}
+        elif ctx.DATE() and ctx.STRING():
+            value = {'date': string(ctx.STRING())}
         elif ctx.X() and ctx.STRING():
             value = {'bytes': string(ctx.STRING())}
         elif ctx.SCHEMA_BINDING() and ctx.STRING():

@@ -109,7 +109,7 @@
         "InvalidModuleInterface": 1,
         "InvalidParameterType": 1,
         "InvalidSourceName": 1,
-        "InvalidSourceOperand": 6,
+        "InvalidSourceOperand": 7,
         "InvalidSourceSyntax": 1,
         "MissingBuildEntry": 1,
         "MissingSourceTarget": 3,
@@ -207,8 +207,8 @@
       },
       "open_error_set_uses": 10,
       "propagation": {
-        "try": 241,
-        "catch": 29
+        "try": 243,
+        "catch": 34
       },
       "imports": [
         "Graph.zig",
@@ -251,7 +251,7 @@
       },
       "open_error_set_uses": 5,
       "propagation": {
-        "try": 237,
+        "try": 240,
         "catch": 0
       },
       "imports": [
@@ -330,7 +330,7 @@
         "BuildWorkLimit": 1,
         "InvalidSourceOperand": 3,
         "ProgramTooDeep": 1,
-        "ProgramTypeMismatch": 12,
+        "ProgramTypeMismatch": 13,
         "SourceDomainMismatch": 5,
         "SourceTypeMismatch": 1,
         "UnsupportedNominalOperation": 1
@@ -786,6 +786,7 @@
           "boolean",
           "uuid",
           "timestamptz",
+          "date",
           "binary"
         ],
         "ResourceKind": [
@@ -799,6 +800,7 @@
           "boolean",
           "uuid",
           "timestamptz",
+          "date",
           "binary",
           "identifier",
           "schema_binding",
@@ -919,6 +921,7 @@
           "boolean",
           "uuid",
           "timestamptz",
+          "date",
           "bytes",
           "identifier",
           "schema_binding",
@@ -936,6 +939,7 @@
           "boolean",
           "uuid",
           "timestamptz",
+          "date",
           "binary",
           "identifier",
           "type",
@@ -954,6 +958,7 @@
           "boolean",
           "uuid",
           "timestamptz",
+          "date",
           "binary"
         ],
         "Statement.value": [
@@ -1030,7 +1035,7 @@
       },
       "open_error_set_uses": 4,
       "propagation": {
-        "try": 297,
+        "try": 298,
         "catch": 9
       },
       "imports": [
@@ -1702,8 +1707,8 @@
       "parameters": "LPAREN ( parameter ( COMMA parameter ) * ) ? RPAREN",
       "rowParameters": "LPAREN parameter ( COMMA parameter ) * RPAREN",
       "parameter": "sourceName parameterKind",
-      "parameterKind": "BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | BINARY | IDENTIFIER_KIND | TYPE | SCHEMA_BINDING | MODULE OF ? sourceQualifiedName | ROW rowParameters | ( TABLE | STREAM | QUEUE ) LPAREN signatureColumn ( COMMA signatureColumn ) * RPAREN | sourceParameterName",
-      "sourceBaseType": "BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | BINARY",
+      "parameterKind": "BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | IDENTIFIER_KIND | TYPE | SCHEMA_BINDING | MODULE OF ? sourceQualifiedName | ROW rowParameters | ( TABLE | STREAM | QUEUE ) LPAREN signatureColumn ( COMMA signatureColumn ) * RPAREN | sourceParameterName",
+      "sourceBaseType": "BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY",
       "sourceParameterName": "parameterHead ( DOT sourceName ( DOT sourceName ) ? ) ? | sourceBaseType DOT sourceName ( DOT sourceName ) ?",
       "parameterHead": "referenceTypeHead | TRUE | FALSE | NOT",
       "sourceTypeName": "typeHead ( DOT sourceName ( DOT sourceName ) ? ) ? | sourceBaseType DOT sourceName ( DOT sourceName ) ?",
@@ -1730,7 +1735,7 @@
       "sourceAdd": "sourceMultiply ( ( PLUS | MINUS ) sourceMultiply ) *",
       "sourceMultiply": "sourceUnary ( STAR sourceUnary ) *",
       "sourceUnary": "MINUS sourceUnary | NOT sourceUnary | sourceAtom",
-      "sourceAtom": "INTEGER | STRING | TRUE | FALSE | NAME STRING | UUID STRING | ( TIMESTAMPTZ | TIMESTAMP ) STRING | X STRING | SCHEMA_BINDING LPAREN STRING RPAREN | SCHEMA_BINDING ( DOT sourceName ( DOT sourceName ) ? ( LPAREN callArguments ? RPAREN ) ? ) ? | ROW LPAREN namedArgument ( COMMA namedArgument ) * RPAREN | ROW ( DOT sourceName ( DOT sourceName ) ? ( LPAREN callArguments ? RPAREN ) ? ) ? | TYPE sourceType | LPAREN expression RPAREN | plainReferenceHead ( DOT sourceName ( DOT sourceName ) ? ) ? ( LPAREN callArguments ? RPAREN ) ?",
+      "sourceAtom": "INTEGER | STRING | TRUE | FALSE | NAME STRING | UUID STRING | ( TIMESTAMPTZ | TIMESTAMP ) STRING | DATE STRING | X STRING | SCHEMA_BINDING LPAREN STRING RPAREN | SCHEMA_BINDING ( DOT sourceName ( DOT sourceName ) ? ( LPAREN callArguments ? RPAREN ) ? ) ? | ROW LPAREN namedArgument ( COMMA namedArgument ) * RPAREN | ROW ( DOT sourceName ( DOT sourceName ) ? ( LPAREN callArguments ? RPAREN ) ? ) ? | TYPE sourceType | LPAREN expression RPAREN | plainReferenceHead ( DOT sourceName ( DOT sourceName ) ? ) ? ( LPAREN callArguments ? RPAREN ) ?",
       "tableTemplate": "simpleTemplate | sourceProgram",
       "simpleTemplate": "CREATE SCHEMA identifier | CREATE PUBLIC ( TABLE | STREAM ) qualifiedName LPAREN tableElement ( COMMA tableElement ) * RPAREN | CREATE PUBLIC QUEUE qualifiedName LPAREN tableElement ( COMMA tableElement ) * RPAREN ( WITH LPAREN queueLeaseOption ( COMMA queueLeaseOption ) * RPAREN ) ? | PRODUCE INTO streamOperand ( LPAREN identifier ( COMMA identifier ) * RPAREN ) ? VALUES mutationRow ( COMMA mutationRow ) * | ENQUEUE INTO queueOperand ( LPAREN identifier ( COMMA identifier ) * RPAREN ) ? VALUES mutationRow ( COMMA mutationRow ) * | sourceProgramControl | CONSUME ( STAR | columnReference outputAlias ? ( COMMA columnReference outputAlias ? ) * ) FROM streamOperand ( AS identifier ) ? whereClause ? limitClause ? | mutationStatement | sourceSelect",
       "queueLeaseOption": "( LEASE_DURATION | MAX_LEASE_DURATION ) EQ sourceString",
@@ -1761,7 +1766,7 @@
       "programUnary": "NOT programUnary | MINUS programUnary | programPrimary",
       "programPrimary": "( LPAREN programExpression RPAREN | valueHole | NULL_ | TRUE | FALSE | INTEGER | STRING | ( UUID | TIMESTAMP | TIMESTAMPTZ | X ) STRING | CASE WHEN programExpression THEN programExpression ELSE programExpression END | CAST LPAREN programExpression AS TEXT RPAREN | ROW programArguments | programAtomName ( DOT programName programArguments | programArguments ) ? ) ( DOT programName ) *",
       "programName": "sourceName | QUOTED_IDENTIFIER",
-      "programAtomName": "typeWordOrdinary | STREAM | QUEUE | STRUCT | UNION | LIST | ARRAY | MAP | RANGE | MULTIRANGE | VECTOR | DOUBLE | CHARACTER | BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | BINARY | IDENTIFIER_KIND | SCHEMA_BINDING | MODULE | TABLE | QUOTED_IDENTIFIER",
+      "programAtomName": "typeWordOrdinary | DATE | STREAM | QUEUE | STRUCT | UNION | LIST | ARRAY | MAP | RANGE | MULTIRANGE | VECTOR | DOUBLE | CHARACTER | BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | BINARY | IDENTIFIER_KIND | SCHEMA_BINDING | MODULE | TABLE | QUOTED_IDENTIFIER",
       "sourceSelect": "SELECT selection FROM qualifiedName sourceTableAlias ? whereClause ? limitClause ? | SELECT aggregateSelection FROM LPAREN SELECT projection FROM qualifiedName sourceTableAlias ? whereClause ? limitClause ? RPAREN AS identifier",
       "sourceTableAlias": "AS identifier | sourceImplicitAlias",
       "sourceImplicitAlias": "identifierHole | legacyIdentifier | STREAMS | QUEUES | SNAPSHOT | CURRENT | PROJECTING | DATAFLOW | REVISION | AUTHORIZE | ACTIVATE | SUSPEND | RESUME | REFRESH | RETIRE | sourceKeyword",
@@ -1801,13 +1806,13 @@
       "referenceHead": "referenceHeadWithoutModule | MODULE",
       "referenceHeadWithoutModule": "plainReferenceHeadWithoutModule | ROW | SCHEMA_BINDING",
       "plainReferenceHead": "plainReferenceHeadWithoutModule | MODULE",
-      "plainReferenceHeadWithoutModule": "plainReferenceTypeHead | BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | BINARY | IDENTIFIER_KIND | TABLE",
+      "plainReferenceHeadWithoutModule": "plainReferenceTypeHead | BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | IDENTIFIER_KIND | TABLE",
       "referenceTypeHead": "plainReferenceTypeHead | ROW",
       "plainReferenceTypeHead": "typeWord | STRUCT | UNION | LIST | ARRAY | MAP | RANGE | MULTIRANGE | VECTOR | DOUBLE | CHARACTER",
-      "sourceWord": "typeWord | BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | BINARY | IDENTIFIER_KIND | SCHEMA_BINDING | MODULE | TABLE",
+      "sourceWord": "typeWord | BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | BINARY | IDENTIFIER_KIND | SCHEMA_BINDING | MODULE | TABLE",
       "typeWord": "typeWordWithoutLogs | STREAM | QUEUE",
       "typeWordWithoutLogs": "typeWordOrdinary | NULL_ | CASE | CAST",
-      "typeWordOrdinary": "LEASE_DURATION | MAX_LEASE_DURATION | IDENTIFIER | MIGRATION | MIGRATIONS | EMPTY | VERSION | FOR | AT | DECIMAL_ADD | DECIMAL_SUBTRACT | DECIMAL_MULTIPLY | DECIMAL_DIVIDE | DECIMAL_RESCALE | RANGE_OVERLAPS | RANGE_CONTAINS | RANGE_ADJACENT | RANGE_COMPARE | VECTOR_DISTANCE | TIME_BUCKET | LOCAL_TO_UTC | DATAFLOW | REVISION | AUTHORIZE | ACTIVATE | SUSPEND | RESUME | REFRESH | RETIRE | BEGIN | CONSTRAINT | CHECK | FOREIGN | REFERENCES | ENFORCED | VALID | VALIDATE | NO | ACTION | STREAM_SLICE | STREAMS | QUEUES | PARTITION | PARTITIONS | HASH | PRODUCE | ENQUEUE | CONSUME | CLAIM | ACK | NACK | EXTEND | RECEIPT | LEASE | WAIT | PRODUCER | ID | EPOCH | SEQUENCE | VISIBLE_AT | RETURNING | START | TRANSACTION | WORK | ISOLATION | LEVEL | SERIALIZABLE | READ | ONLY | WRITE | COMMIT | OFFSET | ROLLBACK | SAVEPOINT | RELEASE | TRANSIT_RELOAD_CONF | TRANSIT_SETTINGS | TRANSIT_CONFIG_RELOADS | DATABASES | SCHEMAS | ASC | DESC | NULLS | FIRST | LAST | ROLE | LOGIN | NOLOGIN | CREATEROLE | NOCREATEROLE | SCHEMA | DATABASE | AUTHORIZATION | OWNER | CURRENT_ROLE | CURRENT_USER | SESSION_USER | PUBLIC | ALL | PRIVILEGES | OPTION | ADMIN | INHERIT | CASCADE | NONE | RESET | CONNECT | USAGE | IN | JOIN | INNER | LEFT | OUTER | RIGHT | FULL | CROSS | NATURAL | GROUP | BY | HAVING | ORDER | SELECT | WHERE | LIMIT | COUNT | SUM | IS | AND | OR | BYTEA | MISSING | TYPE_ERROR | VALUE | CONFLICT | UINT64 | FLOAT64 | EXPLAIN | ALTER | DROP | ADD | COLUMN | RENAME | RESTRICT | DEFAULT | PRIMARY | COLLATE | ROUNDING | METRIC | TIMEZONE | TZDB | TZIF | UTF8_BINARY | ASCII_CI | EBCDIC_CP037 | EBCDIC_037_PAD | EBCDIC_1047_NOPAD | KEY | PUT | GET | KEYS | ABSENT | PRESENT | IF | EXISTS | DATA | OPTIONAL | WITHOUT | ZONE | X | DATE | TIME | TIMESTAMP | JSON | INTERVAL | PRECISION | VARYING | INSERT | UPDATE | DELETE | SET | VALUES | CREATE | CONNECTION | CONNECTIONS | SOURCE | SOURCES | SINK | SINKS | TABLES | DOCUMENT | KV | TO | FROM | INTO | WITH | GRANT | REVOKE | ON | SHOW | STORAGE | DESCRIBE | SECRET | AS | OF | FOR | SNAPSHOT | PROJECTING | CURRENT | INT64 | BOOL | UTF8 | IMPORT | DEPENDENCY | SUBDIRECTORY | PACKAGE | FILE | INTERFACE | TARGET | TEST | TESTS | SUITE | SUITES | SQL | USE | MODULES | ASSERT | ROWS | COMMAND | STATEMENT | EQUAL | MATCHED | CHANGED | FAILS | END | THEN | ELSE | NAME | DECLARE | BIND | VIEW | PROFILE | REFERENCE | USING | DOMAIN | VARIANT | IDENTITY | EXPORT | MATCH | WHEN | FUNCTION | GUARD | PROCEDURE | RETURNS | RETURN | CALL | LET | REQUIRE | ATOMIC | DO | SAME | FAILURE | WORKFLOW | COMPLETED | REFUSED | WITHIN | OBSERVATIONS",
+      "typeWordOrdinary": "LEASE_DURATION | MAX_LEASE_DURATION | IDENTIFIER | MIGRATION | MIGRATIONS | EMPTY | VERSION | FOR | AT | DECIMAL_ADD | DECIMAL_SUBTRACT | DECIMAL_MULTIPLY | DECIMAL_DIVIDE | DECIMAL_RESCALE | RANGE_OVERLAPS | RANGE_CONTAINS | RANGE_ADJACENT | RANGE_COMPARE | VECTOR_DISTANCE | TIME_BUCKET | LOCAL_TO_UTC | DATAFLOW | REVISION | AUTHORIZE | ACTIVATE | SUSPEND | RESUME | REFRESH | RETIRE | BEGIN | CONSTRAINT | CHECK | FOREIGN | REFERENCES | ENFORCED | VALID | VALIDATE | NO | ACTION | STREAM_SLICE | STREAMS | QUEUES | PARTITION | PARTITIONS | HASH | PRODUCE | ENQUEUE | CONSUME | CLAIM | ACK | NACK | EXTEND | RECEIPT | LEASE | WAIT | PRODUCER | ID | EPOCH | SEQUENCE | VISIBLE_AT | RETURNING | START | TRANSACTION | WORK | ISOLATION | LEVEL | SERIALIZABLE | READ | ONLY | WRITE | COMMIT | OFFSET | ROLLBACK | SAVEPOINT | RELEASE | TRANSIT_RELOAD_CONF | TRANSIT_SETTINGS | TRANSIT_CONFIG_RELOADS | DATABASES | SCHEMAS | ASC | DESC | NULLS | FIRST | LAST | ROLE | LOGIN | NOLOGIN | CREATEROLE | NOCREATEROLE | SCHEMA | DATABASE | AUTHORIZATION | OWNER | CURRENT_ROLE | CURRENT_USER | SESSION_USER | PUBLIC | ALL | PRIVILEGES | OPTION | ADMIN | INHERIT | CASCADE | NONE | RESET | CONNECT | USAGE | IN | JOIN | INNER | LEFT | OUTER | RIGHT | FULL | CROSS | NATURAL | GROUP | BY | HAVING | ORDER | SELECT | WHERE | LIMIT | COUNT | SUM | IS | AND | OR | BYTEA | MISSING | TYPE_ERROR | VALUE | CONFLICT | UINT64 | FLOAT64 | EXPLAIN | ALTER | DROP | ADD | COLUMN | RENAME | RESTRICT | DEFAULT | PRIMARY | COLLATE | ROUNDING | METRIC | TIMEZONE | TZDB | TZIF | UTF8_BINARY | ASCII_CI | EBCDIC_CP037 | EBCDIC_037_PAD | EBCDIC_1047_NOPAD | KEY | PUT | GET | KEYS | ABSENT | PRESENT | IF | EXISTS | DATA | OPTIONAL | WITHOUT | ZONE | X | TIME | TIMESTAMP | JSON | INTERVAL | PRECISION | VARYING | INSERT | UPDATE | DELETE | SET | VALUES | CREATE | CONNECTION | CONNECTIONS | SOURCE | SOURCES | SINK | SINKS | TABLES | DOCUMENT | KV | TO | FROM | INTO | WITH | GRANT | REVOKE | ON | SHOW | STORAGE | DESCRIBE | SECRET | AS | OF | FOR | SNAPSHOT | PROJECTING | CURRENT | INT64 | BOOL | UTF8 | IMPORT | DEPENDENCY | SUBDIRECTORY | PACKAGE | FILE | INTERFACE | TARGET | TEST | TESTS | SUITE | SUITES | SQL | USE | MODULES | ASSERT | ROWS | COMMAND | STATEMENT | EQUAL | MATCHED | CHANGED | FAILS | END | THEN | ELSE | NAME | DECLARE | BIND | VIEW | PROFILE | REFERENCE | USING | DOMAIN | VARIANT | IDENTITY | EXPORT | MATCH | WHEN | FUNCTION | GUARD | PROCEDURE | RETURNS | RETURN | CALL | LET | REQUIRE | ATOMIC | DO | SAME | FAILURE | WORKFLOW | COMPLETED | REFUSED | WITHIN | OBSERVATIONS",
       "IMPORT": "'IMPORT'",
       "DEPENDENCY": "'DEPENDENCY'",
       "SUBDIRECTORY": "'SUBDIRECTORY'",

@@ -69,6 +69,9 @@
       "packages/transitc-compiler/src/resource_test.zig": [
         "transit_protocol"
       ],
+      "packages/transitc-compiler/src/scalar_test.zig": [
+        "transit_protocol"
+      ],
       "packages/transitc-compiler/src/source_test.zig": [
         "transit_protocol"
       ],

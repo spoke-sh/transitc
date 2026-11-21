@@ -17,6 +17,7 @@ pub const Scalar = struct {
             .boolean => "BOOLEAN",
             .uuid => "UUID",
             .timestamptz => "TIMESTAMPTZ",
+            .date => "DATE",
             .binary => "BINARY",
         };
     }
@@ -27,6 +28,7 @@ pub const Scalar = struct {
             .boolean => .boolean,
             .uuid => .uuid,
             .timestamptz => .{ .timestamp = .utc },
+            .date => .date,
             .binary => .binary,
         };
     }
@@ -38,7 +40,7 @@ pub const Scalar = struct {
         } else Graph.hashPart(into, "scalar");
     }
 };
-pub const Primitive = union(enum) { integer: i64, text: []const u8, boolean: bool, uuid: []const u8, timestamptz: []const u8, binary: []const u8 };
+pub const Primitive = union(enum) { integer: i64, text: []const u8, boolean: bool, uuid: []const u8, timestamptz: []const u8, date: []const u8, binary: []const u8 };
 pub const FieldDomain = struct { name: []const u8, domain: ?Graph.Ref = null, fields: []const FieldDomain = &.{} };
 pub const SchemaBinding = struct { logical: []const u8, concrete: []const u8 };
 pub const ReferenceTable = struct { table: *const Table, columns: []const []const u8 };
@@ -97,6 +99,7 @@ pub const Value = union(enum) {
     boolean: bool,
     uuid: []const u8,
     timestamptz: []const u8,
+    date: []const u8,
     binary: []const u8,
     identifier: []const u8,
     schema_binding: []const u8,
@@ -119,6 +122,7 @@ pub const Value = union(enum) {
             .boolean => .{ .base = .boolean },
             .uuid => .{ .base = .uuid },
             .timestamptz => .{ .base = .timestamptz },
+            .date => .{ .base = .date },
             .binary => .{ .base = .binary },
             .nominal => |v| v.type,
             .symbolic => |v| v,
@@ -132,6 +136,7 @@ pub const Value = union(enum) {
             .boolean => |v| .{ .boolean = v },
             .uuid => |v| .{ .uuid = v },
             .timestamptz => |v| .{ .timestamptz = v },
+            .date => |v| .{ .date = v },
             .binary => |v| .{ .binary = v },
             .nominal => |v| v.value,
             else => error.SourceTypeMismatch,
@@ -158,6 +163,7 @@ pub fn field(graph: Graph, file: usize, kind: s.Kind) !Scalar {
         .boolean => .{ .base = .boolean },
         .uuid => .{ .base = .uuid },
         .timestamptz => .{ .base = .timestamptz },
+        .date => .{ .base = .date },
         .binary => .{ .base = .binary },
         .named => |name| try domain(graph, try graph.resolve(file, name)),
         else => error.UnsupportedVariantField,
@@ -219,7 +225,7 @@ pub fn hashValue(value: Value, graph: Graph, into: *std.crypto.hash.sha2.Sha256,
             into.update(&bytes);
         },
         .boolean => |v| into.update(&.{@intFromBool(v)}),
-        .text, .uuid, .timestamptz, .binary, .identifier, .schema_binding => |v| Graph.hashPart(into, v),
+        .text, .uuid, .timestamptz, .date, .binary, .identifier, .schema_binding => |v| Graph.hashPart(into, v),
         .type, .symbolic => |v| v.hash(graph, into),
         .nominal => |v| {
             v.type.hash(graph, into);

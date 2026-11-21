@@ -1239,5 +1239,64 @@
     "name": "table-lease-refused",
     "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE items (id BIGINT) WITH (lease_duration = '120s'); END;",
     "parse": false
+  },
+  {
+    "name": "date-domains-and-tests",
+    "source": "CREATE DOMAIN Day AS DATE IDENTITY 'example.day';\nCREATE MODULE Resources(element TYPE) AS BEGIN\n  CREATE PUBLIC TABLE dates (id BIGINT PRIMARY KEY, day $element NOT NULL, nullable_day DATE);\nEND;\nCREATE MODULE Add(id BIGINT, value Day) AS BEGIN\n  INSERT INTO dates VALUES ($id, $value, NULL);\nEND;\nCREATE MODULE Setup() AS BEGIN\n  USE Resources(TYPE Day);\n  USE Add(1, Day(DATE '0001-01-01'));\n  USE Add(2, Day(DATE '1970-01-01'));\n  USE Add(3, Day(DATE '2024-02-29'));\n  USE Add(4, Day(DATE '9999-12-31'));\nEND;\nCREATE TARGET default AS BEGIN USE Setup(); END;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'date values retain exact days and NULL' USING MODULES (Setup()) AS BEGIN\n    ASSERT ROWS (SELECT id, day, nullable_day FROM dates) EQUAL (\n      (1, DATE '0001-01-01', NULL),\n      (2, DATE '1970-01-01', NULL),\n      (3, DATE '2024-02-29', NULL),\n      (4, DATE '9999-12-31', NULL)\n    );\n  END;\nEND;\n",
+    "parse": true,
+    "compile": "test_suite"
+  },
+  {
+    "name": "date-leap",
+    "source": "CREATE MODULE M(value DATE) AS BEGIN CREATE PUBLIC TABLE dates (d DATE); INSERT INTO dates VALUES ($value); END; CREATE TARGET default AS BEGIN USE M(DATE '2024-02-29'); END;",
+    "parse": true,
+    "compile": "build"
+  },
+  {
+    "name": "date-minimum",
+    "source": "CREATE MODULE M(value DATE) AS BEGIN CREATE PUBLIC TABLE dates (d DATE); INSERT INTO dates VALUES ($value); END; CREATE TARGET default AS BEGIN USE M(DATE '0001-01-01'); END;",
+    "parse": true,
+    "compile": "build"
+  },
+  {
+    "name": "date-maximum",
+    "source": "CREATE MODULE M(value DATE) AS BEGIN CREATE PUBLIC TABLE dates (d DATE); INSERT INTO dates VALUES ($value); END; CREATE TARGET default AS BEGIN USE M(DATE '9999-12-31'); END;",
+    "parse": true,
+    "compile": "build"
+  },
+  {
+    "name": "date-invalid-leap",
+    "source": "CREATE MODULE M(value DATE) AS BEGIN CREATE PUBLIC TABLE dates (d DATE); INSERT INTO dates VALUES ($value); END; CREATE TARGET default AS BEGIN USE M(DATE '2023-02-29'); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "InvalidSourceOperand"
+  },
+  {
+    "name": "date-year-zero",
+    "source": "CREATE MODULE M(value DATE) AS BEGIN CREATE PUBLIC TABLE dates (d DATE); INSERT INTO dates VALUES ($value); END; CREATE TARGET default AS BEGIN USE M(DATE '0000-01-01'); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "InvalidSourceOperand"
+  },
+  {
+    "name": "date-timezone-refused",
+    "source": "CREATE MODULE M(value DATE) AS BEGIN CREATE PUBLIC TABLE dates (d DATE); INSERT INTO dates VALUES ($value); END; CREATE TARGET default AS BEGIN USE M(DATE '2024-02-29Z'); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "InvalidSourceOperand"
+  },
+  {
+    "name": "date-timestamp-refused",
+    "source": "CREATE MODULE M(value DATE) AS BEGIN CREATE PUBLIC TABLE dates (d DATE); INSERT INTO dates VALUES ($value); END; CREATE TARGET default AS BEGIN USE M(TIMESTAMP '2024-02-29T00:00:00Z'); END;",
+    "parse": true,
+    "compile": "build",
+    "error": "SourceTypeMismatch"
+  },
+  {
+    "name": "date-program-refused",
+    "source": "CREATE TARGET default AS BEGIN CREATE PUBLIC QUEUE jobs (d DATE NOT NULL); CREATE PUBLIC DATAFLOW p FROM QUEUE jobs AS r AS BEGIN END; END;",
+    "parse": true,
+    "compile": "build",
+    "error": "ProgramTypeMismatch"
   }
 ]
