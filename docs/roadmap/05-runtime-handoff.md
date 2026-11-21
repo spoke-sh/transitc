@@ -63,5 +63,8 @@ subtyping and unrestricted predicates are not silently admitted by this incremen
 New source forms that depend on the native gates above still need their own
 compiler implementation after the upstream contracts and pins are qualified.
 
-The [implementation plan](05-typed-composition-and-sql.md) remains open. These
-handoffs do not close milestone 5 or transfer compiler-owned work upstream.
+The [next slice plan](05-typed-composition-and-sql.md#next-slice-complete-the-existing-composition-profile)
+sequences completion diagnosis, precise ROW admission, any owning fix/pin update
+and full qualification. The [milestone plan](05-typed-composition-and-sql.md)
+remains open. These handoffs do not close milestone 5 or transfer compiler-owned
+work upstream.

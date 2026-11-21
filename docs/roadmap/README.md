@@ -28,6 +28,9 @@ records executed foundation checks separately from the expanded feature and
 performance work in milestones 5–10.
 The [typed composition qualification](../qualification/typed-composition.md)
 records milestone 5's delivered increments, passing evidence and open gates.
+Its [next proposed slice](05-typed-composition-and-sql.md#next-slice-complete-the-existing-composition-profile)
+finishes isolated execution and whole-input ROW specialization before further
+runtime-dependent language expansion.
 
 ## Source and ownership
 
