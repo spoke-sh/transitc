@@ -26,7 +26,7 @@
       "open_error_set_uses": 1,
       "propagation": {
         "try": 2,
-        "catch": 6
+        "catch": 8
       },
       "imports": [
         "Help.zig",
@@ -255,6 +255,7 @@
         "catch": 0
       },
       "imports": [
+        "SourceFormat.zig",
         "Syntax.zig",
         "std"
       ]
@@ -728,6 +729,29 @@
         "transit_protocol"
       ]
     },
+    "packages/transitc-compiler/src/SourceFormat.zig": {
+      "errors": {
+        "SourceDepthLimit": 1
+      },
+      "outcomes": {},
+      "error_sets": {},
+      "error_returns": {
+        "bodyBlock()": "<inferred>",
+        "render()": "<inferred>",
+        "statements()": "anyerror",
+        "write()": "<inferred>"
+      },
+      "open_error_set_uses": 1,
+      "propagation": {
+        "try": 19,
+        "catch": 0
+      },
+      "imports": [
+        "Syntax.zig",
+        "std",
+        "transit_sql_frontend"
+      ]
+    },
     "packages/transitc-compiler/src/SourceTypes.zig": {
       "errors": {
         "BuildWorkLimit": 2,
@@ -997,7 +1021,7 @@
       },
       "open_error_set_uses": 4,
       "propagation": {
-        "try": 295,
+        "try": 297,
         "catch": 9
       },
       "imports": [
@@ -1087,6 +1111,7 @@
         "conjunction()": "<inferred>",
         "dataType()": "anyerror",
         "enter()": "<inferred>",
+        "finish()": "<inferred>",
         "foreignKey()": "<inferred>",
         "helperName()": "<inferred>",
         "hole()": "<inferred>",
@@ -1124,7 +1149,7 @@
       },
       "open_error_set_uses": 9,
       "propagation": {
-        "try": 290,
+        "try": 295,
         "catch": 7
       },
       "imports": [
@@ -1533,6 +1558,47 @@
         "transit_protocol"
       ]
     },
+    "packages/transitc-workspace/src/Format.zig": {
+      "errors": {
+        "AccessDenied": 2,
+        "ExpectedTransitFile": 2,
+        "FileNotFound": 1,
+        "HardLinkedSource": 2,
+        "SourceChangedDuringFormat": 2,
+        "SourceDepthLimit": 1,
+        "SourceFileBytesLimit": 2,
+        "SourceFileLimit": 1,
+        "SourceReadLimit": 2,
+        "SourceTreeEntryLimit": 1,
+        "UnsupportedSourceFileKind": 2,
+        "WriteFailed": 1
+      },
+      "outcomes": {},
+      "error_sets": {},
+      "error_returns": {
+        "Options.parse()": "<inferred>",
+        "collect()": "anyerror",
+        "emitFailure()": "<inferred>",
+        "formatFile()": "<inferred>",
+        "formatStdin()": "<inferred>",
+        "formatted()": "<inferred>",
+        "noteFailure()": "<inferred>",
+        "run()": "<inferred>"
+      },
+      "open_error_set_uses": 3,
+      "propagation": {
+        "try": 42,
+        "catch": 6
+      },
+      "imports": [
+        "BuildSources.zig",
+        "Diagnostic.zig",
+        "EnvelopeDiagnostic.zig",
+        "std",
+        "transit_compiler",
+        "transit_memory"
+      ]
+    },
     "packages/transitc-workspace/src/Style.zig": {
       "errors": {},
       "outcomes": {
@@ -1599,6 +1665,7 @@
         "BuildSources.zig",
         "Diagnostic.zig",
         "EnvelopeDiagnostic.zig",
+        "Format.zig",
         "Style.zig",
         "Test.zig",
         "TestProcessHost.zig",

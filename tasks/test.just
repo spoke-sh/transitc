@@ -8,6 +8,10 @@ _default:
 unit:
     zig build test
 
+# Check source formatting, comment preservation, and atomic file updates.
+fmt: _build
+    python3 -B tests/integration/format_command.py zig-out/bin/transitc
+
 # Check dependency resolution, publication, and workspace failures.
 workspace: _build
     python3 -B tests/runner/launch.py tests/workspace/build.py zig-out/bin/transitc

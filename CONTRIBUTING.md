@@ -24,6 +24,7 @@ zig build
 zig build run -- --version
 just check
 just test::unit
+just test::fmt
 just test::workspace
 just test::examples
 just test::build-command
@@ -46,6 +47,10 @@ runnable projects and inspects their published SQL/artifacts. `nix flake check` 
 builds the package and runs unit, source verification and parity checks in sandboxes.
 See the [integration guide](tests/integration/README.md) for fixtures, isolation,
 failure cases, and updating the upstream pin.
+`just test::fmt` checks formatter output, comment/literal preservation, recursive
+discovery and safe file replacement. Format application sources with
+`transitc fmt PATH...`; select project paths explicitly when working near
+deliberately invalid parser fixtures.
 `just docs::install` uses `npm ci` with the root lockfile. After intentionally
 editing a JavaScript manifest, run `npm install`, then rerun the docs check.
 

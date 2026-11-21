@@ -9,7 +9,9 @@ pub const Hole = struct { name: []const u8, role: Role, start: u32, end: u32 };
 pub const Kind = enum { create, create_schema, insert, update, delete, select, rows, create_stream, create_queue, produce, enqueue, consume, program, control, function_body, guard_body, guard_requires, procedure_body };
 pub const HelperKind = enum { function, guard, procedure };
 const BlockMode = enum { dataflow, function, guard, procedure };
-pub const Syntax = struct { kind: Kind, tokens: []const Token, holes: []const Hole };
+/// Body boundaries recorded by the parser for comment-preserving layout.
+pub const Block = struct { open: u32, close: u32 };
+pub const Syntax = struct { kind: Kind, tokens: []const Token, holes: []const Hole, identifiers: []const Token = &.{}, blocks: []const Block = &.{} };
 const Self = @This();
 a: std.mem.Allocator,
 text: []const u8,
@@ -21,6 +23,8 @@ i: usize = 0,
 depth: usize = 0,
 allow_holes: bool = true,
 holes: std.ArrayList(Hole) = .empty,
+identifiers: std.ArrayList(Token) = .empty,
+blocks: std.ArrayList(Block) = .empty,
 
 pub fn describeToken(text: []const u8, token: Token, buf: *[96]u8) []const u8 {
     return switch (token.kind) {
@@ -59,7 +63,7 @@ pub fn parseReported(a: std.mem.Allocator, text: []const u8, tokens: []const Tok
         self.failUnexpectedTail();
         return self.invalid();
     }
-    return .{ .kind = kind, .tokens = tokens, .holes = try self.holes.toOwnedSlice(a) };
+    return self.finish(kind);
 }
 pub fn parseHelper(a: std.mem.Allocator, text: []const u8, tokens: []const Token, end: u32, helper: HelperKind, returns_value: bool, location: *usize) !Syntax {
     return parseHelperReported(a, text, tokens, end, helper, returns_value, location, null);
@@ -115,7 +119,7 @@ pub fn parseHelperReported(a: std.mem.Allocator, text: []const u8, tokens: []con
         self.failUnexpectedTail();
         return self.invalid();
     }
-    return .{ .kind = kind, .tokens = tokens, .holes = try self.holes.toOwnedSlice(a) };
+    return self.finish(kind);
 }
 pub fn parseGuardRequiresReported(a: std.mem.Allocator, text: []const u8, tokens: []const Token, end: u32, location: *usize, report: ?*SourceDiagnostic.Report) !Syntax {
     var self: Self = .{ .a = a, .text = text, .tokens = tokens, .end = end, .location = location, .report = report, .allow_holes = false };
@@ -130,7 +134,7 @@ pub fn parseGuardRequiresReported(a: std.mem.Allocator, text: []const u8, tokens
         self.failUnexpectedTail();
         return self.invalid();
     }
-    return .{ .kind = .guard_requires, .tokens = tokens, .holes = try self.holes.toOwnedSlice(a) };
+    return self.finish(.guard_requires);
 }
 fn currentSpan(self: *const Self) SourceDiagnostic.Span {
     return if (self.i < self.tokens.len) .{ .start = self.tokens[self.i].start, .end = self.tokens[self.i].end } else .{ .start = self.end, .end = self.end };
@@ -217,6 +221,7 @@ fn hole(self: *Self, role: Role) !bool {
         return error.InvalidSourceName;
     }
     const end = self.tokens[self.i].end;
+    try self.identifiers.append(self.a, self.tokens[self.i]);
     self.i += 1;
     try self.holes.append(self.a, .{ .name = try std.ascii.allocLowerString(self.a, operand_name), .role = role, .start = start, .end = end });
     return true;
@@ -234,6 +239,7 @@ fn name(self: *Self) !void {
         } else self.failExpected("identifier");
         return self.invalid();
     }
+    try self.identifiers.append(self.a, self.tokens[self.i]);
     self.i += 1;
 }
 fn reference(self: *Self) !void {
@@ -654,6 +660,7 @@ fn programName(self: *Self) !void {
         }
         return error.InvalidSourceName;
     }
+    try self.identifiers.append(self.a, self.tokens[self.i]);
     self.i += 1;
 }
 fn sourceWordName(self: *Self) !void {
@@ -668,6 +675,7 @@ fn sourceWordName(self: *Self) !void {
         }
         return error.InvalidSourceName;
     }
+    try self.identifiers.append(self.a, self.tokens[self.i]);
     self.i += 1;
 }
 fn helperName(self: *Self) !void {
@@ -754,6 +762,7 @@ fn programExpression(self: *Self, minimum: u8) anyerror!void {
 fn programBlock(self: *Self, atomic: bool, mode: BlockMode) anyerror!void {
     try self.enter();
     defer self.depth -= 1;
+    const open = if (self.i > 0) self.tokens[self.i - 1].start else null;
     while (self.i < self.tokens.len and !self.is("END") and !self.is("ELSE") and !self.is("ON") and !(mode == .procedure and self.is("RETURN"))) {
         const start = self.at();
         if (self.take("LET")) {
@@ -866,7 +875,18 @@ fn programBlock(self: *Self, atomic: bool, mode: BlockMode) anyerror!void {
         }
         try self.require(";");
     }
+    if (open) |start| try self.blocks.append(self.a, .{ .open = start, .close = self.at() });
 }
+
+fn finish(self: *Self, kind: Kind) !Syntax {
+    std.mem.sort(Block, self.blocks.items, {}, struct {
+        fn less(_: void, lhs: Block, rhs: Block) bool {
+            return lhs.open < rhs.open;
+        }
+    }.less);
+    return .{ .kind = kind, .tokens = self.tokens, .holes = try self.holes.toOwnedSlice(self.a), .identifiers = try self.identifiers.toOwnedSlice(self.a), .blocks = try self.blocks.toOwnedSlice(self.a) };
+}
+
 fn program(self: *Self) !Kind {
     try self.resourceName(.identifier);
     try self.require("FROM");

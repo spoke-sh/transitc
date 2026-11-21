@@ -7,6 +7,7 @@ pub const root =
     \\
     \\Commands:
     \\  build  Compile Transit source to SQL
+    \\  fmt    Format Transit source
     \\  test   Run application tests
     \\
     \\Options:
@@ -14,6 +15,20 @@ pub const root =
     \\  --version  Show version
     \\
     \\Run transitc COMMAND --help for command options.
+    \\
+;
+
+pub const fmt =
+    \\Format Transit source in place.
+    \\
+    \\Usage: transitc fmt [OPTIONS] [PATH...]
+    \\
+    \\Paths default to the current directory. Directories are searched recursively.
+    \\
+    \\Options:
+    \\  --check  List unformatted files without writing them
+    \\  --stdin  Format standard input to standard output
+    \\  --help   Show this help
     \\
 ;
 

@@ -11,6 +11,11 @@ and history; `Build` composes these with the pure compiler. `Options`, `Report`,
 The caller supplies its compiler revision. Executable identity is SHA-256 over
 all executable bytes, separate from release version and contract definition.
 
+`Format` owns formatter invocation, bounded recursive discovery, stdin/check
+modes and per-file atomic replacement. It calls the compiler's pure formatter
+without loading dependencies. Run `just test::fmt` for its CLI and filesystem
+checks.
+
 The public build adapter accepts a diagnostic context structurally. The compiler
 never imports this package; Transit imports neither library. See the
 [package map](../README.md) for the exact upstream pins.

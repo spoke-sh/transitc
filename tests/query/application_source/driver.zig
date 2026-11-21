@@ -39,6 +39,8 @@ fn project(out: *std.json.Stringify, text: []const u8, value: anytype, depth: us
         .@"struct" => |info| {
             try out.beginObject();
             inline for (info.field_names) |field| {
+                // Presentation-only identifier sites and layout boundaries are not semantic AST fields.
+                if (comptime (T == c.Syntax.File or T == c.Syntax.Template.Syntax) and (std.mem.eql(u8, field, "identifiers") or std.mem.eql(u8, field, "blocks"))) continue;
                 try out.objectField(field);
                 try project(out, text, @field(value, field), depth + 1);
             }
@@ -172,7 +174,7 @@ fn run(a: std.mem.Allocator, request: Request, out: *std.json.Stringify) !void {
     try out.write(View{ .text = request.source, .file = file });
     const buffer = try a.alloc(u8, 1024 * 1024);
     var formatted: std.Io.Writer = .fixed(buffer);
-    try c.Format.write(request.source, file, &formatted);
+    try c.Format.source(a, request.source, file, &formatted);
     try out.objectField("formatted");
     try out.write(formatted.buffered());
     if (request.compile) |mode| {

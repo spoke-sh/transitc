@@ -8,6 +8,13 @@ pub fn main(init: std.process.Init) !void {
     if (args.len == 1 or (args.len == 2 and (std.mem.eql(u8, args[1], "--help") or std.mem.eql(u8, args[1], "-h")))) return std.Io.File.stdout().writeStreamingAll(init.io, help.root);
     if (args.len == 2 and std.mem.eql(u8, args[1], "--version")) return std.Io.File.stdout().writeStreamingAll(init.io, "transitc " ++ version.version ++ " (" ++ version.revision ++ ")\n");
     var diagnostic: workspace.Diagnostic = .{};
+    if (std.mem.eql(u8, args[1], "fmt")) {
+        const options = workspace.Format.Options.parse(args[2..], &diagnostic) catch |err| return fail(init.io, &diagnostic, err);
+        if (options.help) return std.Io.File.stdout().writeStreamingAll(init.io, help.fmt);
+        const ok = workspace.Format.run(init, options) catch |err| return fail(init.io, &diagnostic, err);
+        if (!ok) std.process.exit(1);
+        return;
+    }
     const testing = args.len >= 2 and std.mem.eql(u8, args[1], "test");
     if (args.len < 2 or (!testing and !std.mem.eql(u8, args[1], "build"))) {
         try std.Io.File.stderr().writeStreamingAll(init.io, "transitc: unsupported command; use transitc --help\n");

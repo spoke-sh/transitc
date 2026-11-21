@@ -30,6 +30,9 @@
       "packages/transitc-compiler/src/SourceDiagnostic.zig": [
         "transit_protocol"
       ],
+      "packages/transitc-compiler/src/SourceFormat.zig": [
+        "transit_sql_frontend"
+      ],
       "packages/transitc-compiler/src/SourceTypes.zig": [
         "transit_sql_frontend"
       ],
@@ -49,6 +52,9 @@
       ],
       "packages/transitc-compiler/src/WorkingCatalog.zig": [
         "transit_protocol",
+        "transit_sql_frontend"
+      ],
+      "packages/transitc-compiler/src/format_test.zig": [
         "transit_sql_frontend"
       ],
       "packages/transitc-compiler/src/migration_test.zig": [
@@ -99,6 +105,10 @@
       ],
       "packages/transitc-workspace/src/EnvelopeDiagnostic.zig": [
         "transit_protocol"
+      ],
+      "packages/transitc-workspace/src/Format.zig": [
+        "transit_compiler",
+        "transit_memory"
       ],
       "packages/transitc-workspace/src/Style.zig": [
         "transit_sql_frontend"

@@ -20,7 +20,8 @@ CREATE TARGET default AS BEGIN
 END;
 ```
 
-Run `transitc build --check`, then `transitc build`. Imports resolve explicit
+Run `transitc fmt` to apply the [standard source style](formatting.md),
+then `transitc build --check` and `transitc build`. Imports resolve explicit
 module interfaces. File paths and import aliases do not grant permissions or
 replace explicit durable object identities. Missing imports, visibility failures,
 cycles and exhausted evaluation budgets reject before publication.

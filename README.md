@@ -6,6 +6,8 @@ The offline Transit language compiler. It composes typed `.transit` modules,
 verifies emitted SQL, resolves exact dependencies and publishes SQL/provenance or
 migration proposals. `transitc test` compiles and runs isolated application suites
 using a compatible [Transit](https://github.com/spoke-sh/transit) database host.
+`transitc fmt` applies the standard source style in place; use `transitc fmt --check`
+in CI. See [formatting source](docs/handbook/guides/formatting.md).
 
 Read the [handbook](https://spoke-sh.github.io/transitc/) for user guides,
 CLI reference, and compiler internals.
@@ -34,6 +36,7 @@ zig build
 zig build run -- build --help
 just check
 just test::unit
+just test::fmt
 just test::command
 just test::integration
 ```

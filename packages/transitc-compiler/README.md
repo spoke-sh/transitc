@@ -14,6 +14,10 @@ bounded context and expansion spans. Compilation grants no runtime rights.
 The package retains syntax/templates, graph resolution, nominal source types,
 program lowering, typed binding, catalog simulation, independent SQL reparse,
 formatting, explicit-basis migration synthesis and compile-only test products.
+`Format.source(allocator, text, parsed_file, writer)` preserves comments and
+literal/identifier spelling while applying the standard source style. Pass the
+production parse of the same buffer and a bounded writer. The older `Format.write`
+AST normalizer omits comments and remains available for existing consumers.
 `Test.Failure` and `Test.Detail` are bounded host-report values; they contain no
 execution implementation. The shared frontend supplies authoritative SQL types
 and binders. Allocation, recursion, source/output and work bounds remain explicit.

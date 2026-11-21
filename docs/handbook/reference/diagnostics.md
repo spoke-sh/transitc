@@ -1,5 +1,10 @@
 # Diagnostics
 
+`transitc fmt` reports concise `path:line:column: error: ...` syntax failures on
+stderr, using one-based lines and byte columns. Filesystem failures omit source
+coordinates. Paths and messages escape terminal controls. Formatting has no
+JSON or color options; `fmt --check` lists unformatted paths on stdout.
+
 Use `transitc build --format json` in automation. Compilation and input/output
 failures produce a current-v1 diagnostic envelope with a stable source failure
 family, stage, cause and bounded facts. Local failures remain `not_submitted` with

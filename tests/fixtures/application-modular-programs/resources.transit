@@ -1,6 +1,4 @@
-CREATE PUBLIC MODULE Resources(order_type TYPE, account_type TYPE,
-  input_name IDENTIFIER, accounts_name IDENTIFIER, ledger_name IDENTIFIER,
-  events_name IDENTIFIER, followup_name IDENTIFIER) AS BEGIN
+CREATE PUBLIC MODULE Resources(order_type TYPE, account_type TYPE, input_name IDENTIFIER, accounts_name IDENTIFIER, ledger_name IDENTIFIER, events_name IDENTIFIER, followup_name IDENTIFIER) AS BEGIN
   CREATE PUBLIC QUEUE $input_name (id $order_type NOT NULL, account_id $account_type NOT NULL, amount BIGINT NOT NULL, note TEXT NOT NULL);
   CREATE PUBLIC TABLE $accounts_name (id $account_type PRIMARY KEY, active BOOLEAN NOT NULL, tier TEXT NOT NULL, credit_limit BIGINT NOT NULL);
   CREATE PUBLIC TABLE $ledger_name (id $order_type PRIMARY KEY, account_id $account_type NOT NULL, amount BIGINT NOT NULL, summary TEXT NOT NULL);

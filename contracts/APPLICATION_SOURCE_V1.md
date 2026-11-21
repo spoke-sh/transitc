@@ -318,10 +318,15 @@ statements. Building never applies them, and activation completion does not mean
 that a Queue input has completed. All emitted statements retain the ordinary
 1 MiB (1,048,576-byte) SQL limit, including a complete program body.
 
-The package's bounded source formatter writes the parsed AST to a caller-owned
-writer. It normalizes source names/keywords and expression parentheses, omits
-comments and retains quoted SQL bytes and lexical adjacency. It does not resolve
-imports, bind a catalog or execute tests, and has no public CLI command. Source
+The package's bounded `Format.source` formatter uses the production AST and
+original tokens to write source to a caller-owned writer. It preserves comments,
+identifier spelling, literals, parentheses and token order while normalizing
+keyword case, indentation and punctuation spacing. Parser-recorded identifier
+sites distinguish names from keywords. `transitc fmt` exposes this formatter with
+in-place, check and stdin modes; filesystem operations belong to the workspace
+package. Formatting does not resolve imports, bind a catalog or execute tests.
+The older `Format.write` AST normalizer remains available to embedded consumers;
+it normalizes names/parentheses and omits comments. Source
 round-trips preserve ordered SQL, bindings, fingerprints and logical test plans;
 source coordinates, input digests and expansion-derived case identities are
 checked separately for the new spelling. Exhausted writer/depth budgets fail
@@ -636,6 +641,17 @@ checking without publishing. An interrupted build has no successful completion
 record; previous successful artifacts retain their original input identity.
 
 ## CLI and diagnostics
+
+`transitc fmt [--check | --stdin] [PATH...]` formats source with a fixed style.
+With no paths it recursively discovers `.transit` files in the current directory;
+normal mode atomically replaces changed files and lists their paths on stdout.
+`--check` lists differences without writes and exits 1 if any differ. `--stdin`
+accepts no paths, reads one buffer and writes formatted source on success. Syntax
+or filesystem errors go to stderr and exit 1; invalid invocation exits 2.
+Formatting neither resolves dependencies nor executes SQL. The
+[formatting guide](../docs/handbook/guides/formatting.md) specifies discovery,
+preservation, file replacement and limits. Formatter errors use concise text;
+the build/test envelope contract below is unchanged.
 
 ```text
 transitc build [-f build.transit] [--target default] [--out DIRECTORY]

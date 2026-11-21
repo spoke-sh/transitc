@@ -1,14 +1,17 @@
 # CLI reference
 
 `transitc`, `transitc --help` and `transitc -h` list commands and global options.
-Use `transitc build --help` or `transitc test --help` for command-specific options.
+Use `transitc build --help`, `transitc fmt --help` or `transitc test --help` for command-specific options.
 Help prints to stdout without reading source or starting a test host.
 `transitc --version` prints the compiler version and build revision.
 
 ```text
 transitc build [OPTIONS]
+transitc fmt [OPTIONS] [PATH...]
 transitc test [OPTIONS]
 ```
+
+Build and test options:
 
 | Option | Meaning |
 | --- | --- |
@@ -42,13 +45,21 @@ without a configured default it resolves `transit` on PATH. An unavailable or
 incompatible host fails explicitly; the command never downloads one or falls
 back to recompiling through `transit test`.
 
+`fmt` formats `.transit` files in place, recursively using the current directory
+when no paths are supplied. It prints changed paths to stdout. Its options are
+`--check` (list files needing formatting without writing), `--stdin` (format stdin
+to stdout), and `--help`. Use `--` to end options. `--stdin` cannot combine with
+paths or `--check`; build/test options do not apply. See
+[formatting](../guides/formatting.md) for style, discovery, file updates and limits.
+
 Status 0 means the requested operation completed successfully, 1 means compilation,
-workspace, assertion or runtime failure, and 2 means invalid invocation or
-unsupported command. Human results/errors use stderr; JSON reports use stdout.
+workspace, formatting, assertion or runtime failure, and 2 means invalid invocation or
+unsupported command. `fmt --check` also exits 1 when files need formatting.
+Build/test human results and all errors use stderr; JSON reports use stdout.
 Help/version use stdout. A test report distinguishes completed assertion failures
 from incomplete execution and records the compiler and actual runtime identities.
 See [testing](../guides/testing.md) for isolation and limits.
 
 Build commands never submit SQL. Test commands execute only their isolated
-cases. There is no formatter CLI, language server, package publisher or command
+cases. Formatting stays offline. There is no language server, package publisher or command
 for applying SQL to an existing installation.

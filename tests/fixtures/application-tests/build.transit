@@ -1,5 +1,7 @@
 IMPORT rows FROM 'rows.transit';
-CREATE TARGET default AS BEGIN USE rows.Rows(NAME 'items', 7); END;
+CREATE TARGET default AS BEGIN
+  USE rows.Rows(NAME 'items', 7);
+END;
 CREATE TEST TARGET tests AS BEGIN
   TEST 'writes and refusals' USING MODULES (rows.Rows(NAME 'items', 7)) AS BEGIN
     ASSERT COMMAND (INSERT INTO items VALUES (9, NULL)) MATCHED 1 CHANGED 1;

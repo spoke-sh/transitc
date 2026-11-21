@@ -18,7 +18,7 @@ jobs:
       - name: Execute source grammar and typed correspondence checks
         run: nix build .#checks.x86_64-linux.source --no-link --print-build-logs
       - run: nix develop --command just check
-      - run: nix develop --command just test::workspace test::examples test::integration test::build-command test::command
+      - run: nix develop --command just test::fmt test::workspace test::examples test::integration test::build-command test::command
   handbook:
     runs-on: ubuntu-latest
     steps:

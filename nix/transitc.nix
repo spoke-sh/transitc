@@ -63,6 +63,10 @@ stdenv.mkDerivation {
     runHook preInstallCheck
     "$out/bin/transitc" --help
     "$out/bin/transitc" --version
+    "$out/bin/transitc" fmt --help
+    printf 'create target default as begin end;' >fmt.transit
+    "$out/bin/transitc" fmt fmt.transit
+    "$out/bin/transitc" fmt --check fmt.transit
     "$out/bin/transitc" build -f tests/integration/fixtures/application/build.transit --check --format json
     status=0
     "$out/bin/transitc" unknown >unsupported.stdout 2>unsupported.stderr || status=$?

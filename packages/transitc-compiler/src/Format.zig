@@ -2,6 +2,8 @@
 const std = @import("std");
 const s = @import("Syntax.zig");
 const Self = @This();
+/// Opinionated source layout retaining comments, identifiers, and literal spelling.
+pub const source = @import("SourceFormat.zig").write;
 text: []const u8,
 w: *std.Io.Writer,
 

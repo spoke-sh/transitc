@@ -13,6 +13,7 @@ pub const Product = Compiler.Product;
 test {
     _ = @import("tests.zig");
     _ = @import("source_test.zig");
+    _ = @import("format_test.zig");
     _ = @import("resource_test.zig");
     _ = @import("program_test.zig");
     _ = @import("migration_test.zig");

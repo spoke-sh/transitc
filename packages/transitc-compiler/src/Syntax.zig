@@ -112,6 +112,8 @@ pub const Import = struct { alias: []const u8, package: ?[]const u8, path: []con
 pub const Dependency = struct { name: []const u8, repository: []const u8, revision: []const u8, subdirectory: []const u8, span: Span };
 pub const DefaultTarget = struct { name: []const u8, span: Span };
 pub const File = struct {
+    /// Identifier spelling sites for source-preserving tooling.
+    identifiers: []const Span = &.{},
     definitions: []const Definition,
     imports: []const Import,
     dependencies: []const Dependency,
@@ -122,6 +124,7 @@ const Self = @This();
 a: std.mem.Allocator,
 text: []const u8,
 tokens: []const Token,
+identifiers: std.ArrayList(Span) = .empty,
 index: usize = 0,
 location: *usize,
 report: ?*SourceDiagnostic.Report = null,
@@ -225,6 +228,7 @@ pub fn parseReported(a: std.mem.Allocator, text: []const u8, location: *usize, f
         }
     }
     return .{
+        .identifiers = try self.identifiers.toOwnedSlice(a),
         .definitions = try definitions.toOwnedSlice(a),
         .imports = try imports.toOwnedSlice(a),
         .dependencies = try dependencies.toOwnedSlice(a),
@@ -587,6 +591,7 @@ fn identifier(self: *Self) ![]const u8 {
         }
         return error.InvalidSourceName;
     }
+    try self.identifiers.append(self.a, .{ .start = token.start, .end = token.end });
     return std.ascii.allocLowerString(self.a, self.text[token.start..token.end]);
 }
 fn parseName(self: *Self) !Name {

@@ -6,7 +6,7 @@ own the reference syntax. This directory checks those against the actual compile
 package, independently of SQL execution and interface/UI declaration parsing.
 
 `driver.zig` projects production ASTs and compiled products and calls the package
-formatter. It imports package modules through the build graph. `reference.py`
+comment-preserving `Format.source` formatter used by `transitc fmt`. It imports package modules through the build graph. `reference.py`
 derives ASTs only from the ANTLR parse tree. `verify.py` requires exact record
 coverage, compares both with independent expectations, checks byte coordinates,
 formatter idempotence and equivalent ordered SQL/schema/plan/test results.
@@ -35,8 +35,11 @@ The SQL emitter preserves contiguous decimal/exponent, cast and comparison
 lexemes. Decimal/exponent and `!=` build cases close earlier whitespace-insertion
 refusals; cast recognition alone does not enable native Table casts. These fixes
 do not change SQL for previously accepted inputs. Source
-formatting retains SQL token adjacency and quoted bytes while normalizing words
-and source-expression parentheses. It does not bind a catalog or execute tests.
+formatting retains lexical units, comments, identifiers, quoted bytes and
+source-expression parentheses while normalizing keywords and whitespace.
+Presentation-only identifier sites and program block boundaries are excluded from semantic AST comparisons.
+`just test::fmt` separately tests comment preservation and CLI/filesystem behavior.
+Formatting does not bind a catalog or execute tests.
 
 ## Typed-target laws and correspondence
 
