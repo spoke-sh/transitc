@@ -97,6 +97,13 @@ successful requests continuing up to the deadline, and a separate SDK storage
 campaign overlapped this run. These observations do not by themselves assign the
 failure to contention or qualify the lane. The native timeout and assertions are
 unchanged; this failure remains open pending its owning investigation.
+A fresh-fixture diagnostic selecting only `calls` reproduced the timeout under
+`strace -f -c -w`. Its 23,746 `fsync` calls accumulated 215.62 seconds across
+threads (9.08 ms mean), with sustained host I/O pressure. The
+[Station diagnostic summary](results/composition-completion/station-timeout/summary.json)
+retains binary identities, the original clean-lane inventory and syscall/pressure
+samples. This selected, traced run is diagnostic evidence, not qualification or
+a completed causal comparison.
 
 At compiler revision `0fa5e0bde3a9e28bdf54d91245132144af483038`, the exact
 candidate Nix package and all four local x86_64-linux flake checks pass. Explicit
