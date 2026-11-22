@@ -89,7 +89,25 @@ Frontend package tests and the upstream 71 fast checks, 20 contract checks, and
 locked handbook gate pass at this candidate. The first clean storage/query lane
 was stopped after 12 completed tasks because its source revision was superseded
 by the predicate fix. Its partial evidence is retained and is not a lane pass.
-The required clean lane has restarted on the candidate revision.
+The replacement clean lane at `8fcf3ca0ca4aeb2d39af6601f7462712a3b208fe`
+passed 17 tasks, then failed `test::station-transaction`: its `calls` subprocess
+exceeded the existing 180-second limit. The remaining 14 tasks did not execute.
+The failed checkout and private fixture are retained locally. Server logs show
+successful requests continuing up to the deadline, and a separate SDK storage
+campaign overlapped this run. These observations do not by themselves assign the
+failure to contention or qualify the lane. The native timeout and assertions are
+unchanged; this failure remains open pending its owning investigation.
+
+At compiler revision `0fa5e0bde3a9e28bdf54d91245132144af483038`, the exact
+candidate Nix package and all four local x86_64-linux flake checks pass. Explicit
+source verification passes 253 grammar cases, 179 round trips, 10 grammar
+negative controls, the 58 symbolic comparisons and the full type suite. The
+portable x86_64-linux-musl archive, formatter/workspace/documentation consumers,
+three aggregate-runner controls, strict handbook build and 84 browser checks at
+each base path also pass. Compiled-case boundary checks pass 11 request refusals,
+16 response/process refusals, late completion and joined cleanup against the
+candidate host. Runnable handbook examples pass; the source-free SQL/restart
+comparison separately uses the frozen old backend.
 
 Full candidate qualification is still pending: the clean upstream lane, remote
 archive/empty-cache admission, installed composition phases, the three complete
