@@ -64,6 +64,19 @@
     "trace": "strace -f -c -w",
     "scope": "Fresh fixture, provision, restart, calls, and joined cleanup; selected calls only, not the complete Station schedule.",
     "concurrent_workload": "Separate Transit SDK scripting campaign",
-    "conclusion": "Storage latency is a suspected contributor; a matched quiet run and complete clean lane remain pending."
+    "conclusion": "The matched fresh-fixture comparison passed after the competing durable SDK phase ended; lower fsync latency supports contention as the cause of this reproduced deadline exhaustion. Neither traced run replaces complete clean-lane qualification."
+  },
+  "comparison": {
+    "selected_case": "calls",
+    "qualification": false,
+    "exit_code": 0,
+    "started_unix": 1795310994.2516973,
+    "elapsed_seconds": 96.9746584892273,
+    "identical_binaries": true,
+    "identical_assertions_and_timeout": true,
+    "trace": "strace -f -c -w",
+    "fsync_calls": 29019,
+    "fsync_aggregate_wall_seconds": 76.215593,
+    "fsync_mean_microseconds": 2626
   }
 }

@@ -103,7 +103,12 @@ threads (9.08 ms mean), with sustained host I/O pressure. The
 [Station diagnostic summary](results/composition-completion/station-timeout/summary.json)
 retains binary identities, the original clean-lane inventory and syscall/pressure
 samples. This selected, traced run is diagnostic evidence, not qualification or
-a completed causal comparison.
+a complete Station schedule. After the competing durable SDK phase ended, one
+matched fresh-fixture comparison with the same binaries, tracing, assertions and
+deadline passed in 96.97 seconds. It completed 29,019 `fsync` calls at 2.63 ms mean
+wall time (76.22 seconds summed across threads). Together these results support
+storage contention as the cause of this reproduced timeout. The full clean lane
+still requires a passing execution; neither traced diagnostic substitutes for it.
 
 At compiler revision `0fa5e0bde3a9e28bdf54d91245132144af483038`, the exact
 candidate Nix package and all four local x86_64-linux flake checks pass. Explicit
