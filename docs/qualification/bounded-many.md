@@ -75,11 +75,13 @@ together; the old comparison compiler remains frozen. The paired native PR must
 land before dependent compiler admission ships.
 
 The final candidate now targets native
-`bfe936ca7cc036f7eebb4046b517db3dee34e3fd`. Review of persisted records found that
+`ff7386ac665fb23891d36b096ff25dc10bdaac9f`. Review of persisted records found that
 missing accounting and iterator fields could acquire zero defaults inside saved
 candidates. Those fields are now mandatory, with positive round trips and explicit
 missing-field refusal tests. Native program declarations already require canonical
-decoding. The shared compiler archive is byte-identical; the host changes.
+decoding. A further predicate audit found database-observation calls outside the
+MANY request accounting; the bounded profile now refuses these calls, including
+unselected branches. The regenerated shared archive and host move together.
 
 The clean core attempt at `735e0f4a1495ac8b44c5d2f2a073da0ae91baf67` failed on
 a grammar corpus descriptor containing the previous definition. Commit `7ce191a43`

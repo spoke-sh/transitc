@@ -91,7 +91,7 @@ artifact paths even when SQL remains equal. Compare the new proposal in a new
 explicit output directory; do not overwrite or relabel accepted history.
 
 The selected host revision is
-`bfe936ca7cc036f7eebb4046b517db3dee34e3fd`. The process protocol checks the exact
+`ff7386ac665fb23891d36b096ff25dc10bdaac9f`. The process protocol checks the exact
 compiled-case definition, bounded responses and executable identity. A matching
 version label alone does not establish compatibility. If host lookup or definition
 checking fails, select the pinned host with `--runtime`; do not reinterpret an

@@ -17,7 +17,7 @@ budget allocator. No second SQL type system or allocator lives here. Compiler
 The reserved diagnostics/SQL packages were removed because these owners suffice.
 
 Standalone manifests pin the generated pure source archive at
-`bfe936ca7cc036f7eebb4046b517db3dee34e3fd` with its Zig content hash. The compiled-case
+`ff7386ac665fb23891d36b096ff25dc10bdaac9f` with its Zig content hash. The compiled-case
 runtime uses the same Transit revision through the `transit` flake input. The comparison binary remains
 independently frozen at `e7434306334e3692c6f3e123cba0d278fa412196`.
 The archive contains only the five pure packages and a small composition manifest.

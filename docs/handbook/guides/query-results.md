@@ -65,6 +65,10 @@ use `MANY(4)` after checking the expanded work and transaction limits. Otherwise
 restrict the predicate to the intended batch. Raising the cap never silently
 truncates results or raises Transit's other budgets.
 
+Predicates use row fields, scalar expressions and existing bindings. Database
+observation functions such as `CURRENT_REVISION` and `SECRET_CURRENT` are refused
+inside a MANY predicate, including branches that would not execute.
+
 Collection selection and all iterations share the caller's atomic transaction.
 A refusal in a later iteration rolls back earlier outputs and writes. Keep
 reads before the loop: its body admits guards, scalar/ROW helpers, branches and

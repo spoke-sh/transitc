@@ -65,6 +65,8 @@ test "MANY rejects foreign nominal rows, collection escapes and iterator scope c
         .{ "MANY(3)", "MANY(0)", error.InvalidProgramCollection },
         .{ "MANY(3)", "MANY(65)", error.InvalidProgramCollection },
         .{ "ORDER BY id", "ORDER BY note", error.InvalidProgramCollection },
+        .{ "ORDER BY id", "WHERE CURRENT_REVISION(items, request.id) IS NULL ORDER BY id", error.UnsupportedProgramIteration },
+        .{ "ORDER BY id", "WHERE FALSE AND CURRENT_REVISION(items, request.id) IS NULL ORDER BY id", error.UnsupportedProgramIteration },
         .{ "CHECK GUARD valid(item);", "LET other = SELECT id FROM items;", error.UnsupportedProgramIteration },
         .{ "CHECK GUARD valid(item);", "FOR nested IN alias DO REQUIRE TRUE ELSE 'No'; END FOR;", error.UnsupportedProgramIteration },
     }) |entry| {

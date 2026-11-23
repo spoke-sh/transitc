@@ -2,7 +2,7 @@
 
 The surface evidence below was established with Transit
 `f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`. The shared frontend and compiled-case
-host now pin `bfe936ca7cc036f7eebb4046b517db3dee34e3fd`; the
+host now pin `ff7386ac665fb23891d36b096ff25dc10bdaac9f`; the
 [bounded-result record](../../docs/qualification/bounded-many.md) tracks
 qualification of that refreshed pair separately. A logical type appearing in the
 frontend does not admit it everywhere in the source language. The frozen old
