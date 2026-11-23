@@ -57,9 +57,55 @@ validation errors propagate; otherwise its conversion rejects non-value cells
 with `ProgramTypeMismatch`. These states are never silently mapped to NULL or
 row absence. Qualification does not claim a new runtime representation for them.
 
-Bounded many-row results remain an upstream gate: ordinary owned query/consumption
-operations, a program value representation, explicit row/work limits and ordering
-semantics must exist before source admission. `LET rows MANY = ...` is rejected.
+## Bounded collections and iteration
+
+```sql
+BEGIN ATOMIC
+  LET selected MANY(16) = SELECT id, note FROM items
+    WHERE batch = request.batch ORDER BY id;
+  LET batch = selected;
+  FOR item IN batch DO
+    CHECK GUARD Validate(item);
+    PRODUCE INTO processed VALUES (item.id, item.note);
+  END FOR;
+END;
+```
+
+MANY requires a literal bound from 1 through 64 and ascending order by the
+Table's single non-NULL BIGINT primary key. `ASC` is optional. Empty results are
+empty, non-null collections; a row's nullable fields remain nullable. The entire
+matching result must fit the bound. The next matching row causes native
+`ProgramCardinalityMismatch`, without truncation or body execution. Bare MANY
+without a bound, other ordering, joins, aggregates and Documents are unsupported.
+
+The checked descriptor retains the bound, order and exact nominal row fields
+through immutable aliases. The iterator is a present row. Direct, imported,
+nested and callable ROW helpers receive that row with its original domains.
+Collections cannot replace a scalar or ROW argument, become ROW members, take
+part in scalar operators or conditional expressions, or escape their atomic
+scope. Iterators and body locals are scoped to one iteration. A zero-row loop
+establishes no facts after the loop. Every body and specialization arm is checked.
+
+Lowering emits the native collection read and a single FOR body, with hygienic
+local names. It does not unroll the loop or synthesize sample rows. The complete
+read uses the caller's serializable workspace, followed by ordered iteration.
+One loop level is admitted; sequential loops may reuse the frozen collection.
+Reads, effects, suspension, response handoff and nested loops in the body are
+rejected, including operations introduced by helpers. Scalar expressions, guards,
+branches and existing transactional writes/appends retain their ordinary rules.
+
+The native owner validates cells and converts each row before evaluating its
+predicate, checks the matching-row cap before its retained-byte cap, validates
+the read basis, then executes the body in signed-key order. A later body refusal
+rolls back earlier writes and appends in that atomic block. Runtime authority
+checks remain current; a collection or helper is not a grant.
+
+The paired Transit contract owns cumulative MANY request/scan/result budgets,
+continuation/retained bytes and transaction limits. Expanded cursor steps and
+instruction/expression visits must each fit the existing 12,288-work ceiling.
+Changing a row cap cannot bypass the work check. The shared frontend and host
+must agree on the new current definition; old durable continuations are rejected.
+The compiled-case protocol is unchanged.
 
 The fixtures compare zero/one/multiple rows, present NULL, absent OPTIONAL values
 and rollback after a Stream append with independently authored SQL. Unit and

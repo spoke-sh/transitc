@@ -12,7 +12,7 @@ IDENTITY_FIELDS = {'compiler_revision', 'compiler_digest', 'input_digest'}
 # Reviewed upstream cutovers: Transaction.Origin and committed Queue effect
 # admission changed the definition; these source/SQL fixtures retain their meaning.
 BASELINE_DEFINITION = 'f311e893f8d2f4c21f426790172fadfebe7eb2364615eb1566c09f11d39bb0bb'
-CURRENT_DEFINITION = 'ad3bc9aef1bc97a05c8a1ce5ea511a1d5185ebbb00f256eeec1ef287517e83ff'
+CURRENT_DEFINITION = 'dd6352c075f480dabbc2d1349cc79c9a5c85687ecafd33055d6a2d56f28251d0'
 
 
 def invoke(binary, directory, *args, expected=0, command='build'):

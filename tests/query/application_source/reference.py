@@ -42,7 +42,7 @@ def parse(source):
     def span(ctx):
         return {'start': offsets[ctx.start.start], 'end': offsets[ctx.stop.stop + 1]}
 
-    def bounds(node, atomic=False, helper_mode=None):
+    def bounds(node, atomic=False, helper_mode=None, iteration=False):
         if not hasattr(node, 'getRuleIndex'):
             return
         rule = parser.ruleNames[node.getRuleIndex()]
@@ -76,6 +76,17 @@ def parse(source):
                 bounds(child, atomic, 'function')
             raise Refusal(span(node.programInstruction(0))['start'], 'impure source function')
         if rule == 'programInstruction':
+            if node.MANY():
+                if not atomic or iteration:
+                    raise Refusal(span(node)['start'], 'collection outside atomic read scope')
+                if not 1 <= int(node.INTEGER().getText()) <= 64:
+                    raise Refusal(offsets[node.INTEGER().symbol.start], 'collection bound')
+            if node.FOR():
+                if not atomic or iteration:
+                    raise Refusal(span(node)['start'], 'nested or non-atomic iteration')
+                iteration = True
+            if iteration and node.LET() and node.programSelect():
+                raise Refusal(span(node)['start'], 'read inside iteration')
             if node.LET() and node.programExpression() and node.programExpression().start.text.upper() == 'SELECT':
                 following = tokens.tokens[node.programExpression().start.tokenIndex + 1]
                 raise Refusal(offsets[following.start], 'LET SELECT requires a complete read')
@@ -125,7 +136,7 @@ def parse(source):
         if rule == 'sourceStatement' and len(node.matchArm()) > 64:
             raise Refusal(span(node)['start'], 'arm bound')
         for child in node.children or []:
-            bounds(child, atomic, helper_mode)
+            bounds(child, atomic, helper_mode, iteration)
     bounds(root)
 
     def string(token):

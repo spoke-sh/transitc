@@ -991,6 +991,14 @@
         "UnsupportedComparison": {
           "code": "application.source.unsupported",
           "category": "unsupported"
+        },
+        "InvalidProgramCollection": {
+          "code": "application.source.type",
+          "category": "binding"
+        },
+        "UnsupportedProgramIteration": {
+          "code": "application.source.unsupported",
+          "category": "unsupported"
         }
       }
     }

@@ -885,10 +885,11 @@ DATE payload. See the [surface matrix](application-source/SQL_SURFACES_V1.md).
 
 ### Explicit query cardinality
 
-`LET result ONE = SELECT ...;` and `LET result OPTIONAL = SELECT ...;` add checked
+`LET result ONE = SELECT ...;`, `LET result OPTIONAL = SELECT ...;` and bounded
+`LET result MANY(N) = SELECT ... ORDER BY key;` add checked
 row-presence evidence. Their [contract](application-source/CARDINALITY_V1.md)
 defines ordered validation, guarded projection, nullable fields, branch-local
-refinement and the retained native cell-state/many-row boundaries.
+refinement, atomic FOR iteration and the retained native cell-state boundaries.
 
 ## Bounded callable obligations
 

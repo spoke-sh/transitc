@@ -2,8 +2,8 @@
 
 The surface evidence below was established with Transit
 `f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`. The shared frontend and compiled-case
-host now pin `b58715bf4ef4e5236748547ce15e37a602c4b471`; the
-[composition record](../../docs/qualification/composition-completion.md) tracks
+host now pin `73ae483f9073c30b89b3ec90dc67595467a60f44`; the
+[bounded-result record](../../docs/qualification/bounded-many.md) tracks
 qualification of that refreshed pair separately. A logical type appearing in the
 frontend does not admit it everywhere in the source language. The frozen old
 compiler comparison remains at `e7434306334e3692c6f3e123cba0d278fa412196`.

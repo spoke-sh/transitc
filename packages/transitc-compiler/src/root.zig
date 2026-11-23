@@ -20,6 +20,7 @@ test {
     _ = @import("scalar_test.zig");
     _ = @import("lossless_test.zig");
     _ = @import("cardinality_test.zig");
+    _ = @import("many_test.zig");
     _ = @import("refinement_test.zig");
     _ = @import("callable_test.zig");
     _ = @import("symbolic_program_test.zig");

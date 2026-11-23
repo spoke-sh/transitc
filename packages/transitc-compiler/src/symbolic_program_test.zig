@@ -67,6 +67,22 @@ test "unselected symbolic program preserves foreign domains and physical type er
         try std.testing.expectError(case[2], compile(std.testing.allocator, changed));
     }
 }
+test "unselected bounded iteration checks nominal rows without inventing a collection" {
+    const t = std.testing;
+    const original = "INSERT INTO sites VALUES ($value) ON CONFLICT (id) DO ASSERT SAME ROW;";
+    const loop = "LET batch MANY(3) = SELECT id FROM sites ORDER BY id; FOR item IN batch DO INSERT INTO sites VALUES (item.id) ON CONFLICT (id) DO ASSERT SAME ROW; END FOR;";
+    const valid = try std.mem.replaceOwned(u8, t.allocator, source, original, loop);
+    defer t.allocator.free(valid);
+    const product = try compile(t.allocator, valid);
+    defer product.deinit();
+    for (product.steps) |step| {
+        try t.expect(std.mem.indexOf(u8, step.sql, "MANY") == null);
+        try t.expect(std.mem.indexOf(u8, step.sql, "__transit$symbolic") == null);
+    }
+    const wrong = try std.mem.replaceOwned(u8, t.allocator, valid, "INSERT INTO sites VALUES (item.id)", "INSERT INTO machines VALUES (item.id)");
+    defer t.allocator.free(wrong);
+    try t.expectError(error.SourceDomainMismatch, compile(t.allocator, wrong));
+}
 fn allocation(allocator: std.mem.Allocator) !void {
     const product = try compile(allocator, source);
     defer product.deinit();
