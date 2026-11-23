@@ -17,7 +17,7 @@ INSTALLED = (
     ('typed_composition', 'native'), ('typed_composition', 'dynamic'),
     ('cardinality', 'one'), ('cardinality', 'optional'),
     ('refinements',), ('callables',), ('scalar_surfaces',),
-    ('sql_scalars',), ('json_helpers',),
+    ('sql_scalars',), ('json_helpers',), ('bounded_many',),
 )
 OUTER_CASE_SECONDS = 330
 

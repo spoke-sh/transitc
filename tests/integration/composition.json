@@ -62,5 +62,14 @@
     "whole input accepted",
     "whole input guard refusal",
     "other specialization"
+  ],
+  "application-bounded-many": [
+    "empty collection",
+    "one nullable row",
+    "ordered duplicate payloads",
+    "exact bound",
+    "over bound",
+    "late refusal rolls back earlier rows",
+    "first error follows key order"
   ]
 }

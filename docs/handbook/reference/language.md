@@ -40,7 +40,7 @@ explicit premises; they are not an unbounded compiler correctness proof.
 
 The [typed values guide](../guides/typed-values.md) describes exact DATE/NUMERIC values, lossless JSON and signed interval components and the per-surface support matrix.
 
-Use [ONE and OPTIONAL reads](../guides/query-results.md) to distinguish query cardinality from nullable fields.
+Use [ONE, OPTIONAL and bounded MANY reads](../guides/query-results.md) to distinguish query cardinality from nullable fields. MANY supports one level of atomic FOR iteration over rows ordered by a single BIGINT primary key.
 
 Use [helper input and result checks](../guides/refinements.md) for bounded
 `REQUIRES`/`ENSURES` clauses on guards and atomic procedures.

@@ -1,0 +1,7 @@
+CREATE PUBLIC DOMAIN ItemId AS BIGINT IDENTITY 'example.batch-item';
+CREATE PUBLIC FUNCTION identity(entry ROW(id ItemId, note TEXT)) RETURNS ItemId AS BEGIN
+  RETURN entry.id;
+END;
+CREATE PUBLIC GUARD Validate(entry ROW(id ItemId, note TEXT)) AS BEGIN
+  REQUIRE identity(entry) = entry.id ELSE 'InvalidItem';
+END;
