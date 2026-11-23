@@ -121,8 +121,15 @@ each base path also pass. Compiled-case boundary checks pass 11 request refusals
 candidate host. Runnable handbook examples pass; the source-free SQL/restart
 comparison separately uses the frozen old backend.
 
+The [complete build-command schedule](results/composition-completion/candidate-build-command.log)
+also passes with this compiler and candidate host. It executes generated and
+independent ordinary, typed Queue and modular Queue SQL, migration recovery,
+module-instance/delegated targets, six-schema dataflows, retained restart and
+current-rights revocation. This installed schedule does not replace the pending
+isolated test-command or composition schedules.
+
 Full candidate qualification is still pending: the clean upstream lane, remote
 archive/empty-cache admission, installed composition phases, the three complete
 42-case isolated schedules, and the final CI/native-archive matrix. Earlier
-whole-row execution and protocol checks against the preceding candidate do not
+whole-row runtime checks against the preceding candidate do not
 substitute for these final gates. Milestone 5 remains in progress.
