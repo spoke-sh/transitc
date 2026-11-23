@@ -6,7 +6,7 @@ the previous shared-package and compiled-case host pin. The
 merged scalar-analysis API and host qualification at
 `b58715bf4ef4e5236748547ce15e37a602c4b471`. The
 [bounded-result record](../qualification/bounded-many.md) tracks the paired
-implementation now pinned at `ff7386ac665fb23891d36b096ff25dc10bdaac9f`.
+implementation now pinned at `d65f7c656c8e311806132ca894059b43b52051ee`.
 The frozen compiler
 comparison remains `e7434306334e3692c6f3e123cba0d278fa412196`. This document requests
 ordinary runtime contracts; it does not authorize a compiler bypass or a pin

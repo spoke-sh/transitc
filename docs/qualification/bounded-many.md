@@ -22,6 +22,9 @@ The [retained storage/query tasks](results/bounded-many/baseline/baseline-storag
 and [provenance](results/bounded-many/baseline/baseline-storage-query-feedback-storage-query.json)
 come from artifact `14851208892`, SHA-256
 `6303cbd6a5a7aed6ceefd78855eeae1603590f122e2ed13fa0a0f9e59d23211d`.
+The [native merge CI](https://github.com/spoke-sh/transit/actions/runs/45232786514)
+also completed every selected runtime, interface, SDK and core job successfully;
+its documentation-site job was skipped.
 
 The [compiler PR CI](https://github.com/spoke-sh/transitc/actions/runs/45230348359)
 passed all four native archive jobs and handbook/browser checks. Its compiler
@@ -75,7 +78,7 @@ together; the old comparison compiler remains frozen. The paired native PR must
 land before dependent compiler admission ships.
 
 The final candidate now targets native
-`ff7386ac665fb23891d36b096ff25dc10bdaac9f`. Review of persisted records found that
+`d65f7c656c8e311806132ca894059b43b52051ee`. Review of persisted records found that
 missing accounting and iterator fields could acquire zero defaults inside saved
 candidates. Those fields are now mandatory, with positive round trips and explicit
 missing-field refusal tests. Native program declarations already require canonical
@@ -91,6 +94,16 @@ The managed-runtime proof at `735e0f4a1` passes the new loop, selective scan,
 cumulative budget and changed-basis assertions alongside the existing fault and
 cleanup schedule. That pass precedes the mandatory-field corrections; final clean
 qualification remains pending. Interrupted exploratory clean runs are not passes.
+
+All 28 clean core tasks pass at `ff7386ac665fb23891d36b096ff25dc10bdaac9f`,
+including the complete native package check, 49 standalone package builds,
+packaged runtime boundaries, SQL wire contracts, Station recovery, storage,
+authorization and callers. The first clean installation lane passes Board and
+strict handbook checks, then fails on stale generated Node validator digests.
+`d65f7c656` regenerates both SDK digests; the owning Node checks pass. That commit
+changes only those two digest files, so the native runtime/frontend code and the
+completed core result are unchanged. Remaining clean lanes run at the corrected
+revision. The original failed installation attempt remains retained.
 
 Native frontend, Fuze iteration/environment and query-direct application unit
 tests pass, including partial-allocation failures, stale completions, forged
@@ -112,8 +125,9 @@ comparisons and 55 comparison controls. No new Lean theorem is claimed for
 iteration, storage, authority or replay. Unselected-arm nominal checks and
 callable-hidden-read refusals have separate executable unit coverage. The explicit
 Nix source check repeats this complete correspondence schedule at compiler
-`827dcab443d80d932d4458ae13d94b08ec819fbf`; its retained output is
-`/nix/store/n3n1pjpinwhrzgi7dn89mbl6j10gjxmn-transitc-source-verification`.
+`827dcab443d80d932d4458ae13d94b08ec819fbf` and the final predicate correction at
+`c8d680799889767d916ac1ea38987b1acb0bc8d9`. The latter retained output is
+`/nix/store/04a2ankbhqz66yzc6f3b3khd2cakfhsz-transitc-source-verification`.
 
 The earlier immutable Transit package at
 `73ae483f9073c30b89b3ec90dc67595467a60f44` builds successfully. Both its standalone
@@ -121,7 +135,7 @@ Nix build and the compiler dev shell resolve to
 `/nix/store/cprylhnlim5zg9cvvk43mjxcbjzbv4fq-transit-0.0.1/bin/transit`, SHA-256
 `9095fbc7755c8746675acc2045f66ff06438869249f09ad6d5e0d4d78fe26824`.
 That host predates the mandatory-field corrections and is superseded for final
-runtime qualification. The unchanged shared archive has SHA-256 SRI
+runtime qualification. That earlier shared archive has SHA-256 SRI
 `sha256-bahP6fqkRg6/yFhJ5MpfsfDQgUlY1gkze6r6MdOaSnE=` and Zig package hash
 `transit_sql_distribution-0.0.1-t9CQA2cRIwBqqqpd72UY1jZ01USaeMUq_7pGHYqeGlJi`.
 Remote retrieval remains to be verified after the native branch is published.

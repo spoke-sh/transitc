@@ -8,7 +8,7 @@
   sourceRevision ? "development",
   sharedArchive ? fetchurl {
     name = "transit-sql-frontend.tar.gz";
-    url = "https://raw.githubusercontent.com/spoke-sh/transit/ff7386ac665fb23891d36b096ff25dc10bdaac9f/build/artifacts/transit-sql-frontend.tar.gz";
+    url = "https://raw.githubusercontent.com/spoke-sh/transit/d65f7c656c8e311806132ca894059b43b52051ee/build/artifacts/transit-sql-frontend.tar.gz";
     hash = "sha256-HWbBkOjoR+xeIF7XolIajdTJ3jkqsXmWH1pzUAM6NBY=";
   },
 }:
