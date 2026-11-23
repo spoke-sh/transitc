@@ -74,6 +74,22 @@ The compiled-case protocol stays unchanged. Shared frontend and host pins move
 together; the old comparison compiler remains frozen. The paired native PR must
 land before dependent compiler admission ships.
 
+The final candidate now targets native
+`bfe936ca7cc036f7eebb4046b517db3dee34e3fd`. Review of persisted records found that
+missing accounting and iterator fields could acquire zero defaults inside saved
+candidates. Those fields are now mandatory, with positive round trips and explicit
+missing-field refusal tests. Native program declarations already require canonical
+decoding. The shared compiler archive is byte-identical; the host changes.
+
+The clean core attempt at `735e0f4a1495ac8b44c5d2f2a073da0ae91baf67` failed on
+a grammar corpus descriptor containing the previous definition. Commit `7ce191a43`
+refreshes those inputs and the handbook fingerprint, and adds an explicit
+prior-definition refusal case. All 783 public compiler grammar cases then pass.
+The managed-runtime proof at `735e0f4a1` passes the new loop, selective scan,
+cumulative budget and changed-basis assertions alongside the existing fault and
+cleanup schedule. That pass precedes the mandatory-field corrections; final clean
+qualification remains pending. Interrupted exploratory clean runs are not passes.
+
 Native frontend, Fuze iteration/environment and query-direct application unit
 tests pass, including partial-allocation failures, stale completions, forged
 iterator lengths, empty loops, first ordered refusal and cumulative read-budget
@@ -97,12 +113,13 @@ Nix source check repeats this complete correspondence schedule at compiler
 `827dcab443d80d932d4458ae13d94b08ec819fbf`; its retained output is
 `/nix/store/n3n1pjpinwhrzgi7dn89mbl6j10gjxmn-transitc-source-verification`.
 
-The immutable Transit package at
+The earlier immutable Transit package at
 `73ae483f9073c30b89b3ec90dc67595467a60f44` builds successfully. Both its standalone
 Nix build and the compiler dev shell resolve to
 `/nix/store/cprylhnlim5zg9cvvk43mjxcbjzbv4fq-transit-0.0.1/bin/transit`, SHA-256
 `9095fbc7755c8746675acc2045f66ff06438869249f09ad6d5e0d4d78fe26824`.
-The shared archive has SHA-256 SRI
+That host predates the mandatory-field corrections and is superseded for final
+runtime qualification. The unchanged shared archive has SHA-256 SRI
 `sha256-bahP6fqkRg6/yFhJ5MpfsfDQgUlY1gkze6r6MdOaSnE=` and Zig package hash
 `transit_sql_distribution-0.0.1-t9CQA2cRIwBqqqpd72UY1jZ01USaeMUq_7pGHYqeGlJi`.
 Remote retrieval remains to be verified after the native branch is published.

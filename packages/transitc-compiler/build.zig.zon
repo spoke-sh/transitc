@@ -4,7 +4,7 @@
     .fingerprint = 0x9e53fe8f592aa58a,
     .minimum_zig_version = "0.17.0-dev.2267+48abf1a34",
     .dependencies = .{
-        .transit_shared = .{ .url = "https://raw.githubusercontent.com/spoke-sh/transit/73ae483f9073c30b89b3ec90dc67595467a60f44/build/artifacts/transit-sql-frontend.tar.gz", .hash = "transit_sql_distribution-0.0.1-t9CQA2cRIwBqqqpd72UY1jZ01USaeMUq_7pGHYqeGlJi" },
+        .transit_shared = .{ .url = "https://raw.githubusercontent.com/spoke-sh/transit/bfe936ca7cc036f7eebb4046b517db3dee34e3fd/build/artifacts/transit-sql-frontend.tar.gz", .hash = "transit_sql_distribution-0.0.1-t9CQA2cRIwBqqqpd72UY1jZ01USaeMUq_7pGHYqeGlJi" },
     },
     .paths = .{ "build.zig", "build.zig.zon", "src", "README.md" },
 }
