@@ -3,8 +3,11 @@
 These gates were established against Transit `f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`,
 the previous shared-package and compiled-case host pin. The
 [completion record](../qualification/composition-completion.md) tracks the
-merged scalar-analysis API and compatible host qualification at the current
-`b58715bf4ef4e5236748547ce15e37a602c4b471` pin. The frozen compiler
+merged scalar-analysis API and host qualification at
+`b58715bf4ef4e5236748547ce15e37a602c4b471`. The
+[bounded-result record](../qualification/bounded-many.md) tracks the paired
+implementation now pinned at `73ae483f9073c30b89b3ec90dc67595467a60f44`.
+The frozen compiler
 comparison remains `e7434306334e3692c6f3e123cba0d278fa412196`. This document requests
 ordinary runtime contracts; it does not authorize a compiler bypass or a pin
 update without qualification.
@@ -12,7 +15,7 @@ update without qualification.
 | Gate | Observed boundary | Required upstream work and acceptance |
 | --- | --- | --- |
 | Native union programs | UNION Queue DDL succeeds; even a no-op consumer fails `ProgramTypeMismatch`. | Define program union values, tag/payload access, validation, codec and evolution. Execute both arms, reject malformed inputs, retain cell states, and qualify restart/authority. transitc currently uses the separately specified closed STRUCT encoding. |
-| Bounded many | SELECT produces zero/one nullable records and refuses multiple rows with `ProgramCardinalityMismatch`. | Own an ordinary query/consumption operation and value representation with explicit row, byte and work limits. Specify order, snapshot/transaction basis, empty results, excess-row error and first-error order. Prove no implicit unbounded materialization; test exact limits and allocation failures. |
+| Bounded many | The paired native branch implements MANY(1..64), immutable row collections and one atomic FOR level over a Table's single BIGINT primary key. Unannotated SELECT retains its singleton behavior. | Finish native clean qualification and merge the owner before dependent source admission ships. Retain cumulative budgets, first-error order, changed-basis/rights checks, recovery and exact compiler/shared/host identities. General collection returns and nested/read-bearing loops remain outside this profile. |
 | Missing/type-error/conflict program cells | `ApplicationData.fromCell` validates schema/cell state, admits SQL NULL, and refuses otherwise valid non-value cells with `ProgramTypeMismatch`. Earlier validation errors retain precedence. | Define state-preserving program cells and explicit conversions before admitting them in source row/variant values. Test all five states, nested fields, ambiguous/conflicting payloads and unchanged error order. Never convert these states into NULL or an absent row. |
 | DATE/NUMERIC/INTERVAL program values | `ApplicationSchema.requireType` and `ApplicationValue` do not admit these logical representations. | Add ordinary literals, binding, runtime values and codecs together. Preserve Gregorian days, exact decimal coefficient/precision/scale and signed interval months/days/nanoseconds. Test overflow/inexact values, explicit rounding and no implicit timestamp/float/duration conversions. |
 | Views | CREATE VIEW returns `UnsupportedStatement`; materialized views have no admitted source/runtime contract. | Own ordinary DDL, concrete schema/dependencies, stable definition identity, executable queries, current authority and evolution. Ordinary views precede a separate materialization/maintenance contract. Test source-free execution, restart, changed dependencies and revoked rights. |
@@ -23,11 +26,10 @@ The type gate is owned by
 [`ApplicationSchema.zig`](https://github.com/spoke-sh/transit/blob/f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6/packages/zig/transit-sql-frontend/src/ApplicationSchema.zig)
 and the value/SELECT boundary by
 [`ApplicationData.zig`](https://github.com/spoke-sh/transit/blob/f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6/packages/zig/transit-query-direct/src/ApplicationData.zig).
-The requests above still need their own upstream design and implementation. The
-merged completion slice adds scalar analysis APIs; it does not implement these
-runtime extensions. The [bounded many-row plan](05-bounded-many-results.md)
-selects the many-row gate next and specifies its native/compiler ownership,
-proposed bounds, atomic consumption and acceptance evidence. Native UNION is an
+The other requests above still need their own upstream design and implementation.
+The merged completion slice adds scalar analysis APIs; the
+[bounded many-row plan](05-bounded-many-results.md) now has paired implementation
+and a separate qualification record for its local atomic profile. Native UNION is an
 optional alternative to the current closed STRUCT encoding, not an additional
 M5 completion requirement.
 
@@ -78,7 +80,7 @@ compiler implementation after the upstream contracts and pins are qualified.
 
 The [previous slice plan](05-typed-composition-and-sql.md#previous-slice-complete-the-existing-composition-profile)
 retains the composition qualification obligations. The
-[next slice plan](05-bounded-many-results.md) sequences bounded native results,
+[active slice plan](05-bounded-many-results.md) sequences bounded native results,
 dependent source support and complete qualification. The
 [milestone plan](05-typed-composition-and-sql.md) remains open. These handoffs do
 not close milestone 5 or transfer compiler-owned work upstream.

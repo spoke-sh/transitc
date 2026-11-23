@@ -29,10 +29,11 @@ performance work in milestones 5–10.
 The [typed composition qualification](../qualification/typed-composition.md)
 records milestone 5's delivered increments, passing evidence and open gates.
 The [composition completion implementation](05-typed-composition-and-sql.md#previous-slice-complete-the-existing-composition-profile)
-is merged; its final runtime qualification remains open. The next proposed slice
-is [bounded many-row results](05-bounded-many-results.md), with explicit native
-bounds, atomic consumption and compiler typing. That plan also records the
-remaining feature slices required to finish milestone 5.
+is merged. The active [bounded many-row slice](05-bounded-many-results.md) adds
+native bounds, atomic consumption and compiler typing. Its
+[qualification record](../qualification/bounded-many.md) retains the completed
+merged-profile CI and local schedules alongside candidate results and open gates.
+The plan also records the remaining feature slices required to finish milestone 5.
 
 ## Source and ownership
 
@@ -78,9 +79,9 @@ actual independent code/dependencies, not by a planning topic alone.
    [extraction record](../qualification/extraction.md) as the baseline. Keep its
    clean-cache, native archive, compatibility and handbook gates passing as the
    later milestones extend the supported profile.
-2. Review the [next milestone 5 slice](05-bounded-many-results.md): close the
-   merged composition profile's qualification, then implement native bounded
-   many-row results and their compiler support. Keep the remaining 5.2–5.4
+2. Complete qualification of the [bounded many-row slice](05-bounded-many-results.md),
+   including its paired native owner and complete compiler schedules. Keep the
+   remaining state-carrying, query-signature, scalar and view work in 5.2–5.4
    gates explicit. Extend recursive-package/formatter/diagnostic evidence in 6
    independently; 8.1 owns the separate runtime privilege contract.
 3. Extend 7.1 per available runtime kind and measure 7.4 capacity without changing

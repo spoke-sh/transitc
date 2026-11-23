@@ -44,7 +44,8 @@ dispatch remain outside these units; any extension needs a separate contract.
 ## Current implementation progress
 
 The first implementation increments add closed-record runtime MATCH, all-arm
-program specialization, ONE/OPTIONAL query results, bounded whole-row presence
+program specialization, ONE/OPTIONAL and bounded MANY query results, atomic FOR
+iteration, bounded whole-row presence
 refinement, ordered helper pre/postconditions, exact callable/effect signatures,
 DATE/NUMERIC/JSON/INTERVAL source values and native scalar qualification.
 Contracts, independent grammar/type comparisons, failure cases and guides ship
@@ -53,7 +54,8 @@ with each increment. These additions do not close this milestone.
 | Plan unit | Delivered increment | Remaining gate |
 | --- | --- | --- |
 | A/B | Explicit tag/payload encoding, exhaustive runtime MATCH, nominal payload checks, hygienic lowering and all-arm program/control checking; whole-input ROW specialization with a separate bounded scalar environment; compiler and upstream API PRs merged | Complete runtime qualification at the refreshed pin remains open; unit/independent correspondence and four hosted native compiler/archive jobs pass |
-| C | ONE and OPTIONAL SELECT results, ordered ONE assertion, guarded optional projection, preserved nominal fields and nullable cells | Installed ONE/OPTIONAL generated/oracle and restart checks pass; isolated completion, bounded many and state-carrying values remain open |
+| C | ONE and OPTIONAL SELECT results, ordered ONE assertion, guarded optional projection, preserved nominal fields and nullable cells | Installed ONE/OPTIONAL and all 42 existing isolated cases pass in merged-profile CI; failed local schedules remain recorded; state-carrying values remain open |
+| C1 | Bounded MANY(1..64) Table collections, explicit ascending BIGINT-key order, immutable aliases and present ROW iterators inside one atomic transaction; paired native implementation and compiler typing/lowering | Native unit and handwritten installed checks pass; generated/oracle comparison, two instances, rollback/restart and independent typed/grammar checks pass. Clean native lanes and the complete final pinned compiler schedule remain in progress |
 | D | Direct immutable row-presence facts plus ordered non-nullness, same-type equality and constant BIGINT bounds in explicit REQUIRES/ENSURES contracts; installed refusal/rollback journey passes | Isolated runtime qualification; general implication solving and resource-derived facts remain outside the bounded profile |
 | E | Exact FUNCTION/GUARD/PROCEDURE OF module arguments and resource effects; nested inlining, explicit instances, installed oracle/rollback/restart/current-rights denial pass | Isolated runtime qualification; callable row/many returns and implicit signature subtyping remain unsupported |
 | F | DATE/NUMERIC/JSON/INTERVAL source values, exact Table cells, DECIMAL_ADD/DECIMAL_RESCALE and NULL/error checks; JSON runtime helper transport/extraction; creation/add-column descriptors | Native program-value, symbolic prepared-parameter, relational-profile and view gates; JSON helper installed and isolated checks pass |
@@ -64,12 +66,13 @@ separately listed compiler work. The support matrix in
 literal/codec qualification from query operators and program values. Runtime
 reports that hit a deadline remain failures, even when compile-time checks pass.
 
-## Next implementation plan
+## Active implementation slice
 
-The [bounded many-row results plan](05-bounded-many-results.md) proposes the next
-feature slice: an owned native collection and bounded atomic consumption, followed
-by source cardinality/nominal checking, independent SQL comparisons and guides.
-It starts by closing the merged profile's remaining qualification gates. It also
+The [bounded many-row results plan](05-bounded-many-results.md) is implemented on
+the paired review branches; its [qualification record](../qualification/bounded-many.md)
+separates the merged baseline, candidate results and outstanding gates. This
+includes an owned native collection and bounded atomic consumption, source
+cardinality/nominal checking, independent SQL comparisons and guides. The plan also
 records the [remaining path to completion](05-bounded-many-results.md#distance-to-milestone-completion):
 state-carrying values, query-result contracts, scalar program/prepared/relational
 surfaces, ordinary views and integrated qualification. M5 remains In Progress.
