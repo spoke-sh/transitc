@@ -1,0 +1,1585 @@
+{
+  "provenance": {
+    "revision": "b914de44bb596e6df4940120e4c583a8bf9ba101",
+    "dirty": false,
+    "toolchain": {
+      "flake_lock_sha256": "bc6c69c513a3a3d6d9ddcc2d18712ca35e1400a8009b2e7c6dea81d6790e1ec4",
+      "python_version": "3.13.15 (main, Aug  5 2026, 12:25:43) [GCC 15.3.0]",
+      "executables": {
+        "python": "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3.13",
+        "nix": "/nix/store/g1bq7lardr5fpbx6g36crbs9amf7pda5-nix-3.8.5/bin/nix",
+        "zig": "/nix/store/j680yxrjdkr14imvrjb2b8lcara50rm3-transit-zig",
+        "just": "/nix/store/lccvn99vpz9xz6c9faamsqas3kb2r78h-just-1.51.0/bin/just"
+      }
+    }
+  },
+  "complete": true,
+  "ok": false,
+  "compiler_sha256": "3ce8183c0883884ed590937f9961aa957e7e93e0b4ecf4ffa2b29a988c4ee2fd",
+  "runtime_sha256": "73bf349295b4d87ddfc7720865aa2d2a4881bdf4f6ab9f6e6d1929630c0efaed",
+  "expected_phases": [
+    "installed-typed_composition-native",
+    "installed-typed_composition-dynamic",
+    "installed-cardinality-one",
+    "installed-cardinality-optional",
+    "installed-refinements",
+    "installed-callables",
+    "installed-scalar_surfaces",
+    "installed-sql_scalars",
+    "installed-json_helpers",
+    "isolated-1-application-typed-queue",
+    "isolated-1-application-variant-encoding",
+    "isolated-1-application-dynamic-dispatch",
+    "isolated-1-application-cardinality",
+    "isolated-1-application-refinements",
+    "isolated-1-application-callables",
+    "isolated-1-application-date",
+    "isolated-1-application-sql-scalars",
+    "isolated-1-application-numeric-operators",
+    "isolated-1-application-json-helpers",
+    "isolated-1-application-whole-row",
+    "isolated-2-application-typed-queue",
+    "isolated-2-application-variant-encoding",
+    "isolated-2-application-dynamic-dispatch",
+    "isolated-2-application-cardinality",
+    "isolated-2-application-refinements",
+    "isolated-2-application-callables",
+    "isolated-2-application-date",
+    "isolated-2-application-sql-scalars",
+    "isolated-2-application-numeric-operators",
+    "isolated-2-application-json-helpers",
+    "isolated-2-application-whole-row",
+    "isolated-3-application-typed-queue",
+    "isolated-3-application-variant-encoding",
+    "isolated-3-application-dynamic-dispatch",
+    "isolated-3-application-cardinality",
+    "isolated-3-application-refinements",
+    "isolated-3-application-callables",
+    "isolated-3-application-date",
+    "isolated-3-application-sql-scalars",
+    "isolated-3-application-numeric-operators",
+    "isolated-3-application-json-helpers",
+    "isolated-3-application-whole-row"
+  ],
+  "phases": [
+    {
+      "name": "installed-typed_composition-native",
+      "complete": true,
+      "ok": true,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/runner/launch.py",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/integration/typed_composition.py",
+        "/nix/store/qlqix1r9my63dnkjric80v0bq8jva0k8-transitc-0.0.0-dev/bin/transitc",
+        "native"
+      ],
+      "log": "installed-typed_composition-native.log",
+      "completed": true,
+      "exit_code": 0,
+      "pid": 3193616,
+      "diagnostics": {
+        "bytes": 239,
+        "retained_bytes": 239,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-typed_composition-native.log",
+          "bytes": 239,
+          "sha256": "47f434e649799e26354cb662a502b6c6064967269b248304b25aa76779d61f3b"
+        }
+      },
+      "elapsed_seconds": 53.612
+    },
+    {
+      "name": "installed-typed_composition-dynamic",
+      "complete": true,
+      "ok": false,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/runner/launch.py",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/integration/typed_composition.py",
+        "/nix/store/qlqix1r9my63dnkjric80v0bq8jva0k8-transitc-0.0.0-dev/bin/transitc",
+        "dynamic"
+      ],
+      "log": "installed-typed_composition-dynamic.log",
+      "completed": true,
+      "exit_code": 1,
+      "pid": 3200177,
+      "diagnostics": {
+        "bytes": 1527,
+        "retained_bytes": 1527,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-typed_composition-dynamic.log",
+          "bytes": 1527,
+          "sha256": "eb5a0eada457e8acd46901c4503bf66ac9625b609b540b8e923111f2c012cf21"
+        }
+      },
+      "error": "AssertionError: installed phase exited 1",
+      "elapsed_seconds": 0.115
+    },
+    {
+      "name": "installed-cardinality-one",
+      "complete": true,
+      "ok": true,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/runner/launch.py",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/integration/cardinality.py",
+        "/nix/store/qlqix1r9my63dnkjric80v0bq8jva0k8-transitc-0.0.0-dev/bin/transitc",
+        "one"
+      ],
+      "log": "installed-cardinality-one.log",
+      "completed": true,
+      "exit_code": 0,
+      "pid": 3200200,
+      "diagnostics": {
+        "bytes": 226,
+        "retained_bytes": 226,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-cardinality-one.log",
+          "bytes": 226,
+          "sha256": "2aa66df522e552088c192b209194a7e1b126d1159110f3b13529230dd504af14"
+        }
+      },
+      "elapsed_seconds": 111.695
+    },
+    {
+      "name": "installed-cardinality-optional",
+      "complete": true,
+      "ok": true,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/runner/launch.py",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/integration/cardinality.py",
+        "/nix/store/qlqix1r9my63dnkjric80v0bq8jva0k8-transitc-0.0.0-dev/bin/transitc",
+        "optional"
+      ],
+      "log": "installed-cardinality-optional.log",
+      "completed": true,
+      "exit_code": 0,
+      "pid": 3209387,
+      "diagnostics": {
+        "bytes": 226,
+        "retained_bytes": 226,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-cardinality-optional.log",
+          "bytes": 226,
+          "sha256": "2267bfd0ff13fdfd036d2a83952c63ec09face033063d05ef530ffe6b0d3919a"
+        }
+      },
+      "elapsed_seconds": 122.031
+    },
+    {
+      "name": "installed-refinements",
+      "complete": true,
+      "ok": true,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/runner/launch.py",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/integration/refinements.py",
+        "/nix/store/qlqix1r9my63dnkjric80v0bq8jva0k8-transitc-0.0.0-dev/bin/transitc"
+      ],
+      "log": "installed-refinements.log",
+      "completed": true,
+      "exit_code": 0,
+      "pid": 3216206,
+      "diagnostics": {
+        "bytes": 219,
+        "retained_bytes": 219,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-refinements.log",
+          "bytes": 219,
+          "sha256": "d7a196f9e26d4d1359b73b8e1e90e6f01109c2803aa8423e55c390c3fa5cb227"
+        }
+      },
+      "elapsed_seconds": 154.009
+    },
+    {
+      "name": "installed-callables",
+      "complete": true,
+      "ok": true,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/runner/launch.py",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/integration/callables.py",
+        "/nix/store/qlqix1r9my63dnkjric80v0bq8jva0k8-transitc-0.0.0-dev/bin/transitc"
+      ],
+      "log": "installed-callables.log",
+      "completed": true,
+      "exit_code": 0,
+      "pid": 3225167,
+      "diagnostics": {
+        "bytes": 390,
+        "retained_bytes": 390,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-callables.log",
+          "bytes": 390,
+          "sha256": "76b7e748e80d1368f6bde0101671dcfad574aa53c72a78ce8fe1c04968dd3335"
+        }
+      },
+      "elapsed_seconds": 222.494
+    },
+    {
+      "name": "installed-scalar_surfaces",
+      "complete": true,
+      "ok": true,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/runner/launch.py",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/integration/scalar_surfaces.py",
+        "/nix/store/qlqix1r9my63dnkjric80v0bq8jva0k8-transitc-0.0.0-dev/bin/transitc"
+      ],
+      "log": "installed-scalar_surfaces.log",
+      "completed": true,
+      "exit_code": 0,
+      "pid": 3237394,
+      "diagnostics": {
+        "bytes": 245,
+        "retained_bytes": 245,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-scalar_surfaces.log",
+          "bytes": 245,
+          "sha256": "516c40cfd15d9b66805a4eef1e12723c7228793bbe6323dcbcc84c58716b3a26"
+        }
+      },
+      "elapsed_seconds": 9.255
+    },
+    {
+      "name": "installed-sql_scalars",
+      "complete": true,
+      "ok": true,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/runner/launch.py",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/integration/sql_scalars.py",
+        "/nix/store/qlqix1r9my63dnkjric80v0bq8jva0k8-transitc-0.0.0-dev/bin/transitc"
+      ],
+      "log": "installed-sql_scalars.log",
+      "completed": true,
+      "exit_code": 0,
+      "pid": 3238364,
+      "diagnostics": {
+        "bytes": 215,
+        "retained_bytes": 215,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-sql_scalars.log",
+          "bytes": 215,
+          "sha256": "2129d2a711e3951ea7b606a5e063bb12ee145adde79fabd33a31cfdf3f0c361d"
+        }
+      },
+      "elapsed_seconds": 10.847
+    },
+    {
+      "name": "installed-json_helpers",
+      "complete": true,
+      "ok": true,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/runner/launch.py",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/integration/json_helpers.py",
+        "/nix/store/qlqix1r9my63dnkjric80v0bq8jva0k8-transitc-0.0.0-dev/bin/transitc"
+      ],
+      "log": "installed-json_helpers.log",
+      "completed": true,
+      "exit_code": 0,
+      "pid": 3239409,
+      "diagnostics": {
+        "bytes": 375,
+        "retained_bytes": 375,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-json_helpers.log",
+          "bytes": 375,
+          "sha256": "b80127aa4eadc9ca9d127719e1e7071ccde535a564f00814b184de467b43335c"
+        }
+      },
+      "elapsed_seconds": 179.571
+    },
+    {
+      "name": "isolated-1-application-typed-queue",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-typed-queue.json",
+        "bytes": 5082,
+        "sha256": "670745523d1db4ac846664d14eeacc88ebd903fc9e8ea8d2b04640e4ba75c79a"
+      },
+      "stderr": {
+        "path": "isolated-1-application-typed-queue.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "typed lookup success",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "absent lookup refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "multiple-row lookup refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "post-insert atomic refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "independent named pipeline",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 57.085
+    },
+    {
+      "name": "isolated-1-application-variant-encoding",
+      "complete": true,
+      "ok": false,
+      "exit_code": 1,
+      "report": {
+        "path": "isolated-1-application-variant-encoding.json",
+        "bytes": 5500,
+        "sha256": "c0f37fe069292a96b28b8d6e94ad7eae8646dcd20b6841450098c233ea973d41"
+      },
+      "stderr": {
+        "path": "isolated-1-application-variant-encoding.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "machine dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "site dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "invalid tag",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "missing active payload",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "populated inactive payload",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "missing selected resource",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "rollback after write",
+          "status": "not_run",
+          "error_code": null
+        }
+      ],
+      "error": "AssertionError: isolated suite failed",
+      "elapsed_seconds": 68.352
+    },
+    {
+      "name": "isolated-1-application-dynamic-dispatch",
+      "complete": true,
+      "ok": false,
+      "exit_code": 1,
+      "report": {
+        "path": "isolated-1-application-dynamic-dispatch.json",
+        "bytes": 5406,
+        "sha256": "9864bec428b3f86f51239e3ffb8531e0fbb001e060eeb0e2ac73dbb5c4cdb415"
+      },
+      "stderr": {
+        "path": "isolated-1-application-dynamic-dispatch.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "machine dispatch",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "site dispatch",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "invalid tag",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "missing active payload",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "populated inactive payload",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "missing selected resource",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "rollback after write",
+          "status": "not_run",
+          "error_code": null
+        }
+      ],
+      "error": "AssertionError: isolated suite failed",
+      "elapsed_seconds": 30.42
+    },
+    {
+      "name": "isolated-1-application-cardinality",
+      "complete": true,
+      "ok": false,
+      "exit_code": 1,
+      "report": {
+        "path": "isolated-1-application-cardinality.json",
+        "bytes": 6862,
+        "sha256": "9201e570aadcb49309016ed7d973b83b94c558cc99e759a98ef15a737d52967d"
+      },
+      "stderr": {
+        "path": "isolated-1-application-cardinality.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "one present NULL",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one absent",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one multiple",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one rollback",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional present NULL",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional absent",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional multiple",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional rollback",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        }
+      ],
+      "error": "AssertionError: isolated suite failed",
+      "elapsed_seconds": 132.872
+    },
+    {
+      "name": "isolated-1-application-refinements",
+      "complete": true,
+      "ok": false,
+      "exit_code": 1,
+      "report": {
+        "path": "isolated-1-application-refinements.json",
+        "bytes": 4020,
+        "sha256": "dbcbdebf72e96cffdac42344aac5bc1828a9f32dd45d410c0e96ff32e999b3c4"
+      },
+      "stderr": {
+        "path": "isolated-1-application-refinements.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "bounds accepted",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "missing amount",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "lower bound",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "upper bound",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "postcondition rollback",
+          "status": "not_run",
+          "error_code": null
+        }
+      ],
+      "error": "AssertionError: isolated suite failed",
+      "elapsed_seconds": 30.373
+    },
+    {
+      "name": "isolated-1-application-callables",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-callables.json",
+        "bytes": 2753,
+        "sha256": "b72ad5a987f292a8f57118b91b4af154e2ee5785d55691a38a6bd3f8e31e0e61"
+      },
+      "stderr": {
+        "path": "isolated-1-application-callables.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "imported callable",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "returning callable rollback",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 18.604
+    },
+    {
+      "name": "isolated-1-application-date",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-date.json",
+        "bytes": 1801,
+        "sha256": "107d07542e2531cb739d0eea40742fde9218fb80e3691597891c76ce379cb324"
+      },
+      "stderr": {
+        "path": "isolated-1-application-date.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "date values retain exact days and NULL",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 1.919
+    },
+    {
+      "name": "isolated-1-application-sql-scalars",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-sql-scalars.json",
+        "bytes": 1806,
+        "sha256": "83356b84051992a51c714991029d1baf82e46f172b497225cd81cbc277a32d35"
+      },
+      "stderr": {
+        "path": "isolated-1-application-sql-scalars.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact decimal JSON and interval components",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 1.568
+    },
+    {
+      "name": "isolated-1-application-numeric-operators",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-numeric-operators.json",
+        "bytes": 1779,
+        "sha256": "720eff22e137caa8a2bd10c0c44a766ab1025e40c8582fd511b0a517e29ce7d1"
+      },
+      "stderr": {
+        "path": "isolated-1-application-numeric-operators.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact operations",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 1.618
+    },
+    {
+      "name": "isolated-1-application-json-helpers",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-json-helpers.json",
+        "bytes": 2514,
+        "sha256": "7d02ca737922252c9500d590ce066c638d11263062f50ab0f7c767690c606c3a"
+      },
+      "stderr": {
+        "path": "isolated-1-application-json-helpers.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact JSON extraction",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "JSON null is a value",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 20.258
+    },
+    {
+      "name": "isolated-1-application-whole-row",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-whole-row.json",
+        "bytes": 3365,
+        "sha256": "059a312f172cf8f9307db07df23e0f494a4bcf72a1e5ea67f0d716047cc5ec2b"
+      },
+      "stderr": {
+        "path": "isolated-1-application-whole-row.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "whole input accepted",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "whole input guard refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "other specialization",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 31.832
+    },
+    {
+      "name": "isolated-2-application-typed-queue",
+      "complete": true,
+      "ok": false,
+      "exit_code": 1,
+      "report": {
+        "path": "isolated-2-application-typed-queue.json",
+        "bytes": 4928,
+        "sha256": "0d32e6234246bfe8baad86ddc7f8ed0ca37100d533c6e61232a06d2574da1271"
+      },
+      "stderr": {
+        "path": "isolated-2-application-typed-queue.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "typed lookup success",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "absent lookup refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "multiple-row lookup refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "post-insert atomic refusal",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "independent named pipeline",
+          "status": "not_run",
+          "error_code": null
+        }
+      ],
+      "error": "AssertionError: isolated suite failed",
+      "elapsed_seconds": 79.621
+    },
+    {
+      "name": "isolated-2-application-variant-encoding",
+      "complete": true,
+      "ok": false,
+      "exit_code": 1,
+      "report": {
+        "path": "isolated-2-application-variant-encoding.json",
+        "bytes": 5167,
+        "sha256": "c1e14cf5b176c47a0fdf293e2fab05a9fbdc9d0922a452926fbf5560333df685"
+      },
+      "stderr": {
+        "path": "isolated-2-application-variant-encoding.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "machine dispatch",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "site dispatch",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "invalid tag",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "missing active payload",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "populated inactive payload",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "missing selected resource",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "rollback after write",
+          "status": "not_run",
+          "error_code": null
+        }
+      ],
+      "error": "AssertionError: isolated suite failed",
+      "elapsed_seconds": 30.367
+    },
+    {
+      "name": "isolated-2-application-dynamic-dispatch",
+      "complete": true,
+      "ok": false,
+      "exit_code": 1,
+      "report": {
+        "path": "isolated-2-application-dynamic-dispatch.json",
+        "bytes": 5406,
+        "sha256": "1fd9c6e4e0cf6baaa41038f9b06bbbbb32ea1b82d09ec6dfc95bac647b24ae8d"
+      },
+      "stderr": {
+        "path": "isolated-2-application-dynamic-dispatch.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "machine dispatch",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "site dispatch",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "invalid tag",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "missing active payload",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "populated inactive payload",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "missing selected resource",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "rollback after write",
+          "status": "not_run",
+          "error_code": null
+        }
+      ],
+      "error": "AssertionError: isolated suite failed",
+      "elapsed_seconds": 30.425
+    },
+    {
+      "name": "isolated-2-application-cardinality",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-cardinality.json",
+        "bytes": 6849,
+        "sha256": "717970d33350bd09499030c7a5ca6a2237c26ce035bf04506e925396f65e3a55"
+      },
+      "stderr": {
+        "path": "isolated-2-application-cardinality.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "one present NULL",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one absent",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one multiple",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one rollback",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional present NULL",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional absent",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional multiple",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional rollback",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 84.279
+    },
+    {
+      "name": "isolated-2-application-refinements",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-refinements.json",
+        "bytes": 4668,
+        "sha256": "7f224589655c4daf17c3c2567f4492e43e6aac4714523dd7379fc91552012ab0"
+      },
+      "stderr": {
+        "path": "isolated-2-application-refinements.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "bounds accepted",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing amount",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "lower bound",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "upper bound",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "postcondition rollback",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 95.403
+    },
+    {
+      "name": "isolated-2-application-callables",
+      "complete": true,
+      "ok": false,
+      "exit_code": 1,
+      "report": {
+        "path": "isolated-2-application-callables.json",
+        "bytes": 2600,
+        "sha256": "0e60e04d09d991c40ea5251975d5c335f0e6cdc30b3cf84470ee1558a1552a85"
+      },
+      "stderr": {
+        "path": "isolated-2-application-callables.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "imported callable",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "returning callable rollback",
+          "status": "not_run",
+          "error_code": null
+        }
+      ],
+      "error": "AssertionError: isolated suite failed",
+      "elapsed_seconds": 30.368
+    },
+    {
+      "name": "isolated-2-application-date",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-date.json",
+        "bytes": 1801,
+        "sha256": "e12b4d81440b09846a3883387db198662e53b0aff3b7d65cf47afe5454efe98e"
+      },
+      "stderr": {
+        "path": "isolated-2-application-date.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "date values retain exact days and NULL",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 6.175
+    },
+    {
+      "name": "isolated-2-application-sql-scalars",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-sql-scalars.json",
+        "bytes": 1806,
+        "sha256": "01c72888263524ffcd6c58a5dc8a9b2387c4e8e50d2ed3dff950831e05a06ae8"
+      },
+      "stderr": {
+        "path": "isolated-2-application-sql-scalars.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact decimal JSON and interval components",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 5.424
+    },
+    {
+      "name": "isolated-2-application-numeric-operators",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-numeric-operators.json",
+        "bytes": 1779,
+        "sha256": "45dac83cd066bf5605f5b21ee5a8d43bed548a8c89d9a97ce7e9949a976f0e8f"
+      },
+      "stderr": {
+        "path": "isolated-2-application-numeric-operators.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact operations",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 2.369
+    },
+    {
+      "name": "isolated-2-application-json-helpers",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-json-helpers.json",
+        "bytes": 2514,
+        "sha256": "45b9efab26556a57a4ab3ba3a05de8008704fab5d85048990dcc62c9896e310a"
+      },
+      "stderr": {
+        "path": "isolated-2-application-json-helpers.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact JSON extraction",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "JSON null is a value",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 18.345
+    },
+    {
+      "name": "isolated-2-application-whole-row",
+      "complete": true,
+      "ok": false,
+      "exit_code": 1,
+      "report": {
+        "path": "isolated-2-application-whole-row.json",
+        "bytes": 3376,
+        "sha256": "0b9c051ea5bb27cfe04f6f80ef1bc2c94257da91ac0e2919774829dc9a113228"
+      },
+      "stderr": {
+        "path": "isolated-2-application-whole-row.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "whole input accepted",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "whole input guard refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "other specialization",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        }
+      ],
+      "error": "AssertionError: isolated suite failed",
+      "elapsed_seconds": 66.32
+    },
+    {
+      "name": "isolated-3-application-typed-queue",
+      "complete": true,
+      "ok": false,
+      "exit_code": 1,
+      "report": {
+        "path": "isolated-3-application-typed-queue.json",
+        "bytes": 4429,
+        "sha256": "4fcd6cc383f91543c7fd1b2f82cd4adc145ad28660edd3c69a076647c2ce40c5"
+      },
+      "stderr": {
+        "path": "isolated-3-application-typed-queue.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "typed lookup success",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "absent lookup refusal",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "multiple-row lookup refusal",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "post-insert atomic refusal",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "independent named pipeline",
+          "status": "not_run",
+          "error_code": null
+        }
+      ],
+      "error": "AssertionError: isolated suite failed",
+      "elapsed_seconds": 30.364
+    },
+    {
+      "name": "isolated-3-application-variant-encoding",
+      "complete": true,
+      "ok": false,
+      "exit_code": 1,
+      "report": {
+        "path": "isolated-3-application-variant-encoding.json",
+        "bytes": 6165,
+        "sha256": "bdda25841f4f39d09a632d8fc712e38137309c1d8f1276d3ff96aae51d767def"
+      },
+      "stderr": {
+        "path": "isolated-3-application-variant-encoding.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "machine dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "site dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "invalid tag",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing active payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "populated inactive payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing selected resource",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "rollback after write",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        }
+      ],
+      "error": "AssertionError: isolated suite failed",
+      "elapsed_seconds": 118.316
+    },
+    {
+      "name": "isolated-3-application-dynamic-dispatch",
+      "complete": true,
+      "ok": false,
+      "exit_code": 1,
+      "report": {
+        "path": "isolated-3-application-dynamic-dispatch.json",
+        "bytes": 5406,
+        "sha256": "8e202245889ba7d919ef12d00bc44abe0f0cc2b039bc9271f7e777a533d26876"
+      },
+      "stderr": {
+        "path": "isolated-3-application-dynamic-dispatch.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "machine dispatch",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "site dispatch",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "invalid tag",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "missing active payload",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "populated inactive payload",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "missing selected resource",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "rollback after write",
+          "status": "not_run",
+          "error_code": null
+        }
+      ],
+      "error": "AssertionError: isolated suite failed",
+      "elapsed_seconds": 30.363
+    },
+    {
+      "name": "isolated-3-application-cardinality",
+      "complete": true,
+      "ok": false,
+      "exit_code": 1,
+      "report": {
+        "path": "isolated-3-application-cardinality.json",
+        "bytes": 5696,
+        "sha256": "38796eb7aab014808ab5c1a4bc02654b6212b5738d8ddf15a3b7817022efb66a"
+      },
+      "stderr": {
+        "path": "isolated-3-application-cardinality.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "one present NULL",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "one absent",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "one multiple",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "one rollback",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "optional present NULL",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "optional absent",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "optional multiple",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "optional rollback",
+          "status": "not_run",
+          "error_code": null
+        }
+      ],
+      "error": "AssertionError: isolated suite failed",
+      "elapsed_seconds": 30.365
+    },
+    {
+      "name": "isolated-3-application-refinements",
+      "complete": true,
+      "ok": false,
+      "exit_code": 1,
+      "report": {
+        "path": "isolated-3-application-refinements.json",
+        "bytes": 4020,
+        "sha256": "c872120b594222e770247e36f63915a031a3e4944bf671061b1e5b6e96a1c010"
+      },
+      "stderr": {
+        "path": "isolated-3-application-refinements.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "bounds accepted",
+          "status": "failed",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "missing amount",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "lower bound",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "upper bound",
+          "status": "not_run",
+          "error_code": null
+        },
+        {
+          "name": "postcondition rollback",
+          "status": "not_run",
+          "error_code": null
+        }
+      ],
+      "error": "AssertionError: isolated suite failed",
+      "elapsed_seconds": 30.366
+    },
+    {
+      "name": "isolated-3-application-callables",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-callables.json",
+        "bytes": 2753,
+        "sha256": "af0016856ccb2f44f35baed2f659fa3a8999f494293160aa2e1e9ab66178f227"
+      },
+      "stderr": {
+        "path": "isolated-3-application-callables.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "imported callable",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "returning callable rollback",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 28.213
+    },
+    {
+      "name": "isolated-3-application-date",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-date.json",
+        "bytes": 1801,
+        "sha256": "d4b69f7fb80b9461c1b0b63c80287d2406f8fd29d3416bc1c5531fa1767dd641"
+      },
+      "stderr": {
+        "path": "isolated-3-application-date.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "date values retain exact days and NULL",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 1.818
+    },
+    {
+      "name": "isolated-3-application-sql-scalars",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-sql-scalars.json",
+        "bytes": 1806,
+        "sha256": "70072eb05f91c214d8b699429f9e00ba47a747cd7edd10b1e5602972e6e58134"
+      },
+      "stderr": {
+        "path": "isolated-3-application-sql-scalars.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact decimal JSON and interval components",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 1.567
+    },
+    {
+      "name": "isolated-3-application-numeric-operators",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-numeric-operators.json",
+        "bytes": 1779,
+        "sha256": "6f9171d30647dc466ce3260d0f4276b28760827c787f992faa88a7bac500d941"
+      },
+      "stderr": {
+        "path": "isolated-3-application-numeric-operators.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact operations",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 1.567
+    },
+    {
+      "name": "isolated-3-application-json-helpers",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-json-helpers.json",
+        "bytes": 2514,
+        "sha256": "182a5a63cf63671f6655af22511acae90916fa41395e029b059377a22c94a025"
+      },
+      "stderr": {
+        "path": "isolated-3-application-json-helpers.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact JSON extraction",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "JSON null is a value",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 17.694
+    },
+    {
+      "name": "isolated-3-application-whole-row",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-whole-row.json",
+        "bytes": 3365,
+        "sha256": "f786da72d12c1b93734a4e148086eff79d79957d99ed783f3c8fc35a9a9f4072"
+      },
+      "stderr": {
+        "path": "isolated-3-application-whole-row.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "whole input accepted",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "whole input guard refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "other specialization",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 29.766
+    }
+  ]
+}

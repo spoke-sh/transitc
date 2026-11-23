@@ -1,6 +1,10 @@
 # Milestone 5 next slice: bounded many-row results
 
-Status: Planned
+Status: Implementation in progress
+
+The [qualification record](../qualification/bounded-many.md) retains the completed
+baseline schedules and records candidate gates separately. The approved plan
+below remains the acceptance inventory.
 
 Implementation plan for review, 2026-11-23. This slice advances
 [5.2](05-typed-composition-and-sql.md#delivery-units); milestone 5 remains

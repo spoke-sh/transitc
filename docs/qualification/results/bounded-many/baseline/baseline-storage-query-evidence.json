@@ -1,0 +1,314 @@
+{
+  "version": 1,
+  "lane": "storage-query",
+  "revision": "b67ebfe7c3e98cb893c79c4cd43364c4486942ac",
+  "dirty": false,
+  "toolchain": {
+    "flake_lock_sha256": "f2a54112f10ddbb20633fdb012197aa091ba647992c4ce58adfea351595fe6e3",
+    "python_version": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "executables": {
+      "python": "/usr/bin/python3.12",
+      "nix": "/nix/store/irfrbndi76zhkvqsfhmsn4a99iafck29-nix-2.35.2/bin/nix",
+      "zig": null,
+      "just": null
+    }
+  },
+  "run_id": "45229910032",
+  "run_attempt": "1",
+  "inventory": {
+    "sha256": "d60b883a8466ee35c49265fee88d7e3613aabf2e20661e7a4c28970f78dfbd48",
+    "ordinary_tasks": 152,
+    "ordinary_lanes": 13,
+    "browser_tasks": 9
+  },
+  "completed": true,
+  "phase_evidence_complete": false,
+  "task_seconds": 4009.6,
+  "tasks": [
+    {
+      "task": "test::application-runner",
+      "seconds": 11.46,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795455782.7649677,
+      "finished_unix": 1795455794.2221167
+    },
+    {
+      "task": "test::arrow",
+      "seconds": 9.86,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795455794.2231386,
+      "finished_unix": 1795455804.07907
+    },
+    {
+      "task": "test::fuze-types",
+      "seconds": 142.84,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795455804.0799468,
+      "finished_unix": 1795455946.9178278
+    },
+    {
+      "task": "test::spatial",
+      "seconds": 20.89,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795455946.9188902,
+      "finished_unix": 1795455967.8094606
+    },
+    {
+      "task": "test::fuze-sources",
+      "seconds": 0.1,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795455967.810368,
+      "finished_unix": 1795455967.9055042
+    },
+    {
+      "task": "test::file-query",
+      "seconds": 41.79,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795455967.906448,
+      "finished_unix": 1795456009.6951177
+    },
+    {
+      "task": "test::logical-arrow",
+      "seconds": 11.68,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795456009.6960714,
+      "finished_unix": 1795456021.3743718
+    },
+    {
+      "task": "test::logical-codec",
+      "seconds": 14.12,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795456021.3753784,
+      "finished_unix": 1795456035.492158
+    },
+    {
+      "task": "test::growing",
+      "seconds": 21.36,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795456035.4931953,
+      "finished_unix": 1795456056.8560593
+    },
+    {
+      "task": "test::growing-service",
+      "seconds": 531.16,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795456056.857189,
+      "finished_unix": 1795456588.0216048
+    },
+    {
+      "task": "test::local-owner-recovery",
+      "seconds": 371.11,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795456588.0226655,
+      "finished_unix": 1795456959.1279678
+    },
+    {
+      "task": "test::local-payload-service",
+      "seconds": 1.33,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795456959.1290526,
+      "finished_unix": 1795456960.4564848
+    },
+    {
+      "task": "test::local-catalog",
+      "seconds": 506.83,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795456960.4575536,
+      "finished_unix": 1795457467.2899458
+    },
+    {
+      "task": "test::direct-table-service",
+      "seconds": 403.66,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795457467.2912097,
+      "finished_unix": 1795457870.9471273
+    },
+    {
+      "task": "test::direct-kv",
+      "seconds": 1.87,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795457870.9482427,
+      "finished_unix": 1795457872.8134174
+    },
+    {
+      "task": "test::direct-state-transaction",
+      "seconds": 150.55,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795457872.8145423,
+      "finished_unix": 1795458023.3623245
+    },
+    {
+      "task": "test::direct-mixed-transaction",
+      "seconds": 5.17,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795458023.36342,
+      "finished_unix": 1795458028.5333118
+    },
+    {
+      "task": "test::station-transaction",
+      "seconds": 707.14,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795458028.5344112,
+      "finished_unix": 1795458735.6783376
+    },
+    {
+      "task": "test::direct-queue-transfer",
+      "seconds": 2.01,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795458735.6795466,
+      "finished_unix": 1795458737.6926174
+    },
+    {
+      "task": "test::direct-automatic-queue-transfer",
+      "seconds": 23.99,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795458737.6937478,
+      "finished_unix": 1795458761.6792219
+    },
+    {
+      "task": "test::direct-log-token",
+      "seconds": 1.67,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795458761.6803665,
+      "finished_unix": 1795458763.3458319
+    },
+    {
+      "task": "test::direct-workload-token",
+      "seconds": 6.24,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795458763.3470209,
+      "finished_unix": 1795458769.5855823
+    },
+    {
+      "task": "test::direct-workload-result",
+      "seconds": 27.33,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795458769.5867708,
+      "finished_unix": 1795458796.9155316
+    },
+    {
+      "task": "test::direct-table-maintenance",
+      "seconds": 55.77,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795458796.9167185,
+      "finished_unix": 1795458852.6819873
+    },
+    {
+      "task": "test::direct-catalog-abi",
+      "seconds": 218.68,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795458852.6831424,
+      "finished_unix": 1795459071.3619163
+    },
+    {
+      "task": "test::node-concurrency",
+      "seconds": 15.27,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795459071.3631194,
+      "finished_unix": 1795459086.6342862
+    },
+    {
+      "task": "test::native-blocks",
+      "seconds": 12.4,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795459086.6354575,
+      "finished_unix": 1795459099.0359385
+    },
+    {
+      "task": "test::document-local",
+      "seconds": 122.97,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795459099.0372453,
+      "finished_unix": 1795459222.0113838
+    },
+    {
+      "task": "test::public-query",
+      "seconds": 230.35,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795459222.0126462,
+      "finished_unix": 1795459452.3667328
+    },
+    {
+      "task": "test::publication",
+      "seconds": 95.28,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795459452.3679729,
+      "finished_unix": 1795459547.6467957
+    },
+    {
+      "task": "test::table-query-writer",
+      "seconds": 12.56,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795459547.648402,
+      "finished_unix": 1795459560.2096562
+    },
+    {
+      "task": "test::catalog",
+      "seconds": 232.14,
+      "exit_code": 0,
+      "completed": true,
+      "started_unix": 1795459560.2109363,
+      "finished_unix": 1795459792.3487532
+    }
+  ],
+  "first_completed_task": {
+    "task": "test::application-runner",
+    "seconds": 11.46,
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795455782.7649677,
+    "finished_unix": 1795455794.2221167
+  },
+  "first_failed_task": null,
+  "phase_seconds": {
+    "provision": 0.723,
+    "teardown": 0.025
+  },
+  "instrumented_seconds": 0.748,
+  "unattributed_task_seconds": 4008.852,
+  "incomplete_phases": [
+    {
+      "kind": "teardown",
+      "owner": "minio",
+      "outcome": "failed"
+    },
+    {
+      "kind": "teardown",
+      "owner": "minio",
+      "outcome": "failed"
+    }
+  ],
+  "native_preparations": {},
+  "native_artifact_bytes": 0
+}

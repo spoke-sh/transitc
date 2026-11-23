@@ -1,0 +1,802 @@
+[
+  {
+    "lane": "storage-query",
+    "task": "test::application-runner",
+    "log": "001.log",
+    "command": [
+      "just",
+      "test::application-runner"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795455782.7649677,
+    "pid": 3164,
+    "diagnostics": {
+      "bytes": 34,
+      "retained_bytes": 34,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "001.log",
+        "bytes": 34,
+        "sha256": "8cadbe703b3448aa55981943dc6df0bbd4496bca7256b48fbcb4522be9c8ec54"
+      }
+    },
+    "seconds": 11.46,
+    "finished_unix": 1795455794.2221167
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::arrow",
+    "log": "002.log",
+    "command": [
+      "just",
+      "test::arrow"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795455794.2231386,
+    "pid": 3204,
+    "diagnostics": {
+      "bytes": 857,
+      "retained_bytes": 857,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "002.log",
+        "bytes": 857,
+        "sha256": "5da40e18119bca593f5d7a8b1ca403fd9d88b7ec7ce9b2530f263ce2a5280313"
+      }
+    },
+    "seconds": 9.86,
+    "finished_unix": 1795455804.07907
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::fuze-types",
+    "log": "003.log",
+    "command": [
+      "just",
+      "test::fuze-types"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795455804.0799468,
+    "pid": 3277,
+    "diagnostics": {
+      "bytes": 1087,
+      "retained_bytes": 1087,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "003.log",
+        "bytes": 1087,
+        "sha256": "797d80f72dadc5eb669090f5ec3f6fdd6c63ceacc32e509bbbd4adbafa644837"
+      }
+    },
+    "seconds": 142.84,
+    "finished_unix": 1795455946.9178278
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::spatial",
+    "log": "004.log",
+    "command": [
+      "just",
+      "test::spatial"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795455946.9188902,
+    "pid": 3382,
+    "diagnostics": {
+      "bytes": 160,
+      "retained_bytes": 160,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "004.log",
+        "bytes": 160,
+        "sha256": "d8828ecc7602a113a2276f0aae70427f945f8a717cfa47922dc02d7ade18690c"
+      }
+    },
+    "seconds": 20.89,
+    "finished_unix": 1795455967.8094606
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::fuze-sources",
+    "log": "005.log",
+    "command": [
+      "just",
+      "test::fuze-sources"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795455967.810368,
+    "pid": 3448,
+    "diagnostics": {
+      "bytes": 179,
+      "retained_bytes": 179,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "005.log",
+        "bytes": 179,
+        "sha256": "ef41363950db2170979cdf8d1732d2917829dd7c56fad57265a9a85d7f20c402"
+      }
+    },
+    "seconds": 0.1,
+    "finished_unix": 1795455967.9055042
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::file-query",
+    "log": "006.log",
+    "command": [
+      "just",
+      "test::file-query"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795455967.906448,
+    "pid": 3466,
+    "diagnostics": {
+      "bytes": 218,
+      "retained_bytes": 218,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "006.log",
+        "bytes": 218,
+        "sha256": "0b4345acb3332d673cf5bc8635423678e995bea2a6d11e2404c210bca47f83a6"
+      }
+    },
+    "seconds": 41.79,
+    "finished_unix": 1795456009.6951177
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::logical-arrow",
+    "log": "007.log",
+    "command": [
+      "just",
+      "test::logical-arrow"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795456009.6960714,
+    "pid": 3700,
+    "diagnostics": {
+      "bytes": 201,
+      "retained_bytes": 201,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "007.log",
+        "bytes": 201,
+        "sha256": "1e15e094653b87668963184cd9127899d12a9e69661dc1b3e38a18901cbb091b"
+      }
+    },
+    "seconds": 11.68,
+    "finished_unix": 1795456021.3743718
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::logical-codec",
+    "log": "008.log",
+    "command": [
+      "just",
+      "test::logical-codec"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795456021.3753784,
+    "pid": 3999,
+    "diagnostics": {
+      "bytes": 514,
+      "retained_bytes": 514,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "008.log",
+        "bytes": 514,
+        "sha256": "d488e05c20c2daa7c0e4200533eec976cde935e3e15558304db26a38e46aab4f"
+      }
+    },
+    "seconds": 14.12,
+    "finished_unix": 1795456035.492158
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::growing",
+    "log": "009.log",
+    "command": [
+      "just",
+      "test::growing"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795456035.4931953,
+    "pid": 4045,
+    "diagnostics": {
+      "bytes": 2716,
+      "retained_bytes": 2716,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "009.log",
+        "bytes": 2716,
+        "sha256": "1046478ce6b6c5f1dccd7d698562fc4794ac3b1317f287f26686cc8d87f34f3d"
+      }
+    },
+    "seconds": 21.36,
+    "finished_unix": 1795456056.8560593
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::growing-service",
+    "log": "010.log",
+    "command": [
+      "just",
+      "test::growing-service"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795456056.857189,
+    "pid": 4125,
+    "diagnostics": {
+      "bytes": 3235,
+      "retained_bytes": 3235,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "010.log",
+        "bytes": 3235,
+        "sha256": "8e7096a061f5e3faea4307c6015de2e8427199794590f09cdeb154b741e5420f"
+      }
+    },
+    "seconds": 531.16,
+    "finished_unix": 1795456588.0216048
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::local-owner-recovery",
+    "log": "011.log",
+    "command": [
+      "just",
+      "test::local-owner-recovery"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795456588.0226655,
+    "pid": 16191,
+    "diagnostics": {
+      "bytes": 282,
+      "retained_bytes": 282,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "011.log",
+        "bytes": 282,
+        "sha256": "1ec7246203dd5e4e7fc05bb29fd8dafe553289c10658a858591527072ae71de5"
+      }
+    },
+    "seconds": 371.11,
+    "finished_unix": 1795456959.1279678
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::local-payload-service",
+    "log": "012.log",
+    "command": [
+      "just",
+      "test::local-payload-service"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795456959.1290526,
+    "pid": 16366,
+    "diagnostics": {
+      "bytes": 192,
+      "retained_bytes": 192,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "012.log",
+        "bytes": 192,
+        "sha256": "a5538533929019f17aea84ee5e6d9fbf63daabdd620f935f474df8d28657a274"
+      }
+    },
+    "seconds": 1.33,
+    "finished_unix": 1795456960.4564848
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::local-catalog",
+    "log": "013.log",
+    "command": [
+      "just",
+      "test::local-catalog"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795456960.4575536,
+    "pid": 16551,
+    "diagnostics": {
+      "bytes": 4953,
+      "retained_bytes": 4953,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "013.log",
+        "bytes": 4953,
+        "sha256": "a3dc217ebabcbce110057fc1f28d1bb951d565b2967415799afb76d50e82bf2c"
+      }
+    },
+    "seconds": 506.83,
+    "finished_unix": 1795457467.2899458
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::direct-table-service",
+    "log": "014.log",
+    "command": [
+      "just",
+      "test::direct-table-service"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795457467.2912097,
+    "pid": 17028,
+    "diagnostics": {
+      "bytes": 9521,
+      "retained_bytes": 9521,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "014.log",
+        "bytes": 9521,
+        "sha256": "e93056c22d0db56bea1996c22fca68112bc36f0a7de3e8f18b1a24629de0942c"
+      }
+    },
+    "seconds": 403.66,
+    "finished_unix": 1795457870.9471273
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::direct-kv",
+    "log": "015.log",
+    "command": [
+      "just",
+      "test::direct-kv"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795457870.9482427,
+    "pid": 26073,
+    "diagnostics": {
+      "bytes": 1550,
+      "retained_bytes": 1550,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "015.log",
+        "bytes": 1550,
+        "sha256": "5efe699add199939607e36dcd6bb6e95b05b703c2ade86bc82072ad835e699b3"
+      }
+    },
+    "seconds": 1.87,
+    "finished_unix": 1795457872.8134174
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::direct-state-transaction",
+    "log": "016.log",
+    "command": [
+      "just",
+      "test::direct-state-transaction"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795457872.8145423,
+    "pid": 26344,
+    "diagnostics": {
+      "bytes": 1700,
+      "retained_bytes": 1700,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "016.log",
+        "bytes": 1700,
+        "sha256": "58705f396981d3509e161857c0fb7142e00bed07830f82bd492d48d50b82162c"
+      }
+    },
+    "seconds": 150.55,
+    "finished_unix": 1795458023.3623245
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::direct-mixed-transaction",
+    "log": "017.log",
+    "command": [
+      "just",
+      "test::direct-mixed-transaction"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795458023.36342,
+    "pid": 26905,
+    "diagnostics": {
+      "bytes": 2108,
+      "retained_bytes": 2108,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "017.log",
+        "bytes": 2108,
+        "sha256": "14f2953fed1b5404227b3a280e2f92513f36cfa113b5c523e349e865882e6114"
+      }
+    },
+    "seconds": 5.17,
+    "finished_unix": 1795458028.5333118
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::station-transaction",
+    "log": "018.log",
+    "command": [
+      "just",
+      "test::station-transaction"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795458028.5344112,
+    "pid": 27665,
+    "diagnostics": {
+      "bytes": 9148,
+      "retained_bytes": 9148,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "018.log",
+        "bytes": 9148,
+        "sha256": "4340958b5579c32299459f6a65be3a79f6a9f83f3748e3353581fea9de89296a"
+      }
+    },
+    "seconds": 707.14,
+    "finished_unix": 1795458735.6783376
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::direct-queue-transfer",
+    "log": "019.log",
+    "command": [
+      "just",
+      "test::direct-queue-transfer"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795458735.6795466,
+    "pid": 29419,
+    "diagnostics": {
+      "bytes": 1560,
+      "retained_bytes": 1560,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "019.log",
+        "bytes": 1560,
+        "sha256": "8c0de9b9279f668326365098cbcc3e5c285e418da4758ce8576428b3de7010cf"
+      }
+    },
+    "seconds": 2.01,
+    "finished_unix": 1795458737.6926174
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::direct-automatic-queue-transfer",
+    "log": "020.log",
+    "command": [
+      "just",
+      "test::direct-automatic-queue-transfer"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795458737.6937478,
+    "pid": 29630,
+    "diagnostics": {
+      "bytes": 17742,
+      "retained_bytes": 17742,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "020.log",
+        "bytes": 17742,
+        "sha256": "61f0a1848c8c78ae29c606f4f839d09f37acf917ff513a6592dd32aceb75f840"
+      }
+    },
+    "seconds": 23.99,
+    "finished_unix": 1795458761.6792219
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::direct-log-token",
+    "log": "021.log",
+    "command": [
+      "just",
+      "test::direct-log-token"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795458761.6803665,
+    "pid": 31347,
+    "diagnostics": {
+      "bytes": 1449,
+      "retained_bytes": 1449,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "021.log",
+        "bytes": 1449,
+        "sha256": "00dc377d781d375734fc1b1d1d0cddb6f7565e68c021ea4bfbac95f266ed66f2"
+      }
+    },
+    "seconds": 1.67,
+    "finished_unix": 1795458763.3458319
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::direct-workload-token",
+    "log": "022.log",
+    "command": [
+      "just",
+      "test::direct-workload-token"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795458763.3470209,
+    "pid": 31560,
+    "diagnostics": {
+      "bytes": 3229,
+      "retained_bytes": 3229,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "022.log",
+        "bytes": 3229,
+        "sha256": "c04ab83b29d29b60ed9a16c9f25aac928b38357fc46a9a3dfc5d36bd4ecaae55"
+      }
+    },
+    "seconds": 6.24,
+    "finished_unix": 1795458769.5855823
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::direct-workload-result",
+    "log": "023.log",
+    "command": [
+      "just",
+      "test::direct-workload-result"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795458769.5867708,
+    "pid": 32838,
+    "diagnostics": {
+      "bytes": 3280,
+      "retained_bytes": 3280,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "023.log",
+        "bytes": 3280,
+        "sha256": "1da2e42d10c7af16e79d8d24922584fb130db799a8711671c17cad3d5c4c37db"
+      }
+    },
+    "seconds": 27.33,
+    "finished_unix": 1795458796.9155316
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::direct-table-maintenance",
+    "log": "024.log",
+    "command": [
+      "just",
+      "test::direct-table-maintenance"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795458796.9167185,
+    "pid": 34163,
+    "diagnostics": {
+      "bytes": 28638,
+      "retained_bytes": 28638,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "024.log",
+        "bytes": 28638,
+        "sha256": "484a756fd2377041eb5e551142c491bc8b15e002eea9649b8a87712fc327bd38"
+      }
+    },
+    "seconds": 55.77,
+    "finished_unix": 1795458852.6819873
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::direct-catalog-abi",
+    "log": "025.log",
+    "command": [
+      "just",
+      "test::direct-catalog-abi"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795458852.6831424,
+    "pid": 43391,
+    "diagnostics": {
+      "bytes": 734,
+      "retained_bytes": 734,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "025.log",
+        "bytes": 734,
+        "sha256": "1663abe8a94d38fc6092da169d2ef218c3eb36d88c49e328761dbf66f79da269"
+      }
+    },
+    "seconds": 218.68,
+    "finished_unix": 1795459071.3619163
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::node-concurrency",
+    "log": "026.log",
+    "command": [
+      "just",
+      "test::node-concurrency"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795459071.3631194,
+    "pid": 44042,
+    "diagnostics": {
+      "bytes": 166,
+      "retained_bytes": 166,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "026.log",
+        "bytes": 166,
+        "sha256": "daa5ed813956acdbaad579d815e87833b5b942d31a0af5daccb55e8efe82c1a6"
+      }
+    },
+    "seconds": 15.27,
+    "finished_unix": 1795459086.6342862
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::native-blocks",
+    "log": "027.log",
+    "command": [
+      "just",
+      "test::native-blocks"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795459086.6354575,
+    "pid": 44133,
+    "diagnostics": {
+      "bytes": 1793,
+      "retained_bytes": 1793,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "027.log",
+        "bytes": 1793,
+        "sha256": "225cdd6e4d719d7cb684807a2ce9dc1ce186eea353263cfe7c26972323113e9a"
+      }
+    },
+    "seconds": 12.4,
+    "finished_unix": 1795459099.0359385
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::document-local",
+    "log": "028.log",
+    "command": [
+      "just",
+      "test::document-local"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795459099.0372453,
+    "pid": 44743,
+    "diagnostics": {
+      "bytes": 870,
+      "retained_bytes": 870,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "028.log",
+        "bytes": 870,
+        "sha256": "5906a9b2af5507165b96d8da53b31264e3e917d06e216c388baf723d00916609"
+      }
+    },
+    "seconds": 122.97,
+    "finished_unix": 1795459222.0113838
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::public-query",
+    "log": "029.log",
+    "command": [
+      "just",
+      "test::public-query"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795459222.0126462,
+    "pid": 57012,
+    "diagnostics": {
+      "bytes": 316,
+      "retained_bytes": 316,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "029.log",
+        "bytes": 316,
+        "sha256": "c08cde00bc9e7a41c83790cf6f586dc3d37becdbcbadd887e4778a1d862a8d4e"
+      }
+    },
+    "seconds": 230.35,
+    "finished_unix": 1795459452.3667328
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::publication",
+    "log": "030.log",
+    "command": [
+      "just",
+      "test::publication"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795459452.3679729,
+    "pid": 62919,
+    "diagnostics": {
+      "bytes": 987,
+      "retained_bytes": 987,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "030.log",
+        "bytes": 987,
+        "sha256": "f52397fc1a188c8a203d68a25db60d74b38a14c644fc4a25b585c6760e64c22e"
+      }
+    },
+    "seconds": 95.28,
+    "finished_unix": 1795459547.6467957
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::table-query-writer",
+    "log": "031.log",
+    "command": [
+      "just",
+      "test::table-query-writer"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795459547.648402,
+    "pid": 67257,
+    "diagnostics": {
+      "bytes": 554,
+      "retained_bytes": 554,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "031.log",
+        "bytes": 554,
+        "sha256": "9cfb501900fbb4da0a1e89b790eb43610570ded87861a3a1110b191f0a9a6225"
+      }
+    },
+    "seconds": 12.56,
+    "finished_unix": 1795459560.2096562
+  },
+  {
+    "lane": "storage-query",
+    "task": "test::catalog",
+    "log": "032.log",
+    "command": [
+      "just",
+      "test::catalog"
+    ],
+    "exit_code": 0,
+    "completed": true,
+    "started_unix": 1795459560.2109363,
+    "pid": 72522,
+    "diagnostics": {
+      "bytes": 5062,
+      "retained_bytes": 5062,
+      "omitted_bytes": 0,
+      "artifact": {
+        "path": "032.log",
+        "bytes": 5062,
+        "sha256": "c85bda1a7ee088c564c2b825e16b03fd28806152bfd07c2bd0703758162320a4"
+      }
+    },
+    "seconds": 232.14,
+    "finished_unix": 1795459792.3487532
+  }
+]

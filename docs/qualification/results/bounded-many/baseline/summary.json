@@ -1,0 +1,87 @@
+{
+  "schedule_sha256": "14bc39fe2bf69e7dc8eb4cd7e008679d65236719e3308f6eec221df327437e46",
+  "compiler_revision": "b914de44bb596e6df4940120e4c583a8bf9ba101",
+  "runtime_revision": "b58715bf4ef4e5236748547ce15e37a602c4b471",
+  "passes": [
+    {
+      "run": 1,
+      "passed": 24,
+      "failed": 4,
+      "not_run": 14,
+      "failures": [
+        {
+          "name": "invalid tag",
+          "error": "TestDeadline"
+        },
+        {
+          "name": "machine dispatch",
+          "error": "TestDeadline"
+        },
+        {
+          "name": "optional rollback",
+          "error": "TestDeadline"
+        },
+        {
+          "name": "bounds accepted",
+          "error": "TestDeadline"
+        }
+      ]
+    },
+    {
+      "run": 2,
+      "passed": 23,
+      "failed": 5,
+      "not_run": 14,
+      "failures": [
+        {
+          "name": "post-insert atomic refusal",
+          "error": "TestDeadline"
+        },
+        {
+          "name": "machine dispatch",
+          "error": "TestDeadline"
+        },
+        {
+          "name": "machine dispatch",
+          "error": "TestDeadline"
+        },
+        {
+          "name": "imported callable",
+          "error": "TestDeadline"
+        },
+        {
+          "name": "other specialization",
+          "error": "TestDeadline"
+        }
+      ]
+    },
+    {
+      "run": 3,
+      "passed": 16,
+      "failed": 5,
+      "not_run": 21,
+      "failures": [
+        {
+          "name": "typed lookup success",
+          "error": "TestDeadline"
+        },
+        {
+          "name": "rollback after write",
+          "error": "TestDeadline"
+        },
+        {
+          "name": "machine dispatch",
+          "error": "TestDeadline"
+        },
+        {
+          "name": "one present NULL",
+          "error": "TestDeadline"
+        },
+        {
+          "name": "bounds accepted",
+          "error": "TestDeadline"
+        }
+      ]
+    }
+  ]
+}
