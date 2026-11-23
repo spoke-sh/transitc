@@ -82,15 +82,40 @@ excess bounds, nullable fields, duplicate payloads in exact key order, late
 rollback, process restart and retirement. The 71 fast checks, 20 contract checks
 and strict handbook build pass. Clean runtime lanes remain to be recorded.
 
-Compiler/workspace unit tests pass. Source correspondence passes 262 syntax
+Compiler/workspace unit tests pass (137 tests). Formatter coverage passes all
+46 fixtures; documentation coverage, eight workspace journeys and both release
+controls pass. Strict handbook validation and all 84 browser checks pass at each
+of the root and `/transitc/` base paths.
+
+Source correspondence passes 262 syntax
 cases, 182 formatting round trips and ten negative controls. Typed correspondence
 passes 14 existing Lean laws, 136 finite equalities, six new bounded-result
 comparisons and 55 comparison controls. No new Lean theorem is claimed for
 iteration, storage, authority or replay. Unselected-arm nominal checks and
-callable-hidden-read refusals have separate executable unit coverage.
+callable-hidden-read refusals have separate executable unit coverage. The explicit
+Nix source check repeats this complete correspondence schedule at compiler
+`827dcab443d80d932d4458ae13d94b08ec819fbf`; its retained output is
+`/nix/store/n3n1pjpinwhrzgi7dn89mbl6j10gjxmn-transitc-source-verification`.
 
-The installed generated/oracle comparison, 49-case composition inventory and
-three-pass candidate schedule, CLI/workspace/embedding/release checks, explicit
-Nix source/package build and both handbook base paths remain acceptance gates.
+The immutable Transit package at
+`73ae483f9073c30b89b3ec90dc67595467a60f44` builds successfully. Both its standalone
+Nix build and the compiler dev shell resolve to
+`/nix/store/cprylhnlim5zg9cvvk43mjxcbjzbv4fq-transit-0.0.1/bin/transit`, SHA-256
+`9095fbc7755c8746675acc2045f66ff06438869249f09ad6d5e0d4d78fe26824`.
+The shared archive has SHA-256 SRI
+`sha256-bahP6fqkRg6/yFhJ5MpfsfDQgUlY1gkze6r6MdOaSnE=` and Zig package hash
+`transit_sql_distribution-0.0.1-t9CQA2cRIwBqqqpd72UY1jZ01USaeMUq_7pGHYqeGlJi`.
+Remote retrieval remains to be verified after the native branch is published.
+
+An exploratory installed comparison passed all 21 original cases (seven on each
+of two generated instances and one independent SQL instance), including exact
+order, nullable fields, overflow, rollback, restart and retirement. That run
+predates the added explicit `MANY(4)` correction and used the exploratory native
+binary; it does not qualify the final immutable pair or the extended 22-case
+journey.
+
+The final installed generated/oracle comparison, three-pass 49-case composition
+schedule, CLI/runtime checks, clean-cache/public embedding, installed Nix package
+and four-platform archive CI remain acceptance gates.
 This section will be updated with actual completed outcomes and immutable
 compiler/shared/host identities before submission.
