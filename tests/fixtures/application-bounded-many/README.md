@@ -10,7 +10,8 @@ the nominal ItemId domain. The `two` build target binds independent resources.
 `oracle.sql` is separately authored native SQL. The installed
 [`bounded_many.py`](../../integration/bounded_many.py) journey removes source
 before executing generated SQL, compares both instances and this oracle in exact
-Stream order, then checks restart and retirement. Its failure record deliberately
+Stream order, verifies the explicit MANY(4) correction for an overflowing
+four-row batch, then checks restart and retirement. Its failure record deliberately
 uses a public constant: the native internal refusal code is not a public field.
 The first ordered refusal is checked directly at the native ApplicationStep
 boundary; this fixture's corresponding case proves rollback only.
