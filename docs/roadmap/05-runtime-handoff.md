@@ -3,7 +3,8 @@
 These gates were established against Transit `f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`,
 the previous shared-package and compiled-case host pin. The
 [completion record](../qualification/composition-completion.md) tracks the
-candidate scalar-analysis API and compatible host qualification. The frozen compiler
+merged scalar-analysis API and compatible host qualification at the current
+`b58715bf4ef4e5236748547ce15e37a602c4b471` pin. The frozen compiler
 comparison remains `e7434306334e3692c6f3e123cba0d278fa412196`. This document requests
 ordinary runtime contracts; it does not authorize a compiler bypass or a pin
 update without qualification.
@@ -23,8 +24,12 @@ The type gate is owned by
 and the value/SELECT boundary by
 [`ApplicationData.zig`](https://github.com/spoke-sh/transit/blob/f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6/packages/zig/transit-query-direct/src/ApplicationData.zig).
 The requests above still need their own upstream design and implementation. The
-completion slice adds scalar analysis APIs; it does not implement these runtime
-extensions.
+merged completion slice adds scalar analysis APIs; it does not implement these
+runtime extensions. The [bounded many-row plan](05-bounded-many-results.md)
+selects the many-row gate next and specifies its native/compiler ownership,
+proposed bounds, atomic consumption and acceptance evidence. Native UNION is an
+optional alternative to the current closed STRUCT encoding, not an additional
+M5 completion requirement.
 
 ## Compiled-case deadline investigation
 
@@ -60,9 +65,10 @@ into a pass.
 
 Whole-input ROW helpers with symbolic scalar holes now preserve the authored
 Queue shape through a separate bounded analysis environment. The compiler and
-independent hygiene/type/refusal tests are implemented; the supporting pure
-Transit API and its candidate pin still require upstream merge and complete
-qualification. This needs no new native ROW representation. See the
+independent hygiene/type/refusal tests are implemented. The supporting pure
+Transit API is merged in [Transit #479](https://github.com/spoke-sh/transit/pull/479);
+complete runtime qualification of the refreshed pin remains open. This needs no
+new native ROW representation. See the
 [completion record](../qualification/composition-completion.md) for actual
 revisions and results.
 Source callable row/many returns, general implication solving, implicit signature
@@ -70,8 +76,9 @@ subtyping and unrestricted predicates are not silently admitted by this incremen
 New source forms that depend on the native gates above still need their own
 compiler implementation after the upstream contracts and pins are qualified.
 
-The [next slice plan](05-typed-composition-and-sql.md#next-slice-complete-the-existing-composition-profile)
-sequences completion diagnosis, precise ROW admission, any owning fix/pin update
-and full qualification. The [milestone plan](05-typed-composition-and-sql.md)
-remains open. These handoffs do not close milestone 5 or transfer compiler-owned
-work upstream.
+The [previous slice plan](05-typed-composition-and-sql.md#previous-slice-complete-the-existing-composition-profile)
+retains the composition qualification obligations. The
+[next slice plan](05-bounded-many-results.md) sequences bounded native results,
+dependent source support and complete qualification. The
+[milestone plan](05-typed-composition-and-sql.md) remains open. These handoffs do
+not close milestone 5 or transfer compiler-owned work upstream.

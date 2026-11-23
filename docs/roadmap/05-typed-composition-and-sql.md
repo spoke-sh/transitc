@@ -52,7 +52,7 @@ with each increment. These additions do not close this milestone.
 
 | Plan unit | Delivered increment | Remaining gate |
 | --- | --- | --- |
-| A/B | Explicit tag/payload encoding, exhaustive runtime MATCH, nominal payload checks, hygienic lowering and all-arm program/control checking; whole-input ROW specialization with a separate bounded scalar environment | Whole-row unit, independent field/domain and candidate runtime checks pass; the pure upstream API merge and complete candidate runtime qualification remain open |
+| A/B | Explicit tag/payload encoding, exhaustive runtime MATCH, nominal payload checks, hygienic lowering and all-arm program/control checking; whole-input ROW specialization with a separate bounded scalar environment; compiler and upstream API PRs merged | Complete runtime qualification at the refreshed pin remains open; unit/independent correspondence and four hosted native compiler/archive jobs pass |
 | C | ONE and OPTIONAL SELECT results, ordered ONE assertion, guarded optional projection, preserved nominal fields and nullable cells | Installed ONE/OPTIONAL generated/oracle and restart checks pass; isolated completion, bounded many and state-carrying values remain open |
 | D | Direct immutable row-presence facts plus ordered non-nullness, same-type equality and constant BIGINT bounds in explicit REQUIRES/ENSURES contracts; installed refusal/rollback journey passes | Isolated runtime qualification; general implication solving and resource-derived facts remain outside the bounded profile |
 | E | Exact FUNCTION/GUARD/PROCEDURE OF module arguments and resource effects; nested inlining, explicit instances, installed oracle/rollback/restart/current-rights denial pass | Isolated runtime qualification; callable row/many returns and implicit signature subtyping remain unsupported |
@@ -64,9 +64,27 @@ separately listed compiler work. The support matrix in
 literal/codec qualification from query operators and program values. Runtime
 reports that hit a deadline remain failures, even when compile-time checks pass.
 
-## Next slice: complete the existing composition profile
+## Next implementation plan
 
-**Status: Implementation in progress.** Basis: the merge of
+The [bounded many-row results plan](05-bounded-many-results.md) proposes the next
+feature slice: an owned native collection and bounded atomic consumption, followed
+by source cardinality/nominal checking, independent SQL comparisons and guides.
+It starts by closing the merged profile's remaining qualification gates. It also
+records the [remaining path to completion](05-bounded-many-results.md#distance-to-milestone-completion):
+state-carrying values, query-result contracts, scalar program/prepared/relational
+surfaces, ordinary views and integrated qualification. M5 remains In Progress.
+
+## Previous slice: complete the existing composition profile
+
+**Status: Implementation merged; qualification in progress.**
+[transitc #6](https://github.com/spoke-sh/transitc/pull/6) and
+[Transit #479](https://github.com/spoke-sh/transit/pull/479) are merged. The
+[completion record](../qualification/composition-completion.md#merge-and-ci-review-2026-11-23)
+distinguishes passing checks from pending schedules at the current pin. The plan
+below preserves the original scope and acceptance criteria; its initial baseline
+is historical, not the currently selected host.
+
+Original planning basis: the merge of
 [PR #5](https://github.com/spoke-sh/transitc/pull/5) at transitc
 `391ef54024aefe1eb23885962d920b57d6b07485`, inspected on 2026-11-21.
 This slice closes the isolated-execution and symbolic-input gaps in the delivered

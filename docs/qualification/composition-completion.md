@@ -1,9 +1,10 @@
 # Composition completion qualification
 
 This record follows the [typed composition qualification](typed-composition.md)
-and the [milestone 5 implementation plan](../roadmap/05-typed-composition-and-sql.md#next-slice-complete-the-existing-composition-profile).
-The slice is in progress. The original deadline failures remain failures;
-diagnostic executions below do not qualify a replacement compiler or host.
+and the [milestone 5 implementation plan](../roadmap/05-typed-composition-and-sql.md#previous-slice-complete-the-existing-composition-profile).
+The implementation is merged; qualification remains in progress. The original
+deadline failures remain failures; diagnostic executions below do not qualify a
+replacement compiler or host.
 
 ## Baseline investigation, 2026-11-21
 
@@ -150,5 +151,34 @@ The frozen old compiler remains unchanged; parity requires its exact old
 definition and this exact new definition before comparing the remaining fields.
 
 The passing checks above retain their original compiler/host identities; they
-are not passes for the refreshed pair. New qualification is pending, and the
-PRs remain drafts while the upstream dependency and required gates are open.
+are not passes for the refreshed pair. At publication, new qualification was
+pending and the PRs were drafts while the upstream dependency and required gates
+were open. Their subsequent merge and qualification status are recorded below.
+
+## Merge and CI review, 2026-11-23
+
+[transitc #6](https://github.com/spoke-sh/transitc/pull/6) merged at
+`b914de44bb596e6df4940120e4c583a8bf9ba101` and
+[Transit #479](https://github.com/spoke-sh/transit/pull/479) merged at
+`6201f4d5ffc5b1849888b396cc75503f10f073f2`. The shared archive and host remain
+pinned to their included `b58715bf4ef4e5236748547ce15e37a602c4b471` revision.
+The upstream API merge requirement is satisfied.
+
+At the next-slice planning review (18:06 UTC), [transitc PR CI](https://github.com/spoke-sh/transitc/actions/runs/45230348359)
+had passed all four native compiler/archive jobs and the handbook job, including
+both browser base paths. Its compiler job had passed the initial Nix checks and
+explicit source grammar/type verification and was running `check test::release`;
+the clean-build and process/integration steps had not yet executed. The
+[upstream PR CI](https://github.com/spoke-sh/transit/actions/runs/45229910032)
+storage/query job was still running. Both
+[transitc merge CI](https://github.com/spoke-sh/transitc/actions/runs/45232864531)
+and [Transit merge CI](https://github.com/spoke-sh/transit/actions/runs/45232786514)
+were in progress. This is a dated observation, not their eventual conclusion.
+
+The three complete local 42-case isolated schedules are still unrecorded. The
+refreshed pair's complete installed composition, build-command and test-command
+schedules and upstream clean storage/query lane also need final passing evidence.
+The earlier failed lanes and diagnostic controls remain under their original
+revisions. The [next slice plan](../roadmap/05-bounded-many-results.md)
+starts with these qualification obligations; merging has not turned them into
+passes or closed milestone 5.
