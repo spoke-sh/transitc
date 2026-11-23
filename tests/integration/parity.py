@@ -9,10 +9,10 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 IDENTITY_FIELDS = {'compiler_revision', 'compiler_digest', 'input_digest'}
-# Reviewed upstream definition cutover: Transaction.Origin metadata changed the
-# native definition, while these source/SQL fixtures retain their exact meaning.
+# Reviewed upstream cutovers: Transaction.Origin and committed Queue effect
+# admission changed the definition; these source/SQL fixtures retain their meaning.
 BASELINE_DEFINITION = 'f311e893f8d2f4c21f426790172fadfebe7eb2364615eb1566c09f11d39bb0bb'
-CURRENT_DEFINITION = '7344b5ed271c41ea371aaa6e61867b1a4d1f670e9a9176f96793835d8ead20a5'
+CURRENT_DEFINITION = 'ad3bc9aef1bc97a05c8a1ce5ea511a1d5185ebbb00f256eeec1ef287517e83ff'
 
 
 def invoke(binary, directory, *args, expected=0, command='build'):

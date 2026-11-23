@@ -133,3 +133,22 @@ archive/empty-cache admission, installed composition phases, the three complete
 42-case isolated schedules, and the final CI/native-archive matrix. Earlier
 whole-row runtime checks against the preceding candidate do not
 substitute for these final gates. Milestone 5 remains in progress.
+
+## Publication refresh, 2026-11-23
+
+Transit main advanced to `9e68d9dcfba5a03b368045279b9f706d1b3ba789` before
+publication. Candidate `b58715bf4ef4e5236748547ce15e37a602c4b471` merges that main
+revision and resolves the generated archive conflict by regenerating all 196
+authoritative source files. The scalar-analysis API changes are unchanged.
+The archive downloaded from its published immutable URL matches
+`sha256-bF7LJoomnA+QCkZDkf76WU35vm7xIWAxVgNRBTx1rQ0=`.
+
+The compiler's shared distribution and test-host pins move together. This also
+adopts upstream's committed Queue effect-admission definition
+`ad3bc9aef1bc97a05c8a1ce5ea511a1d5185ebbb00f256eeec1ef287517e83ff`.
+The frozen old compiler remains unchanged; parity requires its exact old
+definition and this exact new definition before comparing the remaining fields.
+
+The passing checks above retain their original compiler/host identities; they
+are not passes for the refreshed pair. New qualification is pending, and the
+PRs remain drafts while the upstream dependency and required gates are open.
