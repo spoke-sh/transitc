@@ -9,12 +9,16 @@ checkout has no root LICENSE file. File movement does not transfer protocol or
 SQL authority from Transit. Shared modules are consumed from the exact pin in package manifests.
 
 Extraction changes package wiring, executable identity and the command name.
-SQL bytes, mappings, definition identifiers and migration formats remain current
-v1. Expected provenance differences are only `compiler_revision`,
-`compiler_digest` and `input_digest`; artifact parity compares every other field.
+SQL bytes, mappings and migration formats retain their v1 contracts. Expected
+executable provenance differences are `compiler_revision`, `compiler_digest`
+and `input_digest`. The shared-package update for offline scalar analysis also
+adopts Transit's reviewed Transaction.Origin and committed Queue effect-admission
+cutovers: parity requires the exact old `f311e893…` and new `ad3bc9ae…` definitions
+in provenance and diagnostics, then compares every remaining field. The frozen comparison
+executable remains at the extraction revision above.
 Diagnostic correction commands use `transitc build` and `transitc test`.
-The dependency envelope's command spelling is an explicit parity exception;
-codes, definitions, locations and all other envelope fields remain exact.
+The dependency envelope's command spelling is an explicit parity exception.
+Codes, locations and all other envelope fields remain exact.
 The workspace renderer fixes a borrowed-slice lifetime exposed by Debug builds:
 text now borrows the caller's diagnostic envelope instead of a callee stack copy.
 

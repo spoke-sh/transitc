@@ -32,9 +32,36 @@ Unknown payloads are checked using their declared types, without choosing a
 representative value. Concrete schema names, resource bindings and program
 identities must still be known. A symbolic IF cannot introduce catalog objects or
 exports. Program types unavailable in Transit remain unavailable in unselected
-arms too. Whole-input ROW helpers with symbolic scalar holes remain outside this
-bounded profile; pass the needed fields explicitly. Internal checking fields are
-never published and cannot be named by authored program SQL.
+arms too. A helper can receive the complete input row and a symbolic scalar:
+
+```sql
+CREATE FUNCTION accepts_input(entry ROW(id BIGINT), expected SiteId)
+RETURNS BOOLEAN AS BEGIN
+  RETURN entry.id > 0 AND expected = expected;
+END;
+```
+
+Inside `EmitSite`, use `REQUIRE accepts_input(request, $value) ELSE 'BadInput';`
+before the write. Named ROW parameters require their declared fields and allow
+additional input fields. `ROW(request.id)` supplies a positional row, whose field
+count and order must match the parameter. Aliases of the input preserve its
+fields, nullability and nominal domains through functions, guards and procedures.
+
+The complete [whole-row example](../../../tests/fixtures/application-whole-row/build.transit)
+passes a 64-column Queue row through imported and nested helpers:
+
+```sh
+transitc build -f tests/fixtures/application-whole-row/build.transit --check
+transitc test -f tests/fixtures/application-whole-row/build.transit
+```
+
+Checking constants have a separate 64-parameter bound per lowered program; they
+do not consume the Queue's field budget. Native row/depth limits still apply.
+Internal checking names never appear in emitted SQL and cannot be named by
+authored program SQL. Queue acquisition predicates retain the native bounded
+predicate profile. Boolean constants remain usable as filter leaves, including
+through helpers and `AND`, `OR`, or `NOT`. The selected concrete filter must still
+pass native validation; checking constants do not enable arbitrary predicate calls.
 
 This checking establishes type and binding obligations. Runtime guards, row
 existence, atomic outcomes and current permissions still belong to Transit.

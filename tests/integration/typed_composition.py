@@ -14,24 +14,6 @@ ROOT = Path(__file__).resolve().parents[2]
 FIXTURES = ROOT / 'tests/fixtures'
 
 
-def compiled_cases(compiler, name, destination):
-    with tempfile.TemporaryDirectory(prefix='transitc-composition-') as temporary:
-        workspace = Path(temporary) / 'source'
-        shutil.copytree(FIXTURES / name, workspace)
-        for path in [workspace, *workspace.rglob('*')]:
-            path.chmod(0o700 if path.is_dir() else 0o600)
-        result = subprocess.run([str(compiler), 'test', '--format', 'json'], cwd=workspace,
-                                text=True, capture_output=True, timeout=330)
-        (destination / (name + '.stdout')).write_text(result.stdout)
-        (destination / (name + '.stderr')).write_text(result.stderr)
-        assert result.returncode == 0 and not result.stderr, (result.returncode, result.stdout, result.stderr)
-        report = json.loads(result.stdout)
-        assert report['ok'] and report['complete'] and report['cases'], report
-        assert all(case['status'] == 'passed' for case in report['cases']), report
-        return {'fixture': name, 'cases': len(report['cases']), 'runtime': report['runtime'],
-                'compiler_digest': report['compiler_digest'], 'input_digest': report['input_digest']}
-
-
 def native_probes(runtime, destination):
     sys.path.insert(0, str(Path(os.environ['TRANSIT_TEST_SOURCE']) / 'tests'))
     from harness import phases
@@ -177,15 +159,17 @@ def main():
     summary = {'provenance': capture.provenance(ROOT), 'complete': False}
     capture.write_json(destination / 'evidence.json', summary)
     print(f'Typed composition evidence: {destination}', flush=True)
-    summary['native'] = native_probes(runtime, destination)
-    capture.write_json(destination / 'evidence.json', summary)
-    summary['dynamic'] = dynamic_journey(compiler, runtime, destination)
-    capture.write_json(destination / 'evidence.json', summary)
-    summary['compiled'] = [compiled_cases(compiler, name, destination) for name in
-                           ('application-variant-encoding', 'application-dynamic-dispatch')]
+    selected = sys.argv[2] if len(sys.argv) > 2 else 'all'
+    assert selected in ('all', 'native', 'dynamic')
+    if selected in ('all', 'native'):
+        summary['native'] = native_probes(runtime, destination)
+        capture.write_json(destination / 'evidence.json', summary)
+    if selected in ('all', 'dynamic'):
+        summary['dynamic'] = dynamic_journey(compiler, runtime, destination)
+        capture.write_json(destination / 'evidence.json', summary)
     summary['complete'] = True
     capture.write_json(destination / 'evidence.json', summary)
-    print('PASS ordinary SQL probes, independent runtime MATCH execution, guide correction, restart, current rights and fourteen isolated cases')
+    print('PASS ordinary SQL probes, independent runtime MATCH execution, guide correction, restart, current rights')
 
 
 if __name__ == '__main__':

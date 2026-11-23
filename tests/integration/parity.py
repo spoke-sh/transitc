@@ -9,6 +9,10 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 IDENTITY_FIELDS = {'compiler_revision', 'compiler_digest', 'input_digest'}
+# Reviewed upstream cutovers: Transaction.Origin and committed Queue effect
+# admission changed the definition; these source/SQL fixtures retain their meaning.
+BASELINE_DEFINITION = 'f311e893f8d2f4c21f426790172fadfebe7eb2364615eb1566c09f11d39bb0bb'
+CURRENT_DEFINITION = 'ad3bc9aef1bc97a05c8a1ce5ea511a1d5185ebbb00f256eeec1ef287517e83ff'
 
 
 def invoke(binary, directory, *args, expected=0, command='build'):
@@ -43,7 +47,10 @@ def compare(upstream, compiler):
             assert old_sql == new_sql == repeated_sql == (workspace / 'expected.sql').read_bytes(), name
             assert new == repeated, (name, 'nondeterministic provenance')
             assert old.keys() == new.keys()
-            assert {k: v for k, v in old.items() if k not in IDENTITY_FIELDS} == {k: v for k, v in new.items() if k not in IDENTITY_FIELDS}, name
+            assert old['definition'] == BASELINE_DEFINITION, (name, 'foreign baseline definition')
+            assert new['definition'] == CURRENT_DEFINITION, (name, 'foreign compiler definition')
+            expected = dict(old, definition=CURRENT_DEFINITION)
+            assert {k: v for k, v in expected.items() if k not in IDENTITY_FIELDS} == {k: v for k, v in new.items() if k not in IDENTITY_FIELDS}, name
             assert old['compiler_digest'] != new['compiler_digest']
             assert old['input_digest'] != new['input_digest']
             count += 1
@@ -64,7 +71,9 @@ def compare(upstream, compiler):
                 (workspace / 'build.transit').write_text(source)
             old = invoke(upstream, workspace, *options, expected=1, command=command)
             new = invoke(compiler, workspace, *options, expected=1, command=command)
-            expected = dict(old)
+            assert old['definition'] == BASELINE_DEFINITION, 'foreign baseline diagnostic definition'
+            assert new['definition'] == CURRENT_DEFINITION, 'foreign compiler diagnostic definition'
+            expected = dict(old, definition=CURRENT_DEFINITION)
             if code == 'application.source.dependency':
                 assert old['message'].count('transit build --fetch') == 1
                 expected['message'] = old['message'].replace('transit build --fetch', 'transitc build --fetch')
@@ -79,7 +88,7 @@ def compare(upstream, compiler):
                 assert 'transit build' not in human.stderr and 'transit test' not in human.stderr, human.stderr
             assert not (workspace / '.transit/build').exists()
             count += 1
-    print(f'PASS {count} upstream/transitc parity cases; only {sorted(IDENTITY_FIELDS)} and the explicit dependency-command correction differ; human build/test/fetch guidance verified')
+    print(f'PASS {count} upstream/transitc parity cases; exact reviewed native definitions, {sorted(IDENTITY_FIELDS)} and dependency-command correction verified')
 
 
 if __name__ == '__main__':

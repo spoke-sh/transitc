@@ -1,0 +1,66 @@
+{
+  "application-typed-queue": [
+    "typed lookup success",
+    "absent lookup refusal",
+    "multiple-row lookup refusal",
+    "post-insert atomic refusal",
+    "independent named pipeline"
+  ],
+  "application-variant-encoding": [
+    "machine dispatch",
+    "site dispatch",
+    "invalid tag",
+    "missing active payload",
+    "populated inactive payload",
+    "missing selected resource",
+    "rollback after write"
+  ],
+  "application-dynamic-dispatch": [
+    "machine dispatch",
+    "site dispatch",
+    "invalid tag",
+    "missing active payload",
+    "populated inactive payload",
+    "missing selected resource",
+    "rollback after write"
+  ],
+  "application-cardinality": [
+    "one present NULL",
+    "one absent",
+    "one multiple",
+    "one rollback",
+    "optional present NULL",
+    "optional absent",
+    "optional multiple",
+    "optional rollback"
+  ],
+  "application-refinements": [
+    "bounds accepted",
+    "missing amount",
+    "lower bound",
+    "upper bound",
+    "postcondition rollback"
+  ],
+  "application-callables": [
+    "imported callable",
+    "returning callable rollback"
+  ],
+  "application-date": [
+    "date values retain exact days and NULL"
+  ],
+  "application-sql-scalars": [
+    "exact decimal JSON and interval components"
+  ],
+  "application-numeric-operators": [
+    "exact operations"
+  ],
+  "application-json-helpers": [
+    "exact JSON extraction",
+    "JSON null is a value"
+  ],
+  "application-whole-row": [
+    "whole input accepted",
+    "whole input guard refusal",
+    "other specialization"
+  ]
+}

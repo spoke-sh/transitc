@@ -1,0 +1,6 @@
+{
+  "source_commit": "f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6",
+  "patch_sha256": "87a29fa9aa34d040dfe7df85a53147bdc071eebdc3fe079bee418b0f203ded69",
+  "runtime_sha256": "55e09049eecce7172268c9de4ed1cec81b5e5783cf5218440b798852482de7f8",
+  "purpose": "diagnostic only; stderr phase instrumentation captured by wrapper"
+}

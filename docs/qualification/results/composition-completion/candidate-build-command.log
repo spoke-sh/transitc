@@ -1,0 +1,10 @@
+Application build: generated Table migration and recovery
+Application build: workspace module-instance DAG and delegated targets
+Application build: 6-schema reference exports, migrations and cross-schema dataflow
+Application build: generated ordinary fixture
+Application build: generated typed Queue fixture
+Application build: generated modular Queue fixture
+Application build: independent ordinary SQL oracle
+Application build: independent typed Queue SQL oracle
+Application build: independent modular Queue SQL oracle
+Application build: locked offline composition, source-free SQL, restart and revocation passed

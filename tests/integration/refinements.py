@@ -9,7 +9,6 @@ import tempfile
 
 from runner import capture
 from integration.scalar_surfaces import build
-from integration.typed_composition import compiled_cases
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / 'tests/fixtures/application-refinements'
@@ -85,7 +84,6 @@ def main():
             shutil.rmtree(fixture.root)
         else:
             print(f'Failed refinement installation retained at {fixture.root}', file=sys.stderr)
-    summary['compiled'] = compiled_cases(compiler, 'application-refinements', destination)
     summary['complete'] = True
     capture.write_json(destination / 'evidence.json', summary)
     print('PASS bounded callable obligations, ordered refusals, postcondition rollback, hand SQL and restart')

@@ -36,7 +36,7 @@ pub fn analyze(catalog: *Catalog, sql: []const u8, location: *f.Sql.Location) !A
         .page => return error.ApplicationHostUnavailable,
     }
     if (parsed.program.failure) |failure| try self.block(failure.instructions);
-    var bound = try a.Types.bind(catalog.scratch, parsed.program, self.resources.items, location);
+    var bound = try a.Types.bindForAnalysis(catalog.scratch, parsed.program, self.resources.items, catalog.program_parameters, location);
     errdefer bound.deinit();
     try bound.requirements.requireAvailable(a.Types.Requirements.publicData());
     if (bound.native.count() != 0) return error.UnsupportedBuildProgramDependency;
@@ -47,7 +47,7 @@ pub fn check(catalog: *Catalog, sql: []const u8, location: *f.Sql.Location) !Che
     defer analysis.deinit();
     const parsed = analysis.parsed;
     if (parsed.program.predicate) |predicate| location.offset = predicate.span.start;
-    try a.Predicate.validate(parsed.program, analysis.entries[0].schema);
+    try a.Predicate.validateForAnalysis(parsed.program, analysis.entries[0].schema, catalog.program_parameters);
     // Programs use canonical expansion in both passes. Preserve instruction
     // identities, atomic structure, scalar values and exact physical bindings.
     const encoded = try p.Json.valueAllocBounded(catalog.scratch, parsed.program, a.Codec.max_bytes);

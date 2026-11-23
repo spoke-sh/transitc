@@ -1,0 +1,46 @@
+worker ticks=1 progressed=false direct_error=none scan=true route=1 pending=false waiting=false
+action 0 begin complete
+worker ticks=2 progressed=false direct_error=none scan=true route=1 pending=false waiting=false
+worker ticks=3 progressed=false direct_error=none scan=true route=1 pending=false waiting=false
+worker ticks=4 progressed=false direct_error=none scan=true route=1 pending=false waiting=false
+worker ticks=5 progressed=false direct_error=none scan=true route=1 pending=false waiting=false
+action 0 end 1362ms
+action 1 begin complete
+worker ticks=6 progressed=false direct_error=none scan=true route=1 pending=false waiting=false
+worker ticks=7 progressed=false direct_error=none scan=true route=1 pending=false waiting=false
+worker ticks=8 progressed=false direct_error=none scan=true route=1 pending=false waiting=false
+action 1 end 1306ms
+action 2 begin complete
+worker ticks=9 progressed=true direct_error=none scan=true route=0 pending=true waiting=false
+worker ticks=10 progressed=true direct_error=none scan=true route=0 pending=false waiting=false
+action 2 end 2602ms
+action 3 begin complete
+action 3 end 761ms
+action 4 begin complete
+action 4 end 1509ms
+action 5 begin complete
+recovery phase=evaluate input=claiming progressed=false
+action 5 end 470ms
+action 6 begin workflow
+workflow remaining=1000 completed=0 refused=0 pending=true
+recovery phase=evaluate input=claiming progressed=true
+recovery phase=evaluate input=reading progressed=true
+recovery phase=evaluate input=ready progressed=true
+recovery phase=begin input=ready progressed=true
+recovery phase=acquire input=ready progressed=true
+recovery phase=evaluate input=ready progressed=true
+recovery phase=evaluate input=ready progressed=true
+recovery phase=evaluate input=ready progressed=true
+worker ticks=50 progressed=true direct_error=none scan=true route=0 pending=true waiting=false
+recovery phase=evaluate input=ready progressed=true
+recovery phase=evaluate input=ready progressed=true
+recovery phase=stage input=ready progressed=true
+recovery phase=execute input=ready progressed=true
+recovery phase=evaluate input=ready progressed=true
+recovery phase=ack input=ready progressed=true
+recovery phase=execute input=ready progressed=true
+recovery phase=checkpoint input=ready progressed=true
+recovery phase=checkpoint input=ready progressed=true
+recovery phase=execute input=ready progressed=true
+action 6 end 16348ms
+recovery phase=settle input=ready error=AuthorityTimeout

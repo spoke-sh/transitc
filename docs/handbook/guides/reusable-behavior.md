@@ -44,6 +44,13 @@ also fail. Clause order and refusal codes are part of the contract.
 A signature does not grant current runtime rights. Follow [input and result
 validation](refinements.md) to add bounded pre/postconditions.
 
+ROW arguments can carry the complete Queue input through imported or nested
+helpers. Declared named fields are checked without discarding extra input fields
+or adding specialization constants to the row. See the
+[whole-row specialization example](specialization.md) for a helper receiving both
+`request` and a compile-time scalar. Keep resource effects explicit when moving
+that helper behind a callable parameter.
+
 The repository example uses imported and nested procedures, two independently
 named instances, and a refusal after staging both a Table write and a Stream
 append:

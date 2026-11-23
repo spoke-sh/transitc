@@ -1,0 +1,82 @@
+{
+  "revision": "8fcf3ca0ca4aeb2d39af6601f7462712a3b208fe",
+  "clean_lane": {
+    "complete": false,
+    "passed_tasks": [
+      "test::application-runner",
+      "test::arrow",
+      "test::fuze-types",
+      "test::spatial",
+      "test::fuze-sources",
+      "test::file-query",
+      "test::logical-arrow",
+      "test::logical-codec",
+      "test::growing",
+      "test::growing-service",
+      "test::local-owner-recovery",
+      "test::local-payload-service",
+      "test::local-catalog",
+      "test::direct-table-service",
+      "test::direct-kv",
+      "test::direct-state-transaction",
+      "test::direct-mixed-transaction"
+    ],
+    "failed_task": "test::station-transaction",
+    "not_run": [
+      "test::direct-queue-transfer",
+      "test::direct-automatic-queue-transfer",
+      "test::direct-log-token",
+      "test::direct-workload-token",
+      "test::direct-workload-result",
+      "test::direct-table-maintenance",
+      "test::direct-catalog-abi",
+      "test::node-concurrency",
+      "test::native-blocks",
+      "test::document-local",
+      "test::public-query",
+      "test::publication",
+      "test::table-query-writer",
+      "test::catalog"
+    ],
+    "elapsed_seconds": 6677.48,
+    "failure": "calls subprocess exceeded unchanged 180-second timeout"
+  },
+  "diagnostic": {
+    "selected_case": "calls",
+    "qualification": false,
+    "exit_code": 1,
+    "started_unix": 1795310743.0298135,
+    "elapsed_seconds": 186.1054172515869,
+    "binaries": [
+      {
+        "name": "native-authority-fixture",
+        "sha256": "5a7a94475d4a76cfa512da728aa5806df650473e922b7ea380b555f4f3482d27"
+      },
+      {
+        "name": "transit-direct-table-proof",
+        "sha256": "1a047894bdb55887f9f8fc27359d337bd0b88e1203377a08172ca6bc2d1eae5b"
+      },
+      {
+        "name": "transit",
+        "sha256": "9d225a1508ea8336f13ddde8c92ad05705f4ec17564b4e2cd96e4f2964304e87"
+      }
+    ],
+    "trace": "strace -f -c -w",
+    "scope": "Fresh fixture, provision, restart, calls, and joined cleanup; selected calls only, not the complete Station schedule.",
+    "concurrent_workload": "Separate Transit SDK scripting campaign",
+    "conclusion": "The matched fresh-fixture comparison passed after the competing durable SDK phase ended; lower fsync latency supports contention as the cause of this reproduced deadline exhaustion. Neither traced run replaces complete clean-lane qualification."
+  },
+  "comparison": {
+    "selected_case": "calls",
+    "qualification": false,
+    "exit_code": 0,
+    "started_unix": 1795310994.2516973,
+    "elapsed_seconds": 96.9746584892273,
+    "identical_binaries": true,
+    "identical_assertions_and_timeout": true,
+    "trace": "strace -f -c -w",
+    "fsync_calls": 29019,
+    "fsync_aggregate_wall_seconds": 76.215593,
+    "fsync_mean_microseconds": 2626
+  }
+}

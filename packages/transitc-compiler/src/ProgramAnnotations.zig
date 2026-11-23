@@ -88,7 +88,7 @@ pub fn check(scratch: std.mem.Allocator, output: std.mem.Allocator, graph: Graph
         try self.block(failure.instructions);
         try self.event(.failure_end, null, 0, null, &.{});
     }
-    for (sites, used) |site, consumed| if (site.value == .nominal and !consumed) {
+    for (sites, used) |site, consumed| if ((site.value == .nominal or site.value == .symbolic) and !consumed) {
         context.* = .{ .offset = site.start };
         return error.InvalidSourceOperand;
     };
@@ -309,14 +309,15 @@ fn expression(self: *Self, input: *const a.Expression) anyerror!Value {
             break :blk .{ .fields = fields };
         },
     };
-    // Source holes are emitted as complete scalar literals in program SQL.
+    // Source holes occupy complete scalar expressions: concrete literals or
+    // immutable constants in the temporary analysis environment.
     // Match the recorded expansion extent, including the parser's trailing
     // whitespace convention; never infer domains from equal scalar values.
-    for (self.sites, 0..) |site, i| if (site.value == .nominal and site.start == input.span.start and site.end <= input.span.end and
+    for (self.sites, 0..) |site, i| if ((site.value == .nominal or site.value == .symbolic) and site.start == input.span.start and site.end <= input.span.end and
         std.mem.trim(u8, self.sql[site.end..input.span.end], " \t\r\n").len == 0)
     {
         self.used[i] = true;
-        value.domain = site.value.nominal.type.domain;
+        value.domain = if (site.value == .symbolic) site.value.symbolic.domain else site.value.nominal.type.domain;
     };
     const phys = try self.physical(input.id);
     for (self.obligations, 0..) |ob, idx| if (ob.target == .span and ob.target.span.start == input.span.start and ob.target.span.end == input.span.end) {

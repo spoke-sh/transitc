@@ -1658,7 +1658,7 @@ fn emitStatement(self: *Self, file: usize, span: s.Span, template: s.Template.Sy
         try @import("ProgramLowering.zig").lowerProgram(self, file, tokens, bindings, scratch, f.Sql.max_statement_bytes, &sites, origins, &obligations, &symbolic_parameters)
     else
         try expand(self.graph.sources[file].text, tokens, bindings, self.activeSchemas(), scratch, f.Sql.max_statement_bytes, false, if (log_statement) null else &type_sites, self.a, &sites, origins);
-    var check_catalog = try @import("SymbolicProgram.zig").catalog(scratch, self.catalog, raw, symbolic_parameters.items, at);
+    var check_catalog = try @import("SymbolicProgram.zig").catalog(scratch, self.catalog, symbolic_parameters.items);
     // DDL creates the proposed shape; other statements check source annotations
     // before the ordinary binder can erase nominal identity into scalar values.
     var digest: [32]u8 = undefined;

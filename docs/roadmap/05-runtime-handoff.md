@@ -1,7 +1,9 @@
 # Milestone 5 runtime handoff
 
-These gates are against Transit `f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`,
-which supplies both pure packages and the compiled-case host. The frozen compiler
+These gates were established against Transit `f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`,
+the previous shared-package and compiled-case host pin. The
+[completion record](../qualification/composition-completion.md) tracks the
+candidate scalar-analysis API and compatible host qualification. The frozen compiler
 comparison remains `e7434306334e3692c6f3e123cba0d278fa412196`. This document requests
 ordinary runtime contracts; it does not authorize a compiler bypass or a pin
 update without qualification.
@@ -20,8 +22,9 @@ The type gate is owned by
 [`ApplicationSchema.zig`](https://github.com/spoke-sh/transit/blob/f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6/packages/zig/transit-sql-frontend/src/ApplicationSchema.zig)
 and the value/SELECT boundary by
 [`ApplicationData.zig`](https://github.com/spoke-sh/transit/blob/f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6/packages/zig/transit-query-direct/src/ApplicationData.zig).
-The requests above need their own upstream design and implementation; no upstream
-runtime files or pins have been modified in this compiler increment.
+The requests above still need their own upstream design and implementation. The
+completion slice adds scalar analysis APIs; it does not implement these runtime
+extensions.
 
 ## Compiled-case deadline investigation
 
@@ -55,13 +58,20 @@ installed journeys from isolated deadline failures. Fixing or investigating a
 failing test remains work; a declared runtime dependency does not turn a failure
 into a pass.
 
-Whole-input ROW helpers combined with symbolic scalar holes remain outside the
-bounded checker. Admitting that combination requires compiler implementation and
-its independent hygiene/type/refusal tests, not a new runtime representation.
+Whole-input ROW helpers with symbolic scalar holes now preserve the authored
+Queue shape through a separate bounded analysis environment. The compiler and
+independent hygiene/type/refusal tests are implemented; the supporting pure
+Transit API and its candidate pin still require upstream merge and complete
+qualification. This needs no new native ROW representation. See the
+[completion record](../qualification/composition-completion.md) for actual
+revisions and results.
 Source callable row/many returns, general implication solving, implicit signature
 subtyping and unrestricted predicates are not silently admitted by this increment.
 New source forms that depend on the native gates above still need their own
 compiler implementation after the upstream contracts and pins are qualified.
 
-The [implementation plan](05-typed-composition-and-sql.md) remains open. These
-handoffs do not close milestone 5 or transfer compiler-owned work upstream.
+The [next slice plan](05-typed-composition-and-sql.md#next-slice-complete-the-existing-composition-profile)
+sequences completion diagnosis, precise ROW admission, any owning fix/pin update
+and full qualification. The [milestone plan](05-typed-composition-and-sql.md)
+remains open. These handoffs do not close milestone 5 or transfer compiler-owned
+work upstream.
