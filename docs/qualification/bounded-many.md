@@ -1,6 +1,6 @@
 # Bounded many-row results qualification
 
-Implementation and qualification are in progress. This record keeps the merged
+Implementation is complete; compiler runtime qualification is in progress. This record keeps the merged
 composition baseline separate from the bounded-result candidate. The
 [implementation plan](../roadmap/05-bounded-many-results.md) remains the acceptance
 inventory; a partial schedule does not close it or milestone 5.
@@ -41,8 +41,12 @@ also passed all 42 isolated cases and failed that same import boundary.
 
 Commit `c034b99` fixes the owning driver by initializing the pinned upstream
 import root and phase recorder independently of the native phase. It changes
-neither the native runtime nor any time budget. Its separate execution result
-will be recorded with the completed candidate schedule.
+neither the native runtime nor any time budget. The standalone dynamic phase
+passes against the frozen `b914de4` compiler / `b58715b` host using the corrected
+driver from `69dc1f1`. Complete build-command and test-command checks also pass
+against the frozen pair, closing the CLI checks that the earlier CI aggregate
+never reached. Their outcomes are retained in the separate runtime-gate record;
+they do not relabel the original failed local composition schedules below.
 
 The predeclared three local passes completed against the frozen pair, retaining
 every failed and unexecuted case:
@@ -92,8 +96,9 @@ refreshes those inputs and the handbook fingerprint, and adds an explicit
 prior-definition refusal case. All 783 public compiler grammar cases then pass.
 The managed-runtime proof at `735e0f4a1` passes the new loop, selective scan,
 cumulative budget and changed-basis assertions alongside the existing fault and
-cleanup schedule. That pass precedes the mandatory-field corrections; final clean
-qualification remains pending. Interrupted exploratory clean runs are not passes.
+cleanup schedule. That pass precedes the mandatory-field corrections. The final
+corrected clean results below qualify the later source; interrupted exploratory
+clean runs are not passes.
 
 All 28 clean core tasks pass at `ff7386ac665fb23891d36b096ff25dc10bdaac9f`,
 including the complete native package check, 49 standalone package builds,
@@ -102,8 +107,22 @@ authorization and callers. The first clean installation lane passes Board and
 strict handbook checks, then fails on stale generated Node validator digests.
 `d65f7c656` regenerates both SDK digests; the owning Node checks pass. That commit
 changes only those two digest files, so the native runtime/frontend code and the
-completed core result are unchanged. Remaining clean lanes run at the corrected
-revision. The original failed installation attempt remains retained.
+completed core result are unchanged. At `d65f7c656`, all 24 installation/UI,
+32 storage/query and 16 SDK tasks pass. The final managed proof includes bounded
+iteration, selective/cumulative budgets, changed-basis refusal and the existing
+lost-reply, restart, cancellation and cleanup schedule. The original failed
+installation attempt remains retained.
+
+The complete console gate also passes every startup, latency and memory budget
+at clean `d65f7c656`: Document/KV/Stream write metrics are 88/93/90 ms, peak PSS is
+1,243,001,856 bytes and memory growth is 1.0955. This uses the unchanged budget
+file and shared local host, without overlapping local qualification campaigns.
+It does not establish a matched performance improvement. The native
+[qualification history](https://github.com/spoke-sh/transit/blob/ec5bb00a9ad4a5a2bd1a4807ae98003c7ed3ed21/docs/history/qualification/runtime.md)
+retains exact source identities, report locations, hashes and limits.
+[Transit #480](https://github.com/spoke-sh/transit/pull/480) contains the native
+implementation and documentation. Its final documentation commit also passes
+all 71 fast checks, locked handbook installation and strict handbook checks.
 
 Native frontend, Fuze iteration/environment and query-direct application unit
 tests pass, including partial-allocation failures, stale completions, forged
@@ -111,7 +130,8 @@ iterator lengths, empty loops, first ordered refusal and cumulative read-budget
 controls. The handwritten installed SQL journey passes empty/one/several/exact/
 excess bounds, nullable fields, duplicate payloads in exact key order, late
 rollback, process restart and retirement. The 71 fast checks, 20 contract checks
-and strict handbook build pass. Clean runtime lanes remain to be recorded.
+and strict handbook build pass. The selected clean runtime lanes are recorded
+above; they are not a complete native release campaign.
 
 Compiler/workspace unit tests pass (137 tests). Formatter coverage passes all
 46 fixtures; documentation coverage, eight workspace journeys and both release
@@ -138,7 +158,16 @@ That host predates the mandatory-field corrections and is superseded for final
 runtime qualification. That earlier shared archive has SHA-256 SRI
 `sha256-bahP6fqkRg6/yFhJ5MpfsfDQgUlY1gkze6r6MdOaSnE=` and Zig package hash
 `transit_sql_distribution-0.0.1-t9CQA2cRIwBqqqpd72UY1jZ01USaeMUq_7pGHYqeGlJi`.
-Remote retrieval remains to be verified after the native branch is published.
+The final pin's remote retrieval is verified separately below.
+
+Fresh HTTP downloads verify the published `d65f7c656` frontend archive and source
+independently of cached Nix retrieval. The archive has SHA-256 SRI
+`sha256-HWbBkOjoR+xeIF7XolIajdTJ3jkqsXmWH1pzUAM6NBY=`; fetching it into an empty
+Zig cache yields
+`transit_sql_distribution-0.0.1-t9CQA2UWIwBbAG3g4rw2HdU9FM1kSbCoZCm1W2_LqLTz`.
+The independently unpacked GitHub source has NAR hash
+`sha256-1TWjNvpyhEWqAXafkgcY6e5/GZuoQsbszeAY6CnHTIk=`, exactly matching the lock.
+The local retrieval report is `.cache/bounded-many/published-inputs/report.json`.
 
 An exploratory installed comparison passed all 21 original cases (seven on each
 of two generated instances and one independent SQL instance), including exact
@@ -147,8 +176,30 @@ predates the added explicit `MANY(4)` correction and used the exploratory native
 binary; it does not qualify the final immutable pair or the extended 22-case
 journey.
 
+The final immutable compiler package builds and passes its unit and installed
+CLI checks at `69dc1f173bf5bb2d0ecc6685b0fb246bd744be96`. Its executable is
+`/nix/store/hx0bpmdl0ydcg549advcjp4c6blzy7xl-transitc-0.0.0-dev/bin/transitc`,
+SHA-256 `2803e7aecb7b81028a2d054b574e47b232cbbc1c8db2bcb24a4ea7529d5be132`.
+The final `d65f7c656` host is
+`/nix/store/ab8y3wlv50aw1b9qr1pc0f1zhb0rjvp4-transit-0.0.1/bin/transit`,
+SHA-256 `7b7a2adbf1e3e0b6b8fe34f31285ad83ff79c9b5cbed71797ad71e6d7d04f397`.
+Upstream smoke, emitted SQL and composition controls pass against this pair.
+
+The first candidate parity check fails because `ApplicationProgram.Select.many`
+adds a nullable field to canonical instruction bytes even for existing singleton
+reads. `ProgramCheck` hashes those bytes, and AUTHORIZE/ACTIVATE plans include the
+program identity. All emitted SQL and source maps remain byte-for-byte equal.
+Commit `c659d2d` records the twelve exact old/new plan hashes for the two typed
+and two modular Queue instances. The corrected check passes all twelve fixture
+and diagnostic comparisons and 24 artifact mutation controls against the same
+immutable compiler. Foreign definitions, changed maps, unrelated plan hashes
+and unexpected changes to reviewed hashes still fail. The original failed
+phase and this supplemental result remain separate; no production code or
+runtime budget changes to make this check pass.
+
 The final installed generated/oracle comparison, three-pass 49-case composition
-schedule, CLI/runtime checks, clean-cache/public embedding, installed Nix package
-and four-platform archive CI remain acceptance gates.
-This section will be updated with actual completed outcomes and immutable
-compiler/shared/host identities before submission.
+schedule, CLI/runtime checks, clean-cache/public embedding and four-platform
+archive CI remain acceptance gates. Local runtime checks continue at the clean
+`69dc1f1` checkout while the parity fix and documentation are prepared in a
+separate review worktree. This record will retain their actual outcomes before
+the draft compiler PR is marked ready.
