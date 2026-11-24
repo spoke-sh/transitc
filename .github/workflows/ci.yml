@@ -28,6 +28,8 @@ jobs:
       - run: nix develop --command just check test::release
       - run: nix develop --command just test::clean-build
       - run: nix develop --command just test::fmt test::documentation test::workspace test::examples test::integration test::build-command test::command
+      - name: Qualify three isolated composition passes
+        run: nix develop --command python3 -B tests/runner/launch.py tests/integration/composition.py zig-out/bin/transitc --runs 3 --isolated-only
       - name: Retain independent comparisons and runtime phase evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
