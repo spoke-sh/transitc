@@ -1,0 +1,1479 @@
+{
+  "provenance": {
+    "revision": "0cd8ca7473a26d78605d86a83721242ccf940ad1",
+    "dirty": false,
+    "toolchain": {
+      "flake_lock_sha256": "d9f31e1da7c21e2939a0df3bb8550dc931d038e04abf52daa978432851a6cf19",
+      "python_version": "3.13.15 (main, Aug  5 2026, 12:25:43) [GCC 15.3.0]",
+      "executables": {
+        "python": "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3.13",
+        "nix": "/nix/store/irfrbndi76zhkvqsfhmsn4a99iafck29-nix-2.35.2/bin/nix",
+        "zig": "/nix/store/j680yxrjdkr14imvrjb2b8lcara50rm3-transit-zig",
+        "just": "/nix/store/lccvn99vpz9xz6c9faamsqas3kb2r78h-just-1.51.0/bin/just"
+      }
+    }
+  },
+  "complete": true,
+  "ok": true,
+  "compiler_sha256": "3b01e8dbac89bd95f8f22316b427565a551d3b1da007e0f375be5c20b84ceb3d",
+  "runtime_sha256": "298fa95ae2b563280cdd1ec55537d69a5ceddc9bd2d8ee0ddd4256bce6728349",
+  "expected_phases": [
+    "isolated-1-application-typed-queue",
+    "isolated-1-application-variant-encoding",
+    "isolated-1-application-dynamic-dispatch",
+    "isolated-1-application-cardinality",
+    "isolated-1-application-refinements",
+    "isolated-1-application-callables",
+    "isolated-1-application-date",
+    "isolated-1-application-sql-scalars",
+    "isolated-1-application-numeric-operators",
+    "isolated-1-application-json-helpers",
+    "isolated-1-application-whole-row",
+    "isolated-1-application-bounded-many",
+    "isolated-2-application-typed-queue",
+    "isolated-2-application-variant-encoding",
+    "isolated-2-application-dynamic-dispatch",
+    "isolated-2-application-cardinality",
+    "isolated-2-application-refinements",
+    "isolated-2-application-callables",
+    "isolated-2-application-date",
+    "isolated-2-application-sql-scalars",
+    "isolated-2-application-numeric-operators",
+    "isolated-2-application-json-helpers",
+    "isolated-2-application-whole-row",
+    "isolated-2-application-bounded-many",
+    "isolated-3-application-typed-queue",
+    "isolated-3-application-variant-encoding",
+    "isolated-3-application-dynamic-dispatch",
+    "isolated-3-application-cardinality",
+    "isolated-3-application-refinements",
+    "isolated-3-application-callables",
+    "isolated-3-application-date",
+    "isolated-3-application-sql-scalars",
+    "isolated-3-application-numeric-operators",
+    "isolated-3-application-json-helpers",
+    "isolated-3-application-whole-row",
+    "isolated-3-application-bounded-many"
+  ],
+  "phases": [
+    {
+      "name": "isolated-1-application-typed-queue",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-typed-queue.json",
+        "bytes": 5051,
+        "sha256": "3253400b99e6e61f23585547b00e3c61802c0e73730940a410efea6e17cb8038"
+      },
+      "stderr": {
+        "path": "isolated-1-application-typed-queue.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "typed lookup success",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "absent lookup refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "multiple-row lookup refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "post-insert atomic refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "independent named pipeline",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 19.697
+    },
+    {
+      "name": "isolated-1-application-variant-encoding",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-variant-encoding.json",
+        "bytes": 6121,
+        "sha256": "a17439cedaa6e28e0e01c198dfa6465d342f6c26279dcb4bfd5d4e3e43c70d10"
+      },
+      "stderr": {
+        "path": "isolated-1-application-variant-encoding.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "machine dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "site dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "invalid tag",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing active payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "populated inactive payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing selected resource",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "rollback after write",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 26.159
+    },
+    {
+      "name": "isolated-1-application-dynamic-dispatch",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-dynamic-dispatch.json",
+        "bytes": 6362,
+        "sha256": "f21c3afd9d3dfc20f6e17c4b7d85b30882722613b720ee4f8fffa5820dd29206"
+      },
+      "stderr": {
+        "path": "isolated-1-application-dynamic-dispatch.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "machine dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "site dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "invalid tag",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing active payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "populated inactive payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing selected resource",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "rollback after write",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 32.971
+    },
+    {
+      "name": "isolated-1-application-cardinality",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-cardinality.json",
+        "bytes": 6818,
+        "sha256": "ca24e2fdeebc7fd6238f6a4ed1ff3628cbe9525c1db32635e932a6b8e924dd86"
+      },
+      "stderr": {
+        "path": "isolated-1-application-cardinality.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "one present NULL",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one absent",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one multiple",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one rollback",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional present NULL",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional absent",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional multiple",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional rollback",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 24.405
+    },
+    {
+      "name": "isolated-1-application-refinements",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-refinements.json",
+        "bytes": 4637,
+        "sha256": "79ae632e94d75ba881f9a5c01e52f78880c5cc770066ef227bd6f38c791fbe9d"
+      },
+      "stderr": {
+        "path": "isolated-1-application-refinements.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "bounds accepted",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing amount",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "lower bound",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "upper bound",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "postcondition rollback",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 13.786
+    },
+    {
+      "name": "isolated-1-application-callables",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-callables.json",
+        "bytes": 2722,
+        "sha256": "0b1424ac3c263bf87df0ccdd47ed72cf0b833510ce76ad783b584b17d21015da"
+      },
+      "stderr": {
+        "path": "isolated-1-application-callables.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "imported callable",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "returning callable rollback",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 7.728
+    },
+    {
+      "name": "isolated-1-application-date",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-date.json",
+        "bytes": 1770,
+        "sha256": "6227546e9345495d50c69da8af7f97da52905a13e6f56d6b7bcd287171ac4af5"
+      },
+      "stderr": {
+        "path": "isolated-1-application-date.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "date values retain exact days and NULL",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 3.22
+    },
+    {
+      "name": "isolated-1-application-sql-scalars",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-sql-scalars.json",
+        "bytes": 1775,
+        "sha256": "03467c81697f02f1dcad080825f955a351c20fd2c1817bda26af358707c330bb"
+      },
+      "stderr": {
+        "path": "isolated-1-application-sql-scalars.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact decimal JSON and interval components",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 3.17
+    },
+    {
+      "name": "isolated-1-application-numeric-operators",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-numeric-operators.json",
+        "bytes": 1748,
+        "sha256": "516ed2dd6895789e123e4333c3cde2e3a86bc0313ba3115e7d0d9e3277eca8f1"
+      },
+      "stderr": {
+        "path": "isolated-1-application-numeric-operators.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact operations",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 3.17
+    },
+    {
+      "name": "isolated-1-application-json-helpers",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-json-helpers.json",
+        "bytes": 2483,
+        "sha256": "540c79af54d1de5b31c5c0ed3bb56b180bcba7ea6562f531534614b56ff96ab8"
+      },
+      "stderr": {
+        "path": "isolated-1-application-json-helpers.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact JSON extraction",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "JSON null is a value",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 8.128
+    },
+    {
+      "name": "isolated-1-application-whole-row",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-whole-row.json",
+        "bytes": 3334,
+        "sha256": "57b578734f1e6902ea89a6daab2852037d6ba42d44c90497ac223355dc17aa9f"
+      },
+      "stderr": {
+        "path": "isolated-1-application-whole-row.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "whole input accepted",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "whole input guard refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "other specialization",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 13.087
+    },
+    {
+      "name": "isolated-1-application-bounded-many",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-bounded-many.json",
+        "bytes": 6260,
+        "sha256": "b241dcbc41fecc4ca55d3a4a410a88123cd6b01cdf9f88229e477f370fa02689"
+      },
+      "stderr": {
+        "path": "isolated-1-application-bounded-many.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "empty collection",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one nullable row",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "ordered duplicate payloads",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "exact bound",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "over bound",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "late refusal rolls back earlier rows",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "first error follows key order",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 35.975
+    },
+    {
+      "name": "isolated-2-application-typed-queue",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-typed-queue.json",
+        "bytes": 5051,
+        "sha256": "3b7d959b7e3bae8e172aff488970258bfbd245367466d0f730fd66482fbe6e01"
+      },
+      "stderr": {
+        "path": "isolated-2-application-typed-queue.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "typed lookup success",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "absent lookup refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "multiple-row lookup refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "post-insert atomic refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "independent named pipeline",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 19.649
+    },
+    {
+      "name": "isolated-2-application-variant-encoding",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-variant-encoding.json",
+        "bytes": 6121,
+        "sha256": "56efea0e8226e414f1ea5ca37c34723d50e9f0335b9bb4ad6ac3eeef9847938d"
+      },
+      "stderr": {
+        "path": "isolated-2-application-variant-encoding.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "machine dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "site dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "invalid tag",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing active payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "populated inactive payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing selected resource",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "rollback after write",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 26.209
+    },
+    {
+      "name": "isolated-2-application-dynamic-dispatch",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-dynamic-dispatch.json",
+        "bytes": 6362,
+        "sha256": "7da432ae34bd080305b77b80894dcf22978ab43adfa0ccc51b3a4282811d30d6"
+      },
+      "stderr": {
+        "path": "isolated-2-application-dynamic-dispatch.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "machine dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "site dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "invalid tag",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing active payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "populated inactive payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing selected resource",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "rollback after write",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 33.02
+    },
+    {
+      "name": "isolated-2-application-cardinality",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-cardinality.json",
+        "bytes": 6818,
+        "sha256": "1cca982dff91b1b75523c12fbb3400cb3515ea5bb5ed6a5b7e1ee4931151c388"
+      },
+      "stderr": {
+        "path": "isolated-2-application-cardinality.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "one present NULL",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one absent",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one multiple",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one rollback",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional present NULL",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional absent",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional multiple",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional rollback",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 24.455
+    },
+    {
+      "name": "isolated-2-application-refinements",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-refinements.json",
+        "bytes": 4637,
+        "sha256": "557094dd21ba48f241358f33fa9fe05b29cc30ec54eb2667a367eba0aef03e85"
+      },
+      "stderr": {
+        "path": "isolated-2-application-refinements.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "bounds accepted",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing amount",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "lower bound",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "upper bound",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "postcondition rollback",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 13.738
+    },
+    {
+      "name": "isolated-2-application-callables",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-callables.json",
+        "bytes": 2722,
+        "sha256": "b61c415f250915cc704f9975b7de5dc573c82c203dce521803349d59dd82475a"
+      },
+      "stderr": {
+        "path": "isolated-2-application-callables.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "imported callable",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "returning callable rollback",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 7.829
+    },
+    {
+      "name": "isolated-2-application-date",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-date.json",
+        "bytes": 1770,
+        "sha256": "49eb02f05b7d8be7575a83b4640565db910280f22da6d6bed3dc27ee97f7265d"
+      },
+      "stderr": {
+        "path": "isolated-2-application-date.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "date values retain exact days and NULL",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 3.221
+    },
+    {
+      "name": "isolated-2-application-sql-scalars",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-sql-scalars.json",
+        "bytes": 1775,
+        "sha256": "79d26a4dc8d0451d9fb2666b7551e7e1f6482376d690cb4714d09a7d1d347395"
+      },
+      "stderr": {
+        "path": "isolated-2-application-sql-scalars.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact decimal JSON and interval components",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 3.171
+    },
+    {
+      "name": "isolated-2-application-numeric-operators",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-numeric-operators.json",
+        "bytes": 1748,
+        "sha256": "6d5c3469a9ed1cb61737eddab5f16d9f9f9c5dfed5ceca33ffed55c5f79b8282"
+      },
+      "stderr": {
+        "path": "isolated-2-application-numeric-operators.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact operations",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 3.169
+    },
+    {
+      "name": "isolated-2-application-json-helpers",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-json-helpers.json",
+        "bytes": 2483,
+        "sha256": "ab594fad8d4e44ac9128f1b72882d0c0558530e83619fd47c8ba345fbd0c77c1"
+      },
+      "stderr": {
+        "path": "isolated-2-application-json-helpers.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact JSON extraction",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "JSON null is a value",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 8.228
+    },
+    {
+      "name": "isolated-2-application-whole-row",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-whole-row.json",
+        "bytes": 3334,
+        "sha256": "2241e399a1a2f4d1858064cfae71bc75790f9d35b03a5a03ea33a03bcbcff8cf"
+      },
+      "stderr": {
+        "path": "isolated-2-application-whole-row.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "whole input accepted",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "whole input guard refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "other specialization",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 13.038
+    },
+    {
+      "name": "isolated-2-application-bounded-many",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-2-application-bounded-many.json",
+        "bytes": 6260,
+        "sha256": "309f97bf5d901952db410315993966e52638a12fccc847fe449ff382f125b238"
+      },
+      "stderr": {
+        "path": "isolated-2-application-bounded-many.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "empty collection",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one nullable row",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "ordered duplicate payloads",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "exact bound",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "over bound",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "late refusal rolls back earlier rows",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "first error follows key order",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 36.178
+    },
+    {
+      "name": "isolated-3-application-typed-queue",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-typed-queue.json",
+        "bytes": 5051,
+        "sha256": "c94c640100602ac4035a632478501ec6e41f6594d69bce0339444b91864d1032"
+      },
+      "stderr": {
+        "path": "isolated-3-application-typed-queue.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "typed lookup success",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "absent lookup refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "multiple-row lookup refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "post-insert atomic refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "independent named pipeline",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 19.799
+    },
+    {
+      "name": "isolated-3-application-variant-encoding",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-variant-encoding.json",
+        "bytes": 6121,
+        "sha256": "f77f23357827b04ac8f0255a48337a5fe738bb499ab7281518db436f48b33027"
+      },
+      "stderr": {
+        "path": "isolated-3-application-variant-encoding.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "machine dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "site dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "invalid tag",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing active payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "populated inactive payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing selected resource",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "rollback after write",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 26.611
+    },
+    {
+      "name": "isolated-3-application-dynamic-dispatch",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-dynamic-dispatch.json",
+        "bytes": 6362,
+        "sha256": "e4bd28f3dcd817c19bec5201105ecb67fbc6097af08794740945129d19c10f73"
+      },
+      "stderr": {
+        "path": "isolated-3-application-dynamic-dispatch.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "machine dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "site dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "invalid tag",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing active payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "populated inactive payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing selected resource",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "rollback after write",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 33.173
+    },
+    {
+      "name": "isolated-3-application-cardinality",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-cardinality.json",
+        "bytes": 6818,
+        "sha256": "1f1b2735e16237e000bca55a3ba3bd861cf13bb31b8a35d63d605201ac4374b8"
+      },
+      "stderr": {
+        "path": "isolated-3-application-cardinality.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "one present NULL",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one absent",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one multiple",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one rollback",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional present NULL",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional absent",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional multiple",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional rollback",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 24.756
+    },
+    {
+      "name": "isolated-3-application-refinements",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-refinements.json",
+        "bytes": 4637,
+        "sha256": "c74a2741f21fe2b49dc0ab6bba1c32f12953580991d20185f18767f02a92aa6e"
+      },
+      "stderr": {
+        "path": "isolated-3-application-refinements.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "bounds accepted",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing amount",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "lower bound",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "upper bound",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "postcondition rollback",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 13.941
+    },
+    {
+      "name": "isolated-3-application-callables",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-callables.json",
+        "bytes": 2722,
+        "sha256": "44d33025cdd9e19801869a1452e14632cc5137cd50bf3fa0cff99246780e7f0b"
+      },
+      "stderr": {
+        "path": "isolated-3-application-callables.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "imported callable",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "returning callable rollback",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 7.879
+    },
+    {
+      "name": "isolated-3-application-date",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-date.json",
+        "bytes": 1770,
+        "sha256": "b64701c7c133a230abdc8f865fc00d534116cfb90ee745193a1940fdfa64fcc6"
+      },
+      "stderr": {
+        "path": "isolated-3-application-date.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "date values retain exact days and NULL",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 3.221
+    },
+    {
+      "name": "isolated-3-application-sql-scalars",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-sql-scalars.json",
+        "bytes": 1775,
+        "sha256": "15b274586de457f197f7ef950596b474edf3befddb0627fe16a9230f1bb3cb7d"
+      },
+      "stderr": {
+        "path": "isolated-3-application-sql-scalars.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact decimal JSON and interval components",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 3.17
+    },
+    {
+      "name": "isolated-3-application-numeric-operators",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-numeric-operators.json",
+        "bytes": 1748,
+        "sha256": "455fcdf1dd65c2785f825f0a71b2f596a3ecdb0df55d3450f0c18905d01bd47b"
+      },
+      "stderr": {
+        "path": "isolated-3-application-numeric-operators.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact operations",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 3.171
+    },
+    {
+      "name": "isolated-3-application-json-helpers",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-json-helpers.json",
+        "bytes": 2483,
+        "sha256": "58e4aacd3fd105180056d792b2eaa2d2c24f7c0e9a9b9a323fbee0901de8b71c"
+      },
+      "stderr": {
+        "path": "isolated-3-application-json-helpers.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact JSON extraction",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "JSON null is a value",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 8.232
+    },
+    {
+      "name": "isolated-3-application-whole-row",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-whole-row.json",
+        "bytes": 3334,
+        "sha256": "6945f988ce49d2cac20393bafb0fac8a804ff26eb0d59b1f1b0749869082c3aa"
+      },
+      "stderr": {
+        "path": "isolated-3-application-whole-row.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "whole input accepted",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "whole input guard refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "other specialization",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 13.14
+    },
+    {
+      "name": "isolated-3-application-bounded-many",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-3-application-bounded-many.json",
+        "bytes": 6260,
+        "sha256": "6d2a9bfd44a40206824687156e6abd4683095dc35e3303539fc5d96aeeaab313"
+      },
+      "stderr": {
+        "path": "isolated-3-application-bounded-many.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "empty collection",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one nullable row",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "ordered duplicate payloads",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "exact bound",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "over bound",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "late refusal rolls back earlier rows",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "first error follows key order",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 36.332
+    }
+  ]
+}

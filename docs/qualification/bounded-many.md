@@ -1,9 +1,12 @@
 # Bounded many-row results qualification
 
-Implementation is complete; compiler runtime qualification is in progress. This record keeps the merged
+Implementation and hosted qualification are complete. The paired changes are
+[Transit #480](https://github.com/spoke-sh/transit/pull/480) and
+[transitc #7](https://github.com/spoke-sh/transitc/pull/7); the native owner merges
+first. This record keeps the merged
 composition baseline separate from the bounded-result candidate. The
 [implementation plan](../roadmap/05-bounded-many-results.md) remains the acceptance
-inventory; a partial schedule does not close it or milestone 5.
+inventory. Local deadline failures remain failed below; milestone 5 remains open.
 
 ## Merged composition baseline
 
@@ -255,14 +258,44 @@ and clean-cache embedding, then is cancelled during the final integration/CLI
 aggregate when the review branch advances. Commit `b5807de` adds three complete
 isolated passes to hosted CI, using the same case inventory and unchanged limits.
 Its [new CI run](https://github.com/spoke-sh/transitc/actions/runs/45338627390)
-is in progress; the earlier aggregate is not recorded as a pass. In the new run,
+passes the complete compiler job: Nix checks, source correspondence, clean-cache
+embedding, the full integration/CLI aggregate and three isolated passes. The
+earlier cancelled aggregate is not recorded as a pass. In the new run,
 the x86 macOS build, unit/embedding, installed archive and formatter checks pass,
 but signing fails when GitHub's identity-token endpoint times out. The
 [failure record](results/bounded-many/candidate/macos-attestation-failure.json)
 retains that distinction. Signing remains required; GitHub permits a job retry
-only after the containing workflow finishes.
+only after the containing workflow finishes. The retry of that macOS job passes
+every step, including signing, signature/source verification, tamper refusal and
+artifact upload. The [final workflow status](results/bounded-many/candidate/hosted/workflow-status.json)
+retains the successful jobs alongside the original failure record. CI and the
+handbook workflow both complete successfully.
+
+The verified hosted artifact `14898414817` has ZIP SHA-256
+`d72fe41606336a9db80bcf0f524e698ece60ad12fbe86a57f87cdcb7bc19435f`.
+Its [summary](results/bounded-many/candidate/hosted/summary.json) and sibling raw
+reports retain a separate 49/49 integration pass, all ten installed phases and
+three further passes of 49/49 cases: **147/147** in the repeated schedule, with
+zero failures or unrun cases. All case, suite and cleanup limits remain unchanged.
+The hosted 22-case bounded-result journey also completes successfully.
+
+The tested merge is `0cd8ca7473a26d78605d86a83721242ccf940ad1`; its Git tree
+`e805adb181188a5e17fa15285df5722286b7e180` exactly equals review head `b5807de`.
+The recorded production paths and composition fixtures/drivers are unchanged
+from local compiler source `69dc1f1`. Every hosted case name and SQL digest equals
+its local counterpart, and the generated/oracle/corrected SQL bytes also match.
+CI uses compiler executable SHA-256
+`3b01e8dbac89bd95f8f22316b427565a551d3b1da007e0f375be5c20b84ceb3d`
+and host SHA-256
+`298fa95ae2b563280cdd1ec55537d69a5ceddc9bd2d8ee0ddd4256bce6728349`,
+with host revision `d65f7c656`. These executable hashes differ from the local Nix
+pair. The source/SQL comparisons establish their stated correspondence; they do
+not establish byte-identical binaries or a matched performance result.
 
 All local runtime/package phases completed at the clean `69dc1f1` checkout.
 Later review commits change parity expectations, the CI schedule and documentation;
-they do not change compiler/runtime production code. Hosted repeated qualification
-and the macOS signing retry remain open before the compiler PR is marked ready.
+they do not change compiler/runtime production code. Final local formatting,
+dependency/diagnostic, compilation and strict handbook checks pass; relative
+documentation links and retained evidence hashes are also verified. Milestone 5 remains in
+progress, with state-carrying values, query-result callable contracts, remaining
+scalar surfaces, views and final integrated qualification still required.

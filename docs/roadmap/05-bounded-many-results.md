@@ -1,12 +1,13 @@
-# Milestone 5 next slice: bounded many-row results
+# Milestone 5: bounded many-row results
 
-Status: Implementation complete; qualification in progress
+Status: Implemented and qualified; paired PRs open
 
 The [qualification record](../qualification/bounded-many.md) retains the completed
 baseline schedules and records candidate gates separately. Native clean/hosted
 qualification, the 22-case installed comparison and local CLI/package gates pass.
-The three local isolated schedules retain deadline failures; repeated hosted
-qualification and a macOS signing retry remain open. The paired changes are
+The three local isolated schedules retain deadline failures. Three hosted
+49-case passes succeed with unchanged limits, and all four signed native archive
+jobs pass, including the macOS retry after an identity-token timeout. The paired changes are
 [Transit #480](https://github.com/spoke-sh/transit/pull/480) and
 [transitc #7](https://github.com/spoke-sh/transitc/pull/7); the native owner merges
 first. The approved plan below preserves the original proposal and acceptance

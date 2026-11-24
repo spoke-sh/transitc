@@ -29,10 +29,11 @@ performance work in milestones 5–10.
 The [typed composition qualification](../qualification/typed-composition.md)
 records milestone 5's delivered increments, passing evidence and open gates.
 The [composition completion implementation](05-typed-composition-and-sql.md#previous-slice-complete-the-existing-composition-profile)
-is merged. The active [bounded many-row slice](05-bounded-many-results.md) adds
-native bounds, atomic consumption and compiler typing. Its
+is merged. The [bounded many-row slice](05-bounded-many-results.md) implements
+and qualifies native bounds, atomic consumption and compiler typing. Its
 [qualification record](../qualification/bounded-many.md) retains the completed
-merged-profile CI and local schedules alongside candidate results and open gates.
+merged-profile CI and local schedules alongside passing hosted candidate results
+and retained local deadline failures.
 The plan also records the remaining feature slices required to finish milestone 5.
 
 ## Source and ownership
@@ -79,10 +80,10 @@ actual independent code/dependencies, not by a planning topic alone.
    [extraction record](../qualification/extraction.md) as the baseline. Keep its
    clean-cache, native archive, compatibility and handbook gates passing as the
    later milestones extend the supported profile.
-2. Complete qualification of the [bounded many-row slice](05-bounded-many-results.md),
-   including its paired native owner and complete compiler schedules. Keep the
-   remaining state-carrying, query-signature, scalar and view work in 5.2–5.4
-   gates explicit. Extend recursive-package/formatter/diagnostic evidence in 6
+2. Land the paired [bounded many-row PRs](05-bounded-many-results.md), native owner
+   first. Continue with state-carrying values and conversions, followed by the
+   required query-signature, scalar and view work in 5.2–5.4. Extend
+   recursive-package/formatter/diagnostic evidence in 6
    independently; 8.1 owns the separate runtime privilege contract.
 3. Extend 7.1 per available runtime kind and measure 7.4 capacity without changing
    limits implicitly. Start 9.1 when real subject/grant controls exist upstream.

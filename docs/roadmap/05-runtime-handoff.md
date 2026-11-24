@@ -15,7 +15,7 @@ update without qualification.
 | Gate | Observed boundary | Required upstream work and acceptance |
 | --- | --- | --- |
 | Native union programs | UNION Queue DDL succeeds; even a no-op consumer fails `ProgramTypeMismatch`. | Define program union values, tag/payload access, validation, codec and evolution. Execute both arms, reject malformed inputs, retain cell states, and qualify restart/authority. transitc currently uses the separately specified closed STRUCT encoding. |
-| Bounded many | The paired native branch implements MANY(1..64), immutable row collections and one atomic FOR level over a Table's single BIGINT primary key. Unannotated SELECT retains its singleton behavior. Native clean/hosted lanes and the final installed comparison pass. | Merge Transit #480 before dependent source admission ships; complete repeated compiler qualification. Retain cumulative budgets, first-error order, changed-basis/rights checks, recovery and exact compiler/shared/host identities. General collection returns and nested/read-bearing loops remain outside this profile. |
+| Bounded many | The paired native branch implements MANY(1..64), immutable row collections and one atomic FOR level over a Table's single BIGINT primary key. Unannotated SELECT retains its singleton behavior. Native clean/hosted lanes, the final installed comparison and three hosted 49-case passes succeed. | Merge Transit #480 before dependent source admission ships. Retain cumulative budgets, first-error order, changed-basis/rights checks, recovery and exact compiler/shared/host identities. General collection returns and nested/read-bearing loops remain outside this profile. |
 | Missing/type-error/conflict program cells | `ApplicationData.fromCell` validates schema/cell state, admits SQL NULL, and refuses otherwise valid non-value cells with `ProgramTypeMismatch`. Earlier validation errors retain precedence. | Define state-preserving program cells and explicit conversions before admitting them in source row/variant values. Test all five states, nested fields, ambiguous/conflicting payloads and unchanged error order. Never convert these states into NULL or an absent row. |
 | DATE/NUMERIC/INTERVAL program values | `ApplicationSchema.requireType` and `ApplicationValue` do not admit these logical representations. | Add ordinary literals, binding, runtime values and codecs together. Preserve Gregorian days, exact decimal coefficient/precision/scale and signed interval months/days/nanoseconds. Test overflow/inexact values, explicit rounding and no implicit timestamp/float/duration conversions. |
 | Views | CREATE VIEW returns `UnsupportedStatement`; materialized views have no admitted source/runtime contract. | Own ordinary DDL, concrete schema/dependencies, stable definition identity, executable queries, current authority and evolution. Ordinary views precede a separate materialization/maintenance contract. Test source-free execution, restart, changed dependencies and revoked rights. |
@@ -69,10 +69,11 @@ Whole-input ROW helpers with symbolic scalar holes now preserve the authored
 Queue shape through a separate bounded analysis environment. The compiler and
 independent hygiene/type/refusal tests are implemented. The supporting pure
 Transit API is merged in [Transit #479](https://github.com/spoke-sh/transit/pull/479);
-complete runtime qualification of the refreshed pin remains open. This needs no
-new native ROW representation. See the
-[completion record](../qualification/composition-completion.md) for actual
-revisions and results.
+current-profile hosted runtime qualification passes with the bounded-result
+candidate. This needs no new native ROW representation. See the
+[completion record](../qualification/composition-completion.md) and subsequent
+[bounded-result record](../qualification/bounded-many.md) for exact revisions,
+passing hosted schedules and retained local failures.
 Source callable row/many returns, general implication solving, implicit signature
 subtyping and unrestricted predicates are not silently admitted by this increment.
 New source forms that depend on the native gates above still need their own

@@ -1,0 +1,107 @@
+{
+  "provenance": {
+    "revision": "0cd8ca7473a26d78605d86a83721242ccf940ad1",
+    "dirty": false,
+    "toolchain": {
+      "flake_lock_sha256": "d9f31e1da7c21e2939a0df3bb8550dc931d038e04abf52daa978432851a6cf19",
+      "python_version": "3.13.15 (main, Aug  5 2026, 12:25:43) [GCC 15.3.0]",
+      "executables": {
+        "python": "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3.13",
+        "nix": "/nix/store/irfrbndi76zhkvqsfhmsn4a99iafck29-nix-2.35.2/bin/nix",
+        "zig": "/nix/store/j680yxrjdkr14imvrjb2b8lcara50rm3-transit-zig",
+        "just": "/nix/store/lccvn99vpz9xz6c9faamsqas3kb2r78h-just-1.51.0/bin/just"
+      }
+    }
+  },
+  "compiler": {
+    "path": "transitc",
+    "bytes": 57944662,
+    "sha256": "3b01e8dbac89bd95f8f22316b427565a551d3b1da007e0f375be5c20b84ceb3d"
+  },
+  "runtime": {
+    "path": "transit",
+    "bytes": 52516792,
+    "sha256": "298fa95ae2b563280cdd1ec55537d69a5ceddc9bd2d8ee0ddd4256bce6728349"
+  },
+  "complete": true,
+  "execution": {
+    "rows": [
+      {
+        "request": "2",
+        "id": "2",
+        "note": null
+      },
+      {
+        "request": "3",
+        "id": "1",
+        "note": "same"
+      },
+      {
+        "request": "3",
+        "id": "3",
+        "note": "same"
+      },
+      {
+        "request": "4",
+        "id": "4",
+        "note": null
+      },
+      {
+        "request": "4",
+        "id": "5",
+        "note": "five"
+      },
+      {
+        "request": "4",
+        "id": "6",
+        "note": "six"
+      }
+    ],
+    "failures": [
+      {
+        "request": "5",
+        "reason": "refused"
+      },
+      {
+        "request": "6",
+        "reason": "refused"
+      },
+      {
+        "request": "7",
+        "reason": "refused"
+      }
+    ],
+    "cases_per_instance": 7,
+    "completed": 4,
+    "refused": 3,
+    "comparison_generated_instances": 2,
+    "source_removed": true,
+    "independent_sql": true,
+    "exact_order": true,
+    "restart": true,
+    "corrected_bound": 4,
+    "corrected_rows": [
+      {
+        "request": "1",
+        "id": "7",
+        "note": "seven"
+      },
+      {
+        "request": "1",
+        "id": "8",
+        "note": "eight"
+      },
+      {
+        "request": "1",
+        "id": "9",
+        "note": "nine"
+      },
+      {
+        "request": "1",
+        "id": "10",
+        "note": "ten"
+      }
+    ],
+    "first_refusal_code": "private native cursor test; not exposed by the failure record"
+  }
+}

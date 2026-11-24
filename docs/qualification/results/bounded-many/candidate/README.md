@@ -21,12 +21,18 @@ retained file hashes; package records identify the exact executables.
 - `installed-many/` retains all 22 passing case records, generated and
   independently authored SQL, the explicit bound correction, and the completed
   source-removal/restart/retirement result.
+- `hosted/` retains the successful CI integration schedule (49 cases and ten
+  installed phases), three additional 49-case passes, and the hosted 22-case
+  bounded-result journey. Its summary verifies the artifact ZIP digest, tested
+  merge/review tree equality, unchanged production scope and exact correspondence
+  of local/hosted case SQL. Hosted executable hashes are recorded separately.
 - `native-archive/` retains metadata and checksums for the passing local portable
   archive. The archive itself remains under `.cache/bounded-many/native-archive`;
   this local build does not claim a hosted signing attestation.
 
 The published-input record verifies fresh archive/source retrieval. The macOS
 failure record describes the later hosted identity-token timeout during signing,
-after that job's build and tests passed. See the
+after that job's build and tests passed. `hosted/workflow-status.json` records the
+successful retry, including signature verification and artifact upload. See the
 [qualification narrative](../../../bounded-many.md) for hosted outcomes and the
 distinction between completed checks, corrected checks and outstanding gates.

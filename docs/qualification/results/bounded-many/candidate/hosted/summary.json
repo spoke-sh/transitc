@@ -1,0 +1,79 @@
+{
+  "run_id": 45338627390,
+  "compiler_job_id": 138256711235,
+  "artifact_id": 14898414817,
+  "artifact_sha256": "d72fe41606336a9db80bcf0f524e698ece60ad12fbe86a57f87cdcb7bc19435f",
+  "review_head": "b5807de09fddc0225ff152051852be26b0fd9715",
+  "tested_merge": "0cd8ca7473a26d78605d86a83721242ccf940ad1",
+  "equal_git_tree": "e805adb181188a5e17fa15285df5722286b7e180",
+  "native_revision": "d65f7c656c8e311806132ca894059b43b52051ee",
+  "unchanged_scope_from_local_compiler": "69dc1f173bf5bb2d0ecc6685b0fb246bd744be96",
+  "unchanged_paths": [
+    "apps",
+    "packages",
+    "contracts",
+    "examples",
+    "build.zig",
+    "build.zig.zon",
+    "flake.nix",
+    "flake.lock",
+    "nix",
+    "tests/fixtures",
+    "tests/integration/composition.py",
+    "tests/integration/composition.json",
+    "tests/integration/bounded_many.py"
+  ],
+  "schedules": [
+    {
+      "name": "three-pass",
+      "phases": 36,
+      "installed_passed": 0,
+      "compiler_sha256": "3b01e8dbac89bd95f8f22316b427565a551d3b1da007e0f375be5c20b84ceb3d",
+      "runtime_sha256": "298fa95ae2b563280cdd1ec55537d69a5ceddc9bd2d8ee0ddd4256bce6728349",
+      "passes": [
+        {
+          "run": 1,
+          "passed": 49,
+          "failed": 0,
+          "not_run": 0,
+          "local_case_names_and_sql_digests_equal": true
+        },
+        {
+          "run": 2,
+          "passed": 49,
+          "failed": 0,
+          "not_run": 0,
+          "local_case_names_and_sql_digests_equal": true
+        },
+        {
+          "run": 3,
+          "passed": 49,
+          "failed": 0,
+          "not_run": 0,
+          "local_case_names_and_sql_digests_equal": true
+        }
+      ]
+    },
+    {
+      "name": "integration",
+      "phases": 22,
+      "installed_passed": 10,
+      "compiler_sha256": "3b01e8dbac89bd95f8f22316b427565a551d3b1da007e0f375be5c20b84ceb3d",
+      "runtime_sha256": "298fa95ae2b563280cdd1ec55537d69a5ceddc9bd2d8ee0ddd4256bce6728349",
+      "passes": [
+        {
+          "run": 1,
+          "passed": 49,
+          "failed": 0,
+          "not_run": 0,
+          "local_case_names_and_sql_digests_equal": true
+        }
+      ]
+    }
+  ],
+  "installed_many": {
+    "cases": 22,
+    "complete": true,
+    "local_generated_oracle_corrected_sql_equal": true
+  }
+}

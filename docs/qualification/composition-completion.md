@@ -2,7 +2,11 @@
 
 This record follows the [typed composition qualification](typed-composition.md)
 and the [milestone 5 implementation plan](../roadmap/05-typed-composition-and-sql.md#previous-slice-complete-the-existing-composition-profile).
-The implementation is merged; qualification remains in progress. The original
+The implementation is merged. Subsequent qualification is recorded in the
+[bounded-result candidate](bounded-many.md): the missing baseline CLI gates
+pass, and the current profile passes complete hosted integration and three
+49-case schedules. The dated results below retain their original identities.
+The original
 deadline failures remain failures; diagnostic executions below do not qualify a
 replacement compiler or host.
 
