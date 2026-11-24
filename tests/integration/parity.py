@@ -1,5 +1,6 @@
 """Exact SQL/maps/diagnostic parity; executable identity is deliberately separate."""
 import argparse
+import copy
 import json
 import os
 from pathlib import Path
@@ -14,6 +15,49 @@ IDENTITY_FIELDS = {'compiler_revision', 'compiler_digest', 'input_digest'}
 # fixtures retain their meaning. Only the two exact fingerprints below compare.
 BASELINE_DEFINITION = 'f311e893f8d2f4c21f426790172fadfebe7eb2364615eb1566c09f11d39bb0bb'
 CURRENT_DEFINITION = 'dd6352c075f480dabbc2d1349cc79c9a5c85687ecafd33055d6a2d56f28251d0'
+# ApplicationProgram.Select now serializes `many: null` for existing singleton
+# reads. ProgramCheck hashes that instruction tree; AUTHORIZE and ACTIVATE hash
+# the resulting program identity. Retain the exact twelve reviewed old/new pairs
+# for these fixtures, rather than excluding plan digests from comparison.
+PLAN_DIGESTS = json.loads(Path(__file__).with_name('parity-plan-digests.json').read_text())
+
+
+def compare_provenance(name, old, new):
+    assert old.keys() == new.keys()
+    assert old['definition'] == BASELINE_DEFINITION, (name, 'foreign baseline definition')
+    assert new['definition'] == CURRENT_DEFINITION, (name, 'foreign compiler definition')
+    expected = copy.deepcopy(old)
+    expected['definition'] = CURRENT_DEFINITION
+    for index, (baseline, current) in PLAN_DIGESTS[name].items():
+        step = expected['steps'][int(index)]
+        assert bytes(step['plan_digest']).hex() == baseline, (name, index, 'foreign baseline plan')
+        step['plan_digest'] = list(bytes.fromhex(current))
+    assert {k: v for k, v in expected.items() if k not in IDENTITY_FIELDS} == {k: v for k, v in new.items() if k not in IDENTITY_FIELDS}, name
+
+
+def negative_controls(name, old, new):
+    # Mutate real paired artifacts: the migration must not hide changes in an
+    # unchanged plan, a reviewed plan, a source map or either native definition.
+    damages = ['unchanged-plan', 'source-map', 'baseline-definition', 'current-definition']
+    if PLAN_DIGESTS[name]:
+        damages += ['baseline-plan', 'current-plan']
+    for damage in damages:
+        before, after = copy.deepcopy(old), copy.deepcopy(new)
+        if damage == 'unchanged-plan':
+            after['steps'][0]['plan_digest'][0] ^= 1
+        elif damage == 'source-map':
+            after['steps'][0]['definition']['source'] += '.changed'
+        elif damage.endswith('-definition'):
+            (before if damage.startswith('baseline') else after)['definition'] = '0' * 64
+        else:
+            index = int(next(iter(PLAN_DIGESTS[name])))
+            (before if damage.startswith('baseline') else after)['steps'][index]['plan_digest'][0] ^= 1
+        try:
+            compare_provenance(name, before, after)
+        except AssertionError:
+            continue
+        raise AssertionError((name, 'parity accepted changed artifact', damage))
+    return len(damages)
 
 
 def invoke(binary, directory, *args, expected=0, command='build'):
@@ -33,7 +77,7 @@ def artifacts(binary, workspace, destination):
 
 
 def compare(upstream, compiler):
-    count = 0
+    count = controls = 0
     with tempfile.TemporaryDirectory(prefix='transitc-parity-') as temporary:
         root = Path(temporary).resolve()
         for name in ('application-build', 'application-typed-targets', 'application-queue-programs',
@@ -47,11 +91,8 @@ def compare(upstream, compiler):
             repeated_sql, repeated = artifacts(compiler, workspace, root / (name + '-repeat'))
             assert old_sql == new_sql == repeated_sql == (workspace / 'expected.sql').read_bytes(), name
             assert new == repeated, (name, 'nondeterministic provenance')
-            assert old.keys() == new.keys()
-            assert old['definition'] == BASELINE_DEFINITION, (name, 'foreign baseline definition')
-            assert new['definition'] == CURRENT_DEFINITION, (name, 'foreign compiler definition')
-            expected = dict(old, definition=CURRENT_DEFINITION)
-            assert {k: v for k, v in expected.items() if k not in IDENTITY_FIELDS} == {k: v for k, v in new.items() if k not in IDENTITY_FIELDS}, name
+            compare_provenance(name, old, new)
+            controls += negative_controls(name, old, new)
             assert old['compiler_digest'] != new['compiler_digest']
             assert old['input_digest'] != new['input_digest']
             count += 1
@@ -89,7 +130,7 @@ def compare(upstream, compiler):
                 assert 'transit build' not in human.stderr and 'transit test' not in human.stderr, human.stderr
             assert not (workspace / '.transit/build').exists()
             count += 1
-    print(f'PASS {count} upstream/transitc parity cases; exact reviewed native definitions, {sorted(IDENTITY_FIELDS)} and dependency-command correction verified')
+    print(f'PASS {count} upstream/transitc parity cases; exact reviewed native definitions and plan migrations, {controls} negative controls, {sorted(IDENTITY_FIELDS)} and dependency-command correction verified')
 
 
 if __name__ == '__main__':
