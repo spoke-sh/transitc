@@ -1,0 +1,8 @@
+{
+  "compiler_revision": "69dc1f173bf5bb2d0ecc6685b0fb246bd744be96",
+  "native_revision": "d65f7c656c8e311806132ca894059b43b52051ee",
+  "path": "/nix/store/hx0bpmdl0ydcg549advcjp4c6blzy7xl-transitc-0.0.0-dev/bin/transitc",
+  "sha256": "2803e7aecb7b81028a2d054b574e47b232cbbc1c8db2bcb24a4ea7529d5be132",
+  "version": "transitc 0.0.0-dev (69dc1f173bf5bb2d0ecc6685b0fb246bd744be96)",
+  "derivation": "/nix/store/n4v4av5b9aj9jfmfk0gc446l3zlp4h1z-transitc-0.0.0-dev.drv"
+}

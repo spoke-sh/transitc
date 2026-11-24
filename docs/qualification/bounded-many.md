@@ -124,6 +124,13 @@ retains exact source identities, report locations, hashes and limits.
 implementation and documentation. Its final documentation commit also passes
 all 71 fast checks, locked handbook installation and strict handbook checks.
 
+Native [PR CI](https://github.com/spoke-sh/transit/actions/runs/45327605081),
+[release-distribution checks](https://github.com/spoke-sh/transit/actions/runs/45327605165)
+and the [handbook workflow](https://github.com/spoke-sh/transit/actions/runs/45327605079)
+also complete successfully at review head `ec5bb00a9`. Every selected CI job passes;
+publication and release qualification remain skipped where the workflows require
+a release or main-branch event.
+
 Native frontend, Fuze iteration/environment and query-direct application unit
 tests pass, including partial-allocation failures, stale completions, forged
 iterator lengths, empty loops, first ordered refusal and cumulative read-budget
@@ -194,12 +201,68 @@ and two modular Queue instances. The corrected check passes all twelve fixture
 and diagnostic comparisons and 24 artifact mutation controls against the same
 immutable compiler. Foreign definitions, changed maps, unrelated plan hashes
 and unexpected changes to reviewed hashes still fail. The original failed
-phase and this supplemental result remain separate; no production code or
-runtime budget changes to make this check pass.
+phase and this supplemental result remain separate. No production code or
+runtime budget changed to make this check pass.
 
-The final installed generated/oracle comparison, three-pass 49-case composition
-schedule, CLI/runtime checks, clean-cache/public embedding and four-platform
-archive CI remain acceptance gates. Local runtime checks continue at the clean
-`69dc1f1` checkout while the parity fix and documentation are prepared in a
-separate review worktree. This record will retain their actual outcomes before
-the draft compiler PR is marked ready.
+All ten installed composition phases pass against the final immutable pair.
+The [bounded-result journey](results/bounded-many/candidate/installed-many/evidence.json)
+passes all 22 cases: seven on each of two generated instances and an independent
+SQL instance, plus the explicit `MANY(4)` correction. It verifies exact order,
+nullable rows, overflow, rollback, source removal, restart and retirement. The
+sibling case records, generated/oracle/corrected SQL and hash manifest retain
+the actual artifacts; this supersedes the exploratory 21-case run above.
+
+The complete [three-pass local schedule](results/bounded-many/candidate/composition/evidence.json)
+retains all 49 expected cases per pass:
+
+| Pass | Passed | Failed | Not run | Expected |
+| --- | --- | --- | --- | --- |
+| 1 | 32 | 4 | 13 | 49 |
+| 2 | 10 | 7 | 32 | 49 |
+| 3 | 31 | 4 | 14 | 49 |
+
+All 15 failures are `TestDeadline`; the 59 unrun cases remain unrun. Failures
+occur in existing fixtures and in different bounded-row cases across the passes.
+The [case summary](results/bounded-many/candidate/composition/summary.json),
+unaltered reports and manifest retain the exact outcomes. Host-pressure samples
+cover part of the isolated schedule and show I/O pressure, but no new matched
+experiment assigns these failures to contention. Successful installed or hosted
+checks do not relabel this failed local schedule.
+
+The complete [local gate record](results/bounded-many/candidate/runtime-gates/summary.json)
+contains all fifteen phases: thirteen pass, the original parity check fails, and
+the composition aggregate fails on the isolated deadlines above. The separate
+[corrected parity result](results/bounded-many/candidate/parity-supplemental.json)
+does not rewrite that original record. Runnable examples, complete build-command
+and test-command schedules, eleven request refusals and sixteen response/process
+refusals all pass. These include source-free SQL, restart, revoked rights, late
+completion, runtime identity and joined cleanup. Empty-cache compilation, unit
+tests and the public embedding consumer also pass.
+
+The installed portable `x86_64-linux-musl` archive passes its checks at `69dc1f1`.
+Its [metadata](results/bounded-many/candidate/native-archive/transitc-0.0.0-dev-69dc1f173bf5-x86_64-linux-musl.json)
+and [checksum](results/bounded-many/candidate/native-archive/transitc-0.0.0-dev-69dc1f173bf5-x86_64-linux-musl.sha256)
+identify binary SHA-256
+`dcfb70a69e57cdcb494a90cfeb884be9f16e0590b7c2bb0c9096a7a6f3e7916f`
+and archive SHA-256
+`7bb6d5467af30b11bc33c492d607a6770e784bcc83e98f367cfa9a0d14ad8b89`.
+This portable executable is distinct from the Nix package identified above.
+
+All four [platform archive CI jobs](https://github.com/spoke-sh/transitc/actions/runs/45333715699)
+and its strict handbook/browser job pass at review head `dd38b8a`; the main
+compiler job passes Nix flake checks, source correspondence, release controls
+and clean-cache embedding, then is cancelled during the final integration/CLI
+aggregate when the review branch advances. Commit `b5807de` adds three complete
+isolated passes to hosted CI, using the same case inventory and unchanged limits.
+Its [new CI run](https://github.com/spoke-sh/transitc/actions/runs/45338627390)
+is in progress; the earlier aggregate is not recorded as a pass. In the new run,
+the x86 macOS build, unit/embedding, installed archive and formatter checks pass,
+but signing fails when GitHub's identity-token endpoint times out. The
+[failure record](results/bounded-many/candidate/macos-attestation-failure.json)
+retains that distinction. Signing remains required; GitHub permits a job retry
+only after the containing workflow finishes.
+
+All local runtime/package phases completed at the clean `69dc1f1` checkout.
+Later review commits change parity expectations, the CI schedule and documentation;
+they do not change compiler/runtime production code. Hosted repeated qualification
+and the macOS signing retry remain open before the compiler PR is marked ready.

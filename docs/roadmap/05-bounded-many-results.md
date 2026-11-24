@@ -1,10 +1,17 @@
 # Milestone 5 next slice: bounded many-row results
 
-Status: Implementation in progress
+Status: Implementation complete; qualification in progress
 
 The [qualification record](../qualification/bounded-many.md) retains the completed
-baseline schedules and records candidate gates separately. The approved plan
-below remains the acceptance inventory.
+baseline schedules and records candidate gates separately. Native clean/hosted
+qualification, the 22-case installed comparison and local CLI/package gates pass.
+The three local isolated schedules retain deadline failures; repeated hosted
+qualification and a macOS signing retry remain open. The paired changes are
+[Transit #480](https://github.com/spoke-sh/transit/pull/480) and
+[transitc #7](https://github.com/spoke-sh/transitc/pull/7); the native owner merges
+first. The approved plan below preserves the original proposal and acceptance
+inventory. The [query-results guide](../handbook/guides/query-results.md) describes
+the implemented syntax and profile.
 
 Implementation plan for review, 2026-11-23. This slice advances
 [5.2](05-typed-composition-and-sql.md#delivery-units); milestone 5 remains

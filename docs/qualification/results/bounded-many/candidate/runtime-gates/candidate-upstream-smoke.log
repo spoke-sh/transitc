@@ -1,0 +1,14 @@
+building '/nix/store/d52kzn1mwpy1hvw9bjp95pnyh0i8sbq4-nix-shell-env.drv'...
+Upstream: Transit 0.0.1 (git e7434306334e3692c6f3e123cba0d278fa412196; CLI contract 1)
+test_build_is_reproducible_and_records_provenance (__main__.UpstreamIntegration.test_build_is_reproducible_and_records_provenance) ... ok
+test_build_reuses_only_intact_artifacts (__main__.UpstreamIntegration.test_build_reuses_only_intact_artifacts) ... ok
+test_check_validates_without_publishing (__main__.UpstreamIntegration.test_check_validates_without_publishing) ... ok
+test_missing_entry_and_unknown_target_fail_without_artifacts (__main__.UpstreamIntegration.test_missing_entry_and_unknown_target_fail_without_artifacts) ... ok
+test_runtime_executes_cases_in_isolation (__main__.UpstreamIntegration.test_runtime_executes_cases_in_isolation) ... ok
+test_syntax_failure_has_a_source_location (__main__.UpstreamIntegration.test_syntax_failure_has_a_source_location) ... ok
+test_wrong_runtime_expectation_fails (__main__.UpstreamIntegration.test_wrong_runtime_expectation_fails) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 6.058s
+
+OK

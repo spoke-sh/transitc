@@ -1,0 +1,12 @@
+{
+  "native_revision": "d65f7c656c8e311806132ca894059b43b52051ee",
+  "urls": {
+    "frontend.tar.gz": "https://raw.githubusercontent.com/spoke-sh/transit/d65f7c656c8e311806132ca894059b43b52051ee/build/artifacts/transit-sql-frontend.tar.gz",
+    "source.tar.gz": "https://codeload.github.com/spoke-sh/transit/tar.gz/d65f7c656c8e311806132ca894059b43b52051ee"
+  },
+  "archive_sri": "sha256-HWbBkOjoR+xeIF7XolIajdTJ3jkqsXmWH1pzUAM6NBY=",
+  "source_nar_hash": "sha256-1TWjNvpyhEWqAXafkgcY6e5/GZuoQsbszeAY6CnHTIk=",
+  "zig_package_hash": "transit_sql_distribution-0.0.1-t9CQA2UWIwBbAG3g4rw2HdU9FM1kSbCoZCm1W2_LqLTz",
+  "source_archive_sha256": "95303b860ee12433cc18ccc2878995686742bd84800cd51452af2837f63b4249",
+  "method": "Fresh HTTP downloads; independently unpacked source NAR and empty Zig cache fetch; no cached Nix source retrieval claimed."
+}

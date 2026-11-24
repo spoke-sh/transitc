@@ -1,0 +1,100 @@
+{
+  "compiler_revision": "69dc1f173bf5bb2d0ecc6685b0fb246bd744be96",
+  "runtime_revision": "d65f7c656c8e311806132ca894059b43b52051ee",
+  "original_directory": "/home/alex/workspace/spoke-sh/transitc/.cache/checks/composition/run-hwoisbc8",
+  "schedule_sha256": "1c7a9ca56f27c300e185f5e96e027745290f6a49d29e3336fc91ff5931bdc243",
+  "compiler_sha256": "2803e7aecb7b81028a2d054b574e47b232cbbc1c8db2bcb24a4ea7529d5be132",
+  "runtime_sha256": "7b7a2adbf1e3e0b6b8fe34f31285ad83ff79c9b5cbed71797ad71e6d7d04f397",
+  "installed": {
+    "passed": 10,
+    "expected": 10
+  },
+  "passes": [
+    {
+      "run": 1,
+      "passed": 32,
+      "failed": 4,
+      "not_run": 13,
+      "failures": [
+        {
+          "name": "rollback after write",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "machine dispatch",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "one present NULL",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "first error follows key order",
+          "error_code": "TestDeadline"
+        }
+      ]
+    },
+    {
+      "run": 2,
+      "passed": 10,
+      "failed": 7,
+      "not_run": 32,
+      "failures": [
+        {
+          "name": "typed lookup success",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "machine dispatch",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "machine dispatch",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "one present NULL",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "exact JSON extraction",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "whole input accepted",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "empty collection",
+          "error_code": "TestDeadline"
+        }
+      ]
+    },
+    {
+      "run": 3,
+      "passed": 31,
+      "failed": 4,
+      "not_run": 14,
+      "failures": [
+        {
+          "name": "typed lookup success",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "missing selected resource",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "one present NULL",
+          "error_code": "TestDeadline"
+        },
+        {
+          "name": "over bound",
+          "error_code": "TestDeadline"
+        }
+      ]
+    }
+  ],
+  "complete": true,
+  "ok": false
+}

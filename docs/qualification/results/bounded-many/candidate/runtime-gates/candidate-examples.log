@@ -1,0 +1,4 @@
+PASS handbook guides/getting-started.md: exact source and published first artifacts
+PASS handbook guides/source-workflow.md: exact source and published modules artifacts
+PASS handbook reference/artifacts.md: exact source and published migration artifacts
+PASS handbook testing: exact source, isolated cases and deliberate assertion failure

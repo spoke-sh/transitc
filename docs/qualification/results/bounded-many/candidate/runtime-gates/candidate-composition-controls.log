@@ -1,0 +1,8 @@
+.FAIL isolated-1-first
+PASS isolated-1-last
+.FAIL isolated-timeout
+.
+----------------------------------------------------------------------
+Ran 3 tests in 1.595s
+
+OK

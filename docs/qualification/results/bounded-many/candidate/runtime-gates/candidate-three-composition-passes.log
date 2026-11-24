@@ -1,0 +1,71 @@
+Composition evidence: /home/alex/workspace/spoke-sh/transitc/.cache/checks/composition/run-hwoisbc8
+Typed composition evidence: /home/alex/workspace/spoke-sh/transitc/.cache/checks/typed-composition/run-jrj01akb
+PASS ordinary SQL probes, independent runtime MATCH execution, guide correction, restart, current rights
+PASS installed-typed_composition-native
+Typed composition evidence: /home/alex/workspace/spoke-sh/transitc/.cache/checks/typed-composition/run-1so6taxo
+PASS ordinary SQL probes, independent runtime MATCH execution, guide correction, restart, current rights
+PASS installed-typed_composition-dynamic
+Cardinality evidence: /home/alex/workspace/spoke-sh/transitc/.cache/checks/cardinality/run-18k8xgon
+Managed SQL: original control 583 is terminally rejected; issuing a new intent.
+PASS one/optional rows, absent versus NULL, multiple-row refusal, rollback, source-free SQL and restart
+PASS installed-cardinality-one
+Cardinality evidence: /home/alex/workspace/spoke-sh/transitc/.cache/checks/cardinality/run-eui7uyik
+PASS one/optional rows, absent versus NULL, multiple-row refusal, rollback, source-free SQL and restart
+PASS installed-cardinality-optional
+Refinement evidence: /home/alex/workspace/spoke-sh/transitc/.cache/checks/refinements/run-9js6q17b
+PASS bounded callable obligations, ordered refusals, postcondition rollback, hand SQL and restart
+PASS installed-refinements
+Callable evidence: /home/alex/workspace/spoke-sh/transitc/.cache/checks/callables/run-k1zad568
+Managed SQL: original control 1188 is terminally rejected; issuing a new intent.
+Managed SQL: original control 1753 is terminally rejected; issuing a new intent.
+PASS exact callable signatures, nested atomic effects, explicit instances, independent SQL, restart and denial
+PASS installed-callables
+Scalar surface evidence: /home/alex/workspace/spoke-sh/transitc/.cache/checks/scalar-surfaces/run-d0uub326
+PASS DATE boundaries, NULL, compiled-case values, source-free SQL, independent oracle, restart and guide correction
+PASS installed-scalar_surfaces
+SQL scalar evidence: /home/alex/workspace/spoke-sh/transitc/.cache/checks/sql-scalars/run-m537ck8l
+PASS exact NUMERIC/JSON/INTERVAL cells, NULL distinction, bounds, source-free SQL and restart
+PASS installed-sql_scalars
+JSON helper evidence: /home/alex/workspace/spoke-sh/transitc/.cache/checks/json-helpers/run-k0j3woyz
+Managed SQL: original control 1835 is terminally rejected; issuing a new intent.
+PASS exact JSON projection, helper arguments, explicit null collapse, refusals and restart
+PASS installed-json_helpers
+Bounded MANY evidence: /home/alex/workspace/spoke-sh/transitc/.cache/checks/bounded-many/run-picvpjzj
+PASS bounded rows, exact order, NULL, overflow, rollback, independent instances, source-free SQL and restart
+PASS installed-bounded_many
+PASS isolated-1-application-typed-queue
+FAIL isolated-1-application-variant-encoding
+FAIL isolated-1-application-dynamic-dispatch
+FAIL isolated-1-application-cardinality
+PASS isolated-1-application-refinements
+PASS isolated-1-application-callables
+PASS isolated-1-application-date
+PASS isolated-1-application-sql-scalars
+PASS isolated-1-application-numeric-operators
+PASS isolated-1-application-json-helpers
+PASS isolated-1-application-whole-row
+FAIL isolated-1-application-bounded-many
+FAIL isolated-2-application-typed-queue
+FAIL isolated-2-application-variant-encoding
+FAIL isolated-2-application-dynamic-dispatch
+FAIL isolated-2-application-cardinality
+PASS isolated-2-application-refinements
+PASS isolated-2-application-callables
+PASS isolated-2-application-date
+PASS isolated-2-application-sql-scalars
+PASS isolated-2-application-numeric-operators
+FAIL isolated-2-application-json-helpers
+FAIL isolated-2-application-whole-row
+FAIL isolated-2-application-bounded-many
+FAIL isolated-3-application-typed-queue
+PASS isolated-3-application-variant-encoding
+FAIL isolated-3-application-dynamic-dispatch
+FAIL isolated-3-application-cardinality
+PASS isolated-3-application-refinements
+PASS isolated-3-application-callables
+PASS isolated-3-application-date
+PASS isolated-3-application-sql-scalars
+PASS isolated-3-application-numeric-operators
+PASS isolated-3-application-json-helpers
+PASS isolated-3-application-whole-row
+FAIL isolated-3-application-bounded-many

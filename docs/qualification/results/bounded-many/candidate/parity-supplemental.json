@@ -1,0 +1,22 @@
+{
+  "driver_revision": "c659d2dd67bd8113d17c78e114f1b4c50be40c0b",
+  "compiler_revision": "69dc1f173bf5bb2d0ecc6685b0fb246bd744be96",
+  "native_revision": "d65f7c656c8e311806132ca894059b43b52051ee",
+  "command": [
+    "nix",
+    "develop",
+    "--command",
+    "python3",
+    "-B",
+    "tests/integration/parity.py",
+    "--transitc",
+    "/nix/store/hx0bpmdl0ydcg549advcjp4c6blzy7xl-transitc-0.0.0-dev/bin/transitc"
+  ],
+  "cwd": "/home/alex/workspace/spoke-sh/transitc-bounded-many-review",
+  "started": 1795498139.4865453,
+  "seconds": 4.797,
+  "exit_code": 0,
+  "log_sha256": "f44905b733c5aceed8edeffe35d246463e7cacfde72e4601b8e8c75a17fd723f",
+  "original_failure": "runtime-gates/candidate-parity.log",
+  "scope": "Exact twelve reviewed plan identity migrations and 24 artifact mutation controls; no compiler/runtime production code changes."
+}

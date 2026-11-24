@@ -1,0 +1,8 @@
+{
+  "binary_sha256": "dcfb70a69e57cdcb494a90cfeb884be9f16e0590b7c2bb0c9096a7a6f3e7916f",
+  "revision": "69dc1f173bf5bb2d0ecc6685b0fb246bd744be96",
+  "target": "x86_64-linux-musl",
+  "test_host_bundled": false,
+  "test_runtime_revision": "d65f7c656c8e311806132ca894059b43b52051ee",
+  "version": "0.0.0-dev"
+}

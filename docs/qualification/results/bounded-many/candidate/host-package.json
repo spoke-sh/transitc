@@ -1,0 +1,7 @@
+{
+  "native_revision": "d65f7c656c8e311806132ca894059b43b52051ee",
+  "path": "/nix/store/ab8y3wlv50aw1b9qr1pc0f1zhb0rjvp4-transit-0.0.1/bin/transit",
+  "sha256": "7b7a2adbf1e3e0b6b8fe34f31285ad83ff79c9b5cbed71797ad71e6d7d04f397",
+  "version": "Transit 0.0.1 (git d65f7c656c8e311806132ca894059b43b52051ee; CLI contract 1)",
+  "derivation": "/nix/store/d3alvacj74f8b2l3wqfkzckizxqkfbix-transit-0.0.1.drv"
+}
