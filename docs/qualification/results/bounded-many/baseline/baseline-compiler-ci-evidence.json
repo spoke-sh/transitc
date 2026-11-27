@@ -1,0 +1,711 @@
+{
+  "provenance": {
+    "revision": "4ba623a0236a4ab1434e42da8313cb866aeb00c7",
+    "dirty": false,
+    "toolchain": {
+      "flake_lock_sha256": "bc6c69c513a3a3d6d9ddcc2d18712ca35e1400a8009b2e7c6dea81d6790e1ec4",
+      "python_version": "3.13.15 (main, Aug  5 2026, 12:25:43) [GCC 15.3.0]",
+      "executables": {
+        "python": "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3.13",
+        "nix": "/nix/store/irfrbndi76zhkvqsfhmsn4a99iafck29-nix-2.35.2/bin/nix",
+        "zig": "/nix/store/j680yxrjdkr14imvrjb2b8lcara50rm3-transit-zig",
+        "just": "/nix/store/lccvn99vpz9xz6c9faamsqas3kb2r78h-just-1.51.0/bin/just"
+      }
+    }
+  },
+  "complete": true,
+  "ok": false,
+  "compiler_sha256": "6c44cd7c8ab210da2764c553c38627b7b50211d3cc8ff16bb036f1fc713bc507",
+  "runtime_sha256": "1487d59034ff7d53e6aef14d01657646d44c515951363c2bb6a94a1f443795a3",
+  "expected_phases": [
+    "installed-typed_composition-native",
+    "installed-typed_composition-dynamic",
+    "installed-cardinality-one",
+    "installed-cardinality-optional",
+    "installed-refinements",
+    "installed-callables",
+    "installed-scalar_surfaces",
+    "installed-sql_scalars",
+    "installed-json_helpers",
+    "isolated-1-application-typed-queue",
+    "isolated-1-application-variant-encoding",
+    "isolated-1-application-dynamic-dispatch",
+    "isolated-1-application-cardinality",
+    "isolated-1-application-refinements",
+    "isolated-1-application-callables",
+    "isolated-1-application-date",
+    "isolated-1-application-sql-scalars",
+    "isolated-1-application-numeric-operators",
+    "isolated-1-application-json-helpers",
+    "isolated-1-application-whole-row"
+  ],
+  "phases": [
+    {
+      "name": "installed-typed_composition-native",
+      "complete": true,
+      "ok": true,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/runner/work/transitc/transitc/tests/runner/launch.py",
+        "/home/runner/work/transitc/transitc/tests/integration/typed_composition.py",
+        "/home/runner/work/transitc/transitc/zig-out/bin/transitc",
+        "native"
+      ],
+      "log": "installed-typed_composition-native.log",
+      "completed": true,
+      "exit_code": 0,
+      "pid": 8522,
+      "diagnostics": {
+        "bytes": 214,
+        "retained_bytes": 214,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-typed_composition-native.log",
+          "bytes": 214,
+          "sha256": "aa4a5b50bd486d50c4840c06c571c132ac909b8229fc21b6c5613525d23a5592"
+        }
+      },
+      "elapsed_seconds": 33.516
+    },
+    {
+      "name": "installed-typed_composition-dynamic",
+      "complete": true,
+      "ok": false,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/runner/work/transitc/transitc/tests/runner/launch.py",
+        "/home/runner/work/transitc/transitc/tests/integration/typed_composition.py",
+        "/home/runner/work/transitc/transitc/zig-out/bin/transitc",
+        "dynamic"
+      ],
+      "log": "installed-typed_composition-dynamic.log",
+      "completed": true,
+      "exit_code": 1,
+      "pid": 9069,
+      "diagnostics": {
+        "bytes": 1352,
+        "retained_bytes": 1352,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-typed_composition-dynamic.log",
+          "bytes": 1352,
+          "sha256": "9f3c14b93df5bc0d31b7bdc67c195f7c20bbd5fc97b7f57ab93817c3edcae80a"
+        }
+      },
+      "error": "AssertionError: installed phase exited 1",
+      "elapsed_seconds": 6.85
+    },
+    {
+      "name": "installed-cardinality-one",
+      "complete": true,
+      "ok": true,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/runner/work/transitc/transitc/tests/runner/launch.py",
+        "/home/runner/work/transitc/transitc/tests/integration/cardinality.py",
+        "/home/runner/work/transitc/transitc/zig-out/bin/transitc",
+        "one"
+      ],
+      "log": "installed-cardinality-one.log",
+      "completed": true,
+      "exit_code": 0,
+      "pid": 9076,
+      "diagnostics": {
+        "bytes": 281,
+        "retained_bytes": 281,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-cardinality-one.log",
+          "bytes": 281,
+          "sha256": "752fb8b9c1fcc6e021237a6397e41fdd0034fa4e27a84bab330426499eb4edaf"
+        }
+      },
+      "elapsed_seconds": 80.247
+    },
+    {
+      "name": "installed-cardinality-optional",
+      "complete": true,
+      "ok": true,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/runner/work/transitc/transitc/tests/runner/launch.py",
+        "/home/runner/work/transitc/transitc/tests/integration/cardinality.py",
+        "/home/runner/work/transitc/transitc/zig-out/bin/transitc",
+        "optional"
+      ],
+      "log": "installed-cardinality-optional.log",
+      "completed": true,
+      "exit_code": 0,
+      "pid": 9653,
+      "diagnostics": {
+        "bytes": 201,
+        "retained_bytes": 201,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-cardinality-optional.log",
+          "bytes": 201,
+          "sha256": "3311e17a084a53b57dafee1118a7b1f1c1ddeab401ac181b89428aaaf8e3f356"
+        }
+      },
+      "elapsed_seconds": 95.898
+    },
+    {
+      "name": "installed-refinements",
+      "complete": true,
+      "ok": true,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/runner/work/transitc/transitc/tests/runner/launch.py",
+        "/home/runner/work/transitc/transitc/tests/integration/refinements.py",
+        "/home/runner/work/transitc/transitc/zig-out/bin/transitc"
+      ],
+      "log": "installed-refinements.log",
+      "completed": true,
+      "exit_code": 0,
+      "pid": 10234,
+      "diagnostics": {
+        "bytes": 194,
+        "retained_bytes": 194,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-refinements.log",
+          "bytes": 194,
+          "sha256": "3c8577ff9789639e10e36d95e97975524432ace2808ffc970a5df24378f5b0d2"
+        }
+      },
+      "elapsed_seconds": 127.386
+    },
+    {
+      "name": "installed-callables",
+      "complete": true,
+      "ok": true,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/runner/work/transitc/transitc/tests/runner/launch.py",
+        "/home/runner/work/transitc/transitc/tests/integration/callables.py",
+        "/home/runner/work/transitc/transitc/zig-out/bin/transitc"
+      ],
+      "log": "installed-callables.log",
+      "completed": true,
+      "exit_code": 0,
+      "pid": 11021,
+      "diagnostics": {
+        "bytes": 203,
+        "retained_bytes": 203,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-callables.log",
+          "bytes": 203,
+          "sha256": "3bb622b20b1e11d4d70114eeb24be0399c5e63f237d6a6daf0e602cff3a1dc14"
+        }
+      },
+      "elapsed_seconds": 184.377
+    },
+    {
+      "name": "installed-scalar_surfaces",
+      "complete": true,
+      "ok": true,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/runner/work/transitc/transitc/tests/runner/launch.py",
+        "/home/runner/work/transitc/transitc/tests/integration/scalar_surfaces.py",
+        "/home/runner/work/transitc/transitc/zig-out/bin/transitc"
+      ],
+      "log": "installed-scalar_surfaces.log",
+      "completed": true,
+      "exit_code": 0,
+      "pid": 11832,
+      "diagnostics": {
+        "bytes": 220,
+        "retained_bytes": 220,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-scalar_surfaces.log",
+          "bytes": 220,
+          "sha256": "5f63224398a87e9d71b6b0f69e0ad35e016b3a8fbd081af955ebac5329b41f54"
+        }
+      },
+      "elapsed_seconds": 16.221
+    },
+    {
+      "name": "installed-sql_scalars",
+      "complete": true,
+      "ok": true,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/runner/work/transitc/transitc/tests/runner/launch.py",
+        "/home/runner/work/transitc/transitc/tests/integration/sql_scalars.py",
+        "/home/runner/work/transitc/transitc/zig-out/bin/transitc"
+      ],
+      "log": "installed-sql_scalars.log",
+      "completed": true,
+      "exit_code": 0,
+      "pid": 12335,
+      "diagnostics": {
+        "bytes": 190,
+        "retained_bytes": 190,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-sql_scalars.log",
+          "bytes": 190,
+          "sha256": "dfefc4a6dbaf06c043fe1a3309302430c4f59020a692f149446113c4eff66f89"
+        }
+      },
+      "elapsed_seconds": 40.731
+    },
+    {
+      "name": "installed-json_helpers",
+      "complete": true,
+      "ok": true,
+      "command": [
+        "/nix/store/vn00xmliqq9jjp4hs5z7857qdb1n4w2y-python3-3.13.15-env/bin/python3",
+        "-B",
+        "/home/runner/work/transitc/transitc/tests/runner/launch.py",
+        "/home/runner/work/transitc/transitc/tests/integration/json_helpers.py",
+        "/home/runner/work/transitc/transitc/zig-out/bin/transitc"
+      ],
+      "log": "installed-json_helpers.log",
+      "completed": true,
+      "exit_code": 0,
+      "pid": 12924,
+      "diagnostics": {
+        "bytes": 270,
+        "retained_bytes": 270,
+        "omitted_bytes": 0,
+        "artifact": {
+          "path": "installed-json_helpers.log",
+          "bytes": 270,
+          "sha256": "863a8abe584b3862629ef74c1370d6e931e74f1986134e14592966a84622e6c8"
+        }
+      },
+      "elapsed_seconds": 143.1
+    },
+    {
+      "name": "isolated-1-application-typed-queue",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-typed-queue.json",
+        "bytes": 5046,
+        "sha256": "e498454e31e30201f84f26c486d78d302df11cb58191199d2afa15bf32b2b4b9"
+      },
+      "stderr": {
+        "path": "isolated-1-application-typed-queue.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "typed lookup success",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "absent lookup refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "multiple-row lookup refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "post-insert atomic refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "independent named pipeline",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 31.384
+    },
+    {
+      "name": "isolated-1-application-variant-encoding",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-variant-encoding.json",
+        "bytes": 6116,
+        "sha256": "e6822b1dc56c0d2c9160793cd6291762c2e778c27537e0d3fe2fb4914a8421c6"
+      },
+      "stderr": {
+        "path": "isolated-1-application-variant-encoding.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "machine dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "site dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "invalid tag",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing active payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "populated inactive payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing selected resource",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "rollback after write",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 42.056
+    },
+    {
+      "name": "isolated-1-application-dynamic-dispatch",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-dynamic-dispatch.json",
+        "bytes": 6357,
+        "sha256": "ba0f9c5d641556eb0f4c84f7339ab0596cd1fd296c7a997fc0f728e7ef2ede2d"
+      },
+      "stderr": {
+        "path": "isolated-1-application-dynamic-dispatch.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "machine dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "site dispatch",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "invalid tag",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing active payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "populated inactive payload",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing selected resource",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "rollback after write",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 53.432
+    },
+    {
+      "name": "isolated-1-application-cardinality",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-cardinality.json",
+        "bytes": 6813,
+        "sha256": "50c4a33ee843a76636855cb7e67d39cb43b1dbcebd55ce479808950cc1fd98f8"
+      },
+      "stderr": {
+        "path": "isolated-1-application-cardinality.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "one present NULL",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one absent",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one multiple",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "one rollback",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional present NULL",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional absent",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional multiple",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "optional rollback",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 40.406
+    },
+    {
+      "name": "isolated-1-application-refinements",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-refinements.json",
+        "bytes": 4632,
+        "sha256": "4eedf8604c5efdcfce2aa75cfa37035dae01e55355414c844062dff8e561327f"
+      },
+      "stderr": {
+        "path": "isolated-1-application-refinements.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "bounds accepted",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "missing amount",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "lower bound",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "upper bound",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "postcondition rollback",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 22.315
+    },
+    {
+      "name": "isolated-1-application-callables",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-callables.json",
+        "bytes": 2717,
+        "sha256": "9ea6d4c273d078a66b8fddc2257221c2a4bba9f8c8b56cd5b81a37e6785e1695"
+      },
+      "stderr": {
+        "path": "isolated-1-application-callables.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "imported callable",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "returning callable rollback",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 11.842
+    },
+    {
+      "name": "isolated-1-application-date",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-date.json",
+        "bytes": 1765,
+        "sha256": "6614e44f714e4151bc24944ccc2e2a505ec1e80a881269d35e0d4c48778b653c"
+      },
+      "stderr": {
+        "path": "isolated-1-application-date.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "date values retain exact days and NULL",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 4.325
+    },
+    {
+      "name": "isolated-1-application-sql-scalars",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-sql-scalars.json",
+        "bytes": 1770,
+        "sha256": "ea7abaf7494734d56e2a0e9d9a1f346ea9711af872d577cb515bb4aedd01caa2"
+      },
+      "stderr": {
+        "path": "isolated-1-application-sql-scalars.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact decimal JSON and interval components",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 4.224
+    },
+    {
+      "name": "isolated-1-application-numeric-operators",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-numeric-operators.json",
+        "bytes": 1743,
+        "sha256": "f52728bd99d9346f0f5f645b6a1a5787897193e0fa0a9f29085982cf0121afba"
+      },
+      "stderr": {
+        "path": "isolated-1-application-numeric-operators.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact operations",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 4.275
+    },
+    {
+      "name": "isolated-1-application-json-helpers",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-json-helpers.json",
+        "bytes": 2478,
+        "sha256": "947dcf883bf48d0e60ca12bdd20f0311f47661a1eb0588aa6a3687f2f74a9b00"
+      },
+      "stderr": {
+        "path": "isolated-1-application-json-helpers.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "exact JSON extraction",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "JSON null is a value",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 12.844
+    },
+    {
+      "name": "isolated-1-application-whole-row",
+      "complete": true,
+      "ok": true,
+      "exit_code": 0,
+      "report": {
+        "path": "isolated-1-application-whole-row.json",
+        "bytes": 3329,
+        "sha256": "d28957dc7d59ef192711ac68aedbf718f8b4e6bf1bb999d63a3eaecf0adf96c2"
+      },
+      "stderr": {
+        "path": "isolated-1-application-whole-row.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "cases": [
+        {
+          "name": "whole input accepted",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "whole input guard refusal",
+          "status": "passed",
+          "error_code": null
+        },
+        {
+          "name": "other specialization",
+          "status": "passed",
+          "error_code": null
+        }
+      ],
+      "elapsed_seconds": 20.261
+    }
+  ]
+}

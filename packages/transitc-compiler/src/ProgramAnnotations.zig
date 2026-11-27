@@ -9,12 +9,24 @@ const Catalog = @import("WorkingCatalog.zig");
 const Context = @import("SourceDiagnostic.zig").Context;
 
 pub const Field = struct { name: []const u8, value: Type };
-pub const Type = struct { kind: a.Types.Kind, nullable: bool, domain: ?[]const u8, fields: []const Field };
-pub const Cardinality = enum { one, optional };
+pub const Type = struct {
+    kind: a.Types.Kind,
+    nullable: bool,
+    domain: ?[]const u8,
+    fields: []const Field,
+    bound: u8 = 0,
+    order: ?[]const u8 = null,
+    pub fn jsonStringify(self: Type, out: *std.json.Stringify) std.Io.Writer.Error!void {
+        const json = @import("transit_protocol").Json;
+        if (self.kind == .rows) return json.write(.{ .kind = self.kind, .nullable = self.nullable, .domain = self.domain, .fields = self.fields, .bound = self.bound, .order = self.order }, out);
+        return json.write(.{ .kind = self.kind, .nullable = self.nullable, .domain = self.domain, .fields = self.fields }, out);
+    }
+};
+pub const Cardinality = enum { one, optional, many };
 pub const Node = struct { id: a.Id, source_offset: usize, kind: []const u8, type: Type, cardinality: ?Cardinality = null };
 pub const Association = struct { column: []const u8, domain: ?[]const u8, value: ?a.Id };
 pub const Event = struct {
-    kind: enum { acquire, let, read, require, atomic_begin, atomic_end, branch_begin, branch_else, branch_end, insert, append, failure_begin, failure_end },
+    kind: enum { acquire, let, read, require, atomic_begin, atomic_end, branch_begin, branch_else, branch_end, iteration_begin, iteration_end, insert, append, failure_begin, failure_end },
     node: ?a.Id,
     source_offset: usize,
     resource: ?[]const u8 = null,
@@ -43,7 +55,7 @@ pub const Obligation = struct {
     expected: Expected,
     name: []const u8,
 };
-const Value = struct { domain: ?Graph.Ref = null, fields: []const Named = &.{}, cardinality: ?Cardinality = null, require_presence: bool = false };
+const Value = struct { domain: ?Graph.Ref = null, fields: []const Named = &.{}, cardinality: ?Cardinality = null, require_presence: bool = false, order: ?[]const u8 = null };
 const Named = struct { name: []const u8, value: Value };
 const Self = @This();
 scratch: std.mem.Allocator,
@@ -160,11 +172,11 @@ fn project(self: *Self, value: Value, physical_: a.Types.Value, depth: usize) an
         const annotation = if (input.name.len == 0 and i < value.fields.len) value.fields[i].value else field(value, input.name);
         out.* = .{ .name = try self.output.dupe(u8, input.name), .value = try self.project(annotation, input.value, depth + 1) };
     }
-    return .{ .kind = physical_.kind, .nullable = physical_.nullable, .domain = self.domain(value.domain), .fields = fields };
+    return .{ .kind = physical_.kind, .nullable = physical_.nullable, .domain = self.domain(value.domain), .fields = fields, .bound = physical_.bound, .order = if (value.order) |name| try self.output.dupe(u8, name) else null };
 }
 fn checkExpected(self: *Self, expected: Expected, name: []const u8, actual: Value, physical_: a.Types.Value, offset: usize) anyerror!void {
     switch (expected) {
-        .result => if (physical_.kind != .record or actual.cardinality == null) return error.ProgramTypeMismatch,
+        .result => |cardinality| if (physical_.kind != (if (cardinality == .many) a.Types.Kind.rows else a.Types.Kind.record) or actual.cardinality == null) return error.ProgramTypeMismatch,
         .variant => |ref| _ = try self.variantRecord(ref, actual, physical_, offset),
         .scalar => |want_scalar| {
             const want_kind: a.Types.Kind = switch (want_scalar.base) {
@@ -363,9 +375,9 @@ fn select(self: *Self, input: a.Select) !Value {
     if (input.columns) |names| {
         const fields = try self.scratch.alloc(Named, names.len);
         for (names, fields) |name, *out| out.* = .{ .name = name, .value = field(record_, name) };
-        return .{ .fields = fields, .cardinality = .optional };
+        return .{ .fields = fields, .cardinality = if (input.many != null) .many else .optional, .order = if (input.many) |many| many.order else null };
     }
-    return .{ .fields = record_.fields, .cardinality = .optional };
+    return .{ .fields = record_.fields, .cardinality = if (input.many != null) .many else .optional, .order = if (input.many) |many| many.order else null };
 }
 fn event(self: *Self, kind: @FieldType(Event, "kind"), id: ?a.Id, offset: usize, resource: ?*const types.Table, expressions: []const *a.Expression) !void {
     const columns = try self.output.alloc(Association, if (resource) |value| value.domains.len else 0);
@@ -411,7 +423,7 @@ fn block(self: *Self, instructions: []const a.Instruction) anyerror!void {
                         try self.checkObligation(ob, value, phys, err_offset);
                         if (ob.expected == .result) {
                             value.cardinality = ob.expected.result;
-                            value.require_presence = true;
+                            value.require_presence = ob.expected.result != .many;
                         }
                     }
                 };
@@ -431,6 +443,22 @@ fn block(self: *Self, instructions: []const a.Instruction) anyerror!void {
                 try self.block(body);
                 self.symbols.shrinkRetainingCapacity(count);
                 try self.event(.atomic_end, id, offset, null, &.{});
+            },
+            .iteration => |loop| {
+                const collection: Value = blk: {
+                    for (self.symbols.items) |symbol| if (std.mem.eql(u8, symbol.name, loop.collection)) break :blk symbol.value;
+                    return error.UnknownProgramVariable;
+                };
+                if (collection.cardinality != .many) return error.InvalidProgramCollection;
+                const row: Value = .{ .fields = collection.fields, .cardinality = .one };
+                const before = try self.scratch.dupe(Named, self.symbols.items);
+                try self.symbols.append(self.scratch, .{ .name = loop.name, .value = row });
+                try self.node(id, offset, "iterator", row);
+                try self.event(.iteration_begin, id, offset, null, &.{});
+                try self.block(loop.body);
+                self.symbols.shrinkRetainingCapacity(before.len);
+                @memcpy(self.symbols.items, before);
+                try self.event(.iteration_end, id, offset, null, &.{});
             },
             .conditional => |input| {
                 try self.condition(input.condition);

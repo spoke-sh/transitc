@@ -681,7 +681,7 @@ fn hasHelperCalls(graph: Graph, file: usize, bindings: []const types.Binding, te
     var i: usize = 0;
     while (i < tokens.len) : (i += 1) {
         if (tokenWord(text, tokens[i], "MATCH")) return true;
-        if (tokenWord(text, tokens[i], "LET") and i + 2 < tokens.len and (tokenWord(text, tokens[i + 2], "ONE") or tokenWord(text, tokens[i + 2], "OPTIONAL"))) return true;
+        if (tokenWord(text, tokens[i], "LET") and i + 2 < tokens.len and (tokenWord(text, tokens[i + 2], "ONE") or tokenWord(text, tokens[i + 2], "OPTIONAL") or tokenWord(text, tokens[i + 2], "MANY"))) return true;
         if (tokenWord(text, tokens[i], "CHECK") and i + 1 < tokens.len and tokenWord(text, tokens[i + 1], "GUARD")) return true;
         if (tokenWord(text, tokens[i], "CALL") and i + 1 < tokens.len and tokens[i + 1].kind == .word) {
             const after = if (i + 3 < tokens.len and tokenSymbol(text, tokens[i + 2], '.')) i + 4 else i + 2;
@@ -1145,6 +1145,29 @@ fn lowerBlock(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic
             try self.requireEmitSymbol(env, tokens, i, ";");
             continue;
         }
+        if (tokenWord(text, start_tok, "FOR")) {
+            try self.requireEmitWord(env, tokens, i, "FOR");
+            const variable = tokens[i.*];
+            const decoded = try self.decodeProgramName(text, variable);
+            for (env.symbols.items) |symbol| if (std.mem.eql(u8, symbol.original, decoded)) {
+                self.setError(env, variable.start);
+                return error.DuplicateProgramVariable;
+            };
+            const local = if (env.rename_locals) try self.freshHygienic(decoded) else decoded;
+            i.* += 1;
+            try self.emitQuotedRaw(local, self.makeOrigin(env, variable.start));
+            try self.requireEmitWord(env, tokens, i, "IN");
+            try self.lowerExpression(env, tokens, i, 0, false, depth + 1);
+            try self.requireEmitWord(env, tokens, i, "DO");
+            const saved = env.symbols.items.len;
+            if (env.rename_locals) try env.symbols.append(self.scratch, .{ .original = decoded, .emitted = local });
+            try self.lowerBlock(env, tokens, i, atomic, depth + 1);
+            env.symbols.shrinkRetainingCapacity(saved);
+            try self.requireEmitWord(env, tokens, i, "END");
+            try self.requireEmitWord(env, tokens, i, "FOR");
+            try self.requireEmitSymbol(env, tokens, i, ";");
+            continue;
+        }
         if (tokenWord(text, start_tok, "IF")) {
             const mark = self.beginHoistScope();
             var hoisted: Hoisted = .{ .writer = .{ .allocator = self.scratch, .limit = self.writer.limit } };
@@ -1178,7 +1201,7 @@ fn lowerBlock(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic
             const var_tok = tokens[i.*];
             i.* += 1;
             const decoded = try self.decodeProgramName(text, var_tok);
-            const cardinality: ?Annotations.Cardinality = if (i.* < tokens.len and tokenWord(text, tokens[i.*], "ONE")) .one else if (i.* < tokens.len and tokenWord(text, tokens[i.*], "OPTIONAL")) .optional else null;
+            const cardinality: ?Annotations.Cardinality = if (i.* < tokens.len and tokenWord(text, tokens[i.*], "ONE")) .one else if (i.* < tokens.len and tokenWord(text, tokens[i.*], "OPTIONAL")) .optional else if (i.* < tokens.len and tokenWord(text, tokens[i.*], "MANY")) .many else null;
             if (cardinality != null) i.* += 1;
             var new_hygienic: ?[]const u8 = null;
             if (env.rename_locals) {
@@ -1191,6 +1214,13 @@ fn lowerBlock(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic
                 try self.emitQuotedRaw(h, self.makeOrigin(env, var_tok.start));
             } else {
                 try self.emitOriginalToken(env, text, tokens, i.* - 1);
+            }
+            if (cardinality == .many) {
+                try self.emitFixed("MANY", self.makeOrigin(env, var_tok.start));
+                try self.requireEmitSymbol(env, tokens, i, "(");
+                try self.emitOriginalToken(env, text, tokens, i.*);
+                i.* += 1;
+                try self.requireEmitSymbol(env, tokens, i, ")");
             }
             try self.requireEmitSymbol(env, tokens, i, "=");
             if (cardinality != null and (i.* >= tokens.len or !tokenWord(text, tokens[i.*], "SELECT"))) return error.InvalidSourceTemplate;
@@ -1212,6 +1242,13 @@ fn lowerBlock(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic
                 if (i.* < tokens.len and tokenWord(text, tokens[i.*], "WHERE")) {
                     try self.requireEmitWord(env, tokens, i, "WHERE");
                     try self.lowerExpression(env, tokens, i, 0, false, depth + 1);
+                }
+                if (cardinality == .many) {
+                    try self.requireEmitWord(env, tokens, i, "ORDER");
+                    try self.requireEmitWord(env, tokens, i, "BY");
+                    try self.emitOriginalToken(env, text, tokens, i.*);
+                    i.* += 1;
+                    if (i.* < tokens.len and tokenWord(text, tokens[i.*], "ASC")) try self.requireEmitWord(env, tokens, i, "ASC");
                 }
             } else {
                 try self.lowerExpression(env, tokens, i, 0, true, depth + 1);

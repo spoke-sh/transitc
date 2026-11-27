@@ -20,6 +20,7 @@
         "transit_sql_frontend"
       ],
       "packages/transitc-compiler/src/ProgramAnnotations.zig": [
+        "transit_protocol",
         "transit_sql_frontend"
       ],
       "packages/transitc-compiler/src/ProgramCheck.zig": [
@@ -73,6 +74,9 @@
         "transit_sql_frontend"
       ],
       "packages/transitc-compiler/src/lossless_test.zig": [
+        "transit_protocol"
+      ],
+      "packages/transitc-compiler/src/many_test.zig": [
         "transit_protocol"
       ],
       "packages/transitc-compiler/src/migration_test.zig": [

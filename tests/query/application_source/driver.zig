@@ -3,6 +3,8 @@ const std = @import("std");
 const c = @import("transit_compiler");
 const p = @import("transit_protocol");
 const memory = @import("transit_memory");
+const ProgramEvidence = @typeInfo(@FieldType(@FieldType(c.Compiler.Step, "checked"), "program")).optional.child;
+const AnnotationNode = @typeInfo(@FieldType(ProgramEvidence, "nodes")).pointer.child;
 const Request = struct { name: []const u8, source: []const u8, compile: ?enum { build, test_suite } = null, files: []const c.Source = &.{} };
 const View = struct {
     text: []const u8,
@@ -14,6 +16,9 @@ const View = struct {
 fn project(out: *std.json.Stringify, text: []const u8, value: anytype, depth: usize) std.json.Stringify.Error!void {
     if (depth > 512) return error.WriteFailed;
     const T = @TypeOf(value);
+    // Collection metadata is meaningful only on a rows descriptor. Preserve
+    // the established scalar/record projection through its owning serializer.
+    if (T == @FieldType(AnnotationNode, "type")) return out.write(value);
     if (T == c.Syntax.Token) {
         try out.beginObject();
         try out.objectField("kind");

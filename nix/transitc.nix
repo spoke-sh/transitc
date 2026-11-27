@@ -8,12 +8,12 @@
   sourceRevision ? "development",
   sharedArchive ? fetchurl {
     name = "transit-sql-frontend.tar.gz";
-    url = "https://raw.githubusercontent.com/spoke-sh/transit/b58715bf4ef4e5236748547ce15e37a602c4b471/build/artifacts/transit-sql-frontend.tar.gz";
-    hash = "sha256-bF7LJoomnA+QCkZDkf76WU35vm7xIWAxVgNRBTx1rQ0=";
+    url = "https://raw.githubusercontent.com/spoke-sh/transit/d65f7c656c8e311806132ca894059b43b52051ee/build/artifacts/transit-sql-frontend.tar.gz";
+    hash = "sha256-HWbBkOjoR+xeIF7XolIajdTJ3jkqsXmWH1pzUAM6NBY=";
   },
 }:
 let
-  sharedHash = "transit_sql_distribution-0.0.1-t9CQA3LQIgDi5e3l4zS8j0S3qrqw2se1mi57LBnCCQZd";
+  sharedHash = "transit_sql_distribution-0.0.1-t9CQA2UWIwBbAG3g4rw2HdU9FM1kSbCoZCm1W2_LqLTz";
   dependencies = runCommand "transitc-zig-dependencies" { nativeBuildInputs = [ zig ]; } ''
     export ZIG_GLOBAL_CACHE_DIR="$TMPDIR/zig-global-cache"
     test "$(zig fetch ${sharedArchive})" = ${lib.escapeShellArg sharedHash}

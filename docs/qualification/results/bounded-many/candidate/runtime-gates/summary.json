@@ -1,0 +1,270 @@
+{
+  "compiler_revision": "69dc1f173bf5bb2d0ecc6685b0fb246bd744be96",
+  "complete": true,
+  "phases": [
+    {
+      "name": "baseline-dynamic-fixed-driver",
+      "cwd": "/home/alex/workspace/spoke-sh/transitc",
+      "command": [
+        "nix",
+        "develop",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline",
+        "--command",
+        "python3",
+        "-B",
+        "/home/alex/workspace/spoke-sh/transitc/tests/runner/launch.py",
+        "/home/alex/workspace/spoke-sh/transitc/tests/integration/typed_composition.py",
+        "/nix/store/qlqix1r9my63dnkjric80v0bq8jva0k8-transitc-0.0.0-dev/bin/transitc",
+        "dynamic"
+      ],
+      "started": 1795495144.6907015,
+      "exit_code": 0,
+      "seconds": 284.317
+    },
+    {
+      "name": "baseline-build-command",
+      "cwd": "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline",
+      "command": [
+        "nix",
+        "develop",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline",
+        "--command",
+        "python3",
+        "-B",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/runner/launch.py",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/integration/build_command.py",
+        "/nix/store/qlqix1r9my63dnkjric80v0bq8jva0k8-transitc-0.0.0-dev/bin/transitc"
+      ],
+      "started": 1795495429.0077114,
+      "exit_code": 0,
+      "seconds": 1085.746
+    },
+    {
+      "name": "baseline-test-command",
+      "cwd": "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline",
+      "command": [
+        "nix",
+        "develop",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline",
+        "--command",
+        "python3",
+        "-B",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/runner/launch.py",
+        "/home/alex/workspace/spoke-sh/transitc-bounded-many-baseline/tests/integration/test_command.py",
+        "/nix/store/qlqix1r9my63dnkjric80v0bq8jva0k8-transitc-0.0.0-dev/bin/transitc"
+      ],
+      "started": 1795496514.7536025,
+      "exit_code": 0,
+      "seconds": 370.006
+    },
+    {
+      "name": "candidate-nix-package",
+      "cwd": "/home/alex/workspace/spoke-sh/transitc",
+      "command": [
+        "nix",
+        "build",
+        "git+file:///home/alex/workspace/spoke-sh/transitc?rev=69dc1f173bf5bb2d0ecc6685b0fb246bd744be96#transitc",
+        "--out-link",
+        "/home/alex/workspace/spoke-sh/transitc/.cache/bounded-many/compiler-result",
+        "--print-build-logs"
+      ],
+      "started": 1795496884.7595909,
+      "exit_code": 0,
+      "seconds": 855.572
+    },
+    {
+      "name": "candidate-upstream-smoke",
+      "cwd": "/home/alex/workspace/spoke-sh/transitc",
+      "command": [
+        "nix",
+        "develop",
+        "/home/alex/workspace/spoke-sh/transitc",
+        "--command",
+        "python3",
+        "-B",
+        "tests/integration/upstream_transit.py"
+      ],
+      "started": 1795497740.331592,
+      "exit_code": 0,
+      "seconds": 10.624
+    },
+    {
+      "name": "candidate-parity",
+      "cwd": "/home/alex/workspace/spoke-sh/transitc",
+      "command": [
+        "nix",
+        "develop",
+        "/home/alex/workspace/spoke-sh/transitc",
+        "--command",
+        "python3",
+        "-B",
+        "tests/integration/parity.py",
+        "--transitc",
+        "/home/alex/workspace/spoke-sh/transitc/.cache/bounded-many/compiler-result/bin/transitc"
+      ],
+      "started": 1795497750.9557831,
+      "exit_code": 1,
+      "seconds": 0.716
+    },
+    {
+      "name": "candidate-emitted-sql",
+      "cwd": "/home/alex/workspace/spoke-sh/transitc",
+      "command": [
+        "nix",
+        "develop",
+        "/home/alex/workspace/spoke-sh/transitc",
+        "--command",
+        "python3",
+        "-B",
+        "tests/integration/execute_sql.py",
+        "/home/alex/workspace/spoke-sh/transitc/.cache/bounded-many/compiler-result/bin/transitc"
+      ],
+      "started": 1795497751.671845,
+      "exit_code": 0,
+      "seconds": 7.613
+    },
+    {
+      "name": "candidate-composition-controls",
+      "cwd": "/home/alex/workspace/spoke-sh/transitc",
+      "command": [
+        "nix",
+        "develop",
+        "/home/alex/workspace/spoke-sh/transitc",
+        "--command",
+        "python3",
+        "-B",
+        "tests/runner/launch.py",
+        "tests/integration/composition_test.py"
+      ],
+      "started": 1795497759.2853224,
+      "exit_code": 0,
+      "seconds": 1.978
+    },
+    {
+      "name": "candidate-three-composition-passes",
+      "cwd": "/home/alex/workspace/spoke-sh/transitc",
+      "command": [
+        "nix",
+        "develop",
+        "/home/alex/workspace/spoke-sh/transitc",
+        "--command",
+        "python3",
+        "-B",
+        "/home/alex/workspace/spoke-sh/transitc/tests/runner/launch.py",
+        "/home/alex/workspace/spoke-sh/transitc/tests/integration/composition.py",
+        "/home/alex/workspace/spoke-sh/transitc/.cache/bounded-many/compiler-result/bin/transitc",
+        "--runs",
+        "3"
+      ],
+      "started": 1795497761.2636266,
+      "exit_code": 1,
+      "seconds": 3814.221
+    },
+    {
+      "name": "candidate-examples",
+      "cwd": "/home/alex/workspace/spoke-sh/transitc",
+      "command": [
+        "nix",
+        "develop",
+        "/home/alex/workspace/spoke-sh/transitc",
+        "--command",
+        "python3",
+        "-B",
+        "tests/examples.py",
+        "/home/alex/workspace/spoke-sh/transitc/.cache/bounded-many/compiler-result/bin/transitc"
+      ],
+      "started": 1795501575.4853866,
+      "exit_code": 0,
+      "seconds": 21.47
+    },
+    {
+      "name": "candidate-build-command",
+      "cwd": "/home/alex/workspace/spoke-sh/transitc",
+      "command": [
+        "nix",
+        "develop",
+        "/home/alex/workspace/spoke-sh/transitc",
+        "--command",
+        "python3",
+        "-B",
+        "/home/alex/workspace/spoke-sh/transitc/tests/runner/launch.py",
+        "/home/alex/workspace/spoke-sh/transitc/tests/integration/build_command.py",
+        "/home/alex/workspace/spoke-sh/transitc/.cache/bounded-many/compiler-result/bin/transitc"
+      ],
+      "started": 1795501596.9561198,
+      "exit_code": 0,
+      "seconds": 1104.894
+    },
+    {
+      "name": "candidate-host-boundary",
+      "cwd": "/home/alex/workspace/spoke-sh/transitc",
+      "command": [
+        "nix",
+        "develop",
+        "/home/alex/workspace/spoke-sh/transitc",
+        "--command",
+        "python3",
+        "-B",
+        "/home/alex/workspace/spoke-sh/transitc/tests/runner/launch.py",
+        "/home/alex/workspace/spoke-sh/transitc/tests/integration/test_host_boundary.py",
+        "/home/alex/workspace/spoke-sh/transitc/.cache/bounded-many/compiler-result/bin/transitc"
+      ],
+      "started": 1795502701.8502386,
+      "exit_code": 0,
+      "seconds": 71.14
+    },
+    {
+      "name": "candidate-test-command",
+      "cwd": "/home/alex/workspace/spoke-sh/transitc",
+      "command": [
+        "nix",
+        "develop",
+        "/home/alex/workspace/spoke-sh/transitc",
+        "--command",
+        "python3",
+        "-B",
+        "/home/alex/workspace/spoke-sh/transitc/tests/runner/launch.py",
+        "/home/alex/workspace/spoke-sh/transitc/tests/integration/test_command.py",
+        "/home/alex/workspace/spoke-sh/transitc/.cache/bounded-many/compiler-result/bin/transitc"
+      ],
+      "started": 1795502772.9904675,
+      "exit_code": 0,
+      "seconds": 367.753
+    },
+    {
+      "name": "candidate-clean-cache-embedding",
+      "cwd": "/home/alex/workspace/spoke-sh/transitc",
+      "command": [
+        "nix",
+        "develop",
+        ".#toolchain",
+        "--command",
+        "python3",
+        "-B",
+        "tests/clean_build.py"
+      ],
+      "started": 1795503140.7437537,
+      "exit_code": 0,
+      "seconds": 91.626
+    },
+    {
+      "name": "candidate-native-archive",
+      "cwd": "/home/alex/workspace/spoke-sh/transitc",
+      "command": [
+        "nix",
+        "develop",
+        ".#toolchain",
+        "--command",
+        "python3",
+        "-B",
+        "tasks/archive.py",
+        "--output",
+        ".cache/bounded-many/native-archive"
+      ],
+      "started": 1795503232.3704917,
+      "exit_code": 0,
+      "seconds": 59.19
+    }
+  ],
+  "ok": false
+}

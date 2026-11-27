@@ -1,0 +1,95 @@
+{
+  "repository": "spoke-sh/transitc",
+  "run_id": 45338627390,
+  "review_head": "b5807de09fddc0225ff152051852be26b0fd9715",
+  "attempt": 2,
+  "jobs": [
+    {
+      "id": 138292290495,
+      "name": "Native x86_64-macos",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 138292292469,
+      "name": "Native x86_64-linux-musl",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 138292293140,
+      "name": "handbook",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 138292293174,
+      "name": "Native aarch64-linux-musl",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 138292333466,
+      "name": "Native aarch64-macos",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 138292361717,
+      "name": "compiler",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "macos_retry": {
+    "id": 138292290495,
+    "conclusion": "success",
+    "steps": [
+      {
+        "name": "Set up job",
+        "conclusion": "success"
+      },
+      {
+        "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "conclusion": "success"
+      },
+      {
+        "name": "Run cachix/install-nix-action@b85815f71a6de0ddee80b8a80a98d43f4bcc66c7",
+        "conclusion": "success"
+      },
+      {
+        "name": "Native clean build, unit tests and public embedding API",
+        "conclusion": "success"
+      },
+      {
+        "name": "Build and execute the installed portable archive",
+        "conclusion": "success"
+      },
+      {
+        "name": "Check formatter on the native host",
+        "conclusion": "success"
+      },
+      {
+        "name": "Sign build provenance for archive bytes",
+        "conclusion": "success"
+      },
+      {
+        "name": "Verify signatures and source identity",
+        "conclusion": "success"
+      },
+      {
+        "name": "Run actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+        "conclusion": "success"
+      },
+      {
+        "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "conclusion": "success"
+      },
+      {
+        "name": "Complete job",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "original_macos_failure": "../macos-attestation-failure.json"
+}

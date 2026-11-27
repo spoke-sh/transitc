@@ -1,0 +1,2 @@
+CREATE TABLE ITEMS ( ID BIGINT );
+PASS clean source build, unit tests and embedding consumer with empty Zig caches

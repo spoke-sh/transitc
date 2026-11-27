@@ -72,7 +72,8 @@ def cases():
     result = json.loads((ROOT / 'contracts/application-source/corpus.json').read_text())
     for prefix, directory in (('typed-queue', 'application-typed-queue'),
                               ('modular-programs', 'application-modular-programs'),
-                              ('whole-row', 'application-whole-row')):
+                              ('whole-row', 'application-whole-row'),
+                              ('bounded-many', 'application-bounded-many')):
         fixture = ROOT / 'tests/fixtures' / directory
         for mode in ('build', 'test_suite'):
             result.append({'name': f'{prefix}-{mode}', 'source': (fixture / 'build.transit').read_text(),

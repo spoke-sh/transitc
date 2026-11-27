@@ -1,7 +1,10 @@
 # SQL surface qualification v1
 
-The shared frontend and compiled-case host are pinned to Transit
-`f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`. A logical type appearing in that
+The surface evidence below was established with Transit
+`f31673bbd0fa599c9d2bd98c2ceb47d328c19ae6`. The shared frontend and compiled-case
+host now pin `d65f7c656c8e311806132ca894059b43b52051ee`; the
+[bounded-result record](../../docs/qualification/bounded-many.md) tracks
+qualification of that refreshed pair separately. A logical type appearing in the
 frontend does not admit it everywhere in the source language. The frozen old
 compiler comparison remains at `e7434306334e3692c6f3e123cba0d278fa412196`.
 

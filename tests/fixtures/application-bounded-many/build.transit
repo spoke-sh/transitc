@@ -1,0 +1,110 @@
+IMPORT rows FROM 'rows.transit';
+CREATE GUARD Validate(entry ROW(id rows.ItemId, note TEXT)) AS BEGIN
+  CHECK GUARD rows.Validate(entry);
+END;
+CREATE MODULE Resources(item TYPE, input IDENTIFIER, items IDENTIFIER, events IDENTIFIER, failures IDENTIFIER, lease TEXT) AS BEGIN
+  CREATE PUBLIC QUEUE $input (id BIGINT NOT NULL, batch BIGINT NOT NULL, reject BIGINT NOT NULL) WITH (LEASE_DURATION = $lease, MAX_LEASE_DURATION = $lease);
+  CREATE PUBLIC TABLE $items (id $item PRIMARY KEY, batch BIGINT NOT NULL, note TEXT);
+  CREATE PUBLIC STREAM $events (request BIGINT NOT NULL, id $item NOT NULL, note TEXT);
+  CREATE PUBLIC STREAM $failures (request BIGINT NOT NULL, reason TEXT NOT NULL);
+  EXPORT QUEUE $input AS input;
+  EXPORT TABLE $items AS items;
+  EXPORT STREAM $events AS events;
+  EXPORT STREAM $failures AS failures;
+END;
+CREATE MODULE Seed(items TABLE(id rows.ItemId PRIMARY KEY, batch BIGINT NOT NULL, note TEXT), id rows.ItemId, batch BIGINT, note TEXT, missing BOOLEAN) AS BEGIN
+  IF missing THEN
+    INSERT INTO $items VALUES ($id, $batch, NULL);
+  ELSE
+    INSERT INTO $items VALUES ($id, $batch, $note);
+  END IF;
+END;
+CREATE MODULE Workflow(input QUEUE(id BIGINT NOT NULL, batch BIGINT NOT NULL, reject BIGINT NOT NULL), items TABLE(id rows.ItemId PRIMARY KEY, batch BIGINT NOT NULL, note TEXT), events STREAM(request BIGINT NOT NULL, id rows.ItemId NOT NULL, note TEXT), failures STREAM(request BIGINT NOT NULL, reason TEXT NOT NULL), route IDENTIFIER, late rows.ItemId, first rows.ItemId, last rows.ItemId) AS BEGIN
+  CREATE PUBLIC DATAFLOW $route FROM QUEUE $input AS request AS BEGIN
+    BEGIN ATOMIC
+      LET selected MANY(3) = SELECT id, note FROM $items WHERE batch = request.batch ORDER BY id;
+      LET batch = selected;
+      FOR item IN batch DO
+        CHECK GUARD Validate(item);
+        IF request.reject = 1 THEN
+          REQUIRE item.id <> $late ELSE 'LateRefusal';
+        END IF;
+        IF request.reject = 2 THEN
+          REQUIRE item.id <> $first ELSE 'FirstKey';
+          REQUIRE item.id <> $last ELSE 'LastKey';
+        END IF;
+        PRODUCE INTO $events VALUES (request.id, rows.identity(item), item.note);
+      END FOR;
+    END;
+  ON FAILURE failure
+    BEGIN ATOMIC
+      PRODUCE INTO $failures VALUES (request.id, 'refused');
+    END;
+  END;
+  AUTHORIZE DATAFLOW $route AS ROLE CURRENT_ROLE;
+  ACTIVATE DATAFLOW $route;
+END;
+CREATE MODULE Pipeline(input IDENTIFIER, items IDENTIFIER, events IDENTIFIER, failures IDENTIFIER, route IDENTIFIER, lease TEXT) AS BEGIN
+  USE Resources(TYPE rows.ItemId, input, items, events, failures, lease) AS data;
+  USE Seed(data.items, rows.ItemId(3), 1, 'same', FALSE);
+  USE Seed(data.items, rows.ItemId(1), 1, 'same', FALSE);
+  USE Seed(data.items, rows.ItemId(2), 2, '', TRUE);
+  USE Seed(data.items, rows.ItemId(6), 3, 'six', FALSE);
+  USE Seed(data.items, rows.ItemId(4), 3, '', TRUE);
+  USE Seed(data.items, rows.ItemId(5), 3, 'five', FALSE);
+  USE Seed(data.items, rows.ItemId(10), 4, 'ten', FALSE);
+  USE Seed(data.items, rows.ItemId(7), 4, 'seven', FALSE);
+  USE Seed(data.items, rows.ItemId(9), 4, 'nine', FALSE);
+  USE Seed(data.items, rows.ItemId(8), 4, 'eight', FALSE);
+  USE Workflow(data.input, data.items, data.events, data.failures, route, rows.ItemId(5), rows.ItemId(4), rows.ItemId(6));
+END;
+CREATE MODULE Scenario(lease TEXT) AS BEGIN
+  USE Pipeline(NAME 'many_requests', NAME 'many_items', NAME 'many_events', NAME 'many_failures', NAME 'many_route', lease);
+END;
+CREATE TARGET default AS BEGIN
+  USE Scenario('120s');
+END;
+CREATE TARGET two AS BEGIN
+  USE Scenario('120s');
+  USE Pipeline(NAME 'other_requests', NAME 'other_items', NAME 'other_events', NAME 'other_failures', NAME 'other_route', '120s');
+END;
+CREATE TEST TARGET tests AS BEGIN
+  TEST 'empty collection' USING MODULES (Scenario('30s')) AS BEGIN
+    ENQUEUE INTO many_requests VALUES (1, 0, 0);
+    ASSERT WORKFLOW NAME 'many_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME * FROM many_events) EQUAL ();
+  END;
+  TEST 'one nullable row' USING MODULES (Scenario('30s')) AS BEGIN
+    ENQUEUE INTO many_requests VALUES (1, 2, 0);
+    ASSERT WORKFLOW NAME 'many_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME * FROM many_events) EQUAL ((1, 2, NULL));
+  END;
+  TEST 'ordered duplicate payloads' USING MODULES (Scenario('30s')) AS BEGIN
+    ENQUEUE INTO many_requests VALUES (1, 1, 0);
+    ASSERT WORKFLOW NAME 'many_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME * FROM many_events) EQUAL ((1, 1, 'same'), (1, 3, 'same'));
+  END;
+  TEST 'exact bound' USING MODULES (Scenario('30s')) AS BEGIN
+    ENQUEUE INTO many_requests VALUES (1, 3, 0);
+    ASSERT WORKFLOW NAME 'many_route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME * FROM many_events) EQUAL ((1, 4, NULL), (1, 5, 'five'), (1, 6, 'six'));
+  END;
+  TEST 'over bound' USING MODULES (Scenario('30s')) AS BEGIN
+    ENQUEUE INTO many_requests VALUES (1, 4, 0);
+    ASSERT WORKFLOW NAME 'many_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME * FROM many_events) EQUAL ();
+    ASSERT ROWS (CONSUME * FROM many_failures) EQUAL ((1, 'refused'));
+  END;
+  TEST 'late refusal rolls back earlier rows' USING MODULES (Scenario('30s')) AS BEGIN
+    ENQUEUE INTO many_requests VALUES (1, 3, 1);
+    ASSERT WORKFLOW NAME 'many_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME * FROM many_events) EQUAL ();
+    ASSERT ROWS (CONSUME * FROM many_failures) EQUAL ((1, 'refused'));
+  END;
+  TEST 'first error follows key order' USING MODULES (Scenario('30s')) AS BEGIN
+    ENQUEUE INTO many_requests VALUES (1, 3, 2);
+    ASSERT WORKFLOW NAME 'many_route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME * FROM many_events) EQUAL ();
+    ASSERT ROWS (CONSUME * FROM many_failures) EQUAL ((1, 'refused'));
+  END;
+END;

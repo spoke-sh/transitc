@@ -82,11 +82,15 @@ fn resource(self: *Self, schema: ?[]const u8, name: []const u8, kind: types.Reso
     for (entry.schema.columns, fields) |column, *field| field.* = .{ .name = column.name, .value = try a.Schema.bindField(allocator, .{ .name = column.name, .type = column.type, .nullable = column.nullable }) };
     const keys = try allocator.alloc([]const u8, entry.schema.primary_key.len);
     for (entry.schema.primary_key, keys) |id, *key| key.* = entry.schema.columns[try entry.schema.index(id)].name;
+    const many_order: ?[]const u8 = if (kind == .table and keys.len == 1) blk: {
+        const key = entry.schema.columns[try entry.schema.index(entry.schema.primary_key[0])];
+        break :blk if (key.type == .int64 and !key.nullable) keys[0] else null;
+    } else null;
     try self.resources.append(allocator, .{ .schema = schema, .name = entry.name, .kind = switch (kind) {
         .table => .table,
         .stream => .stream,
         .queue => .queue,
-    }, .fields = fields, .key = keys });
+    }, .fields = fields, .key = keys, .many_order = many_order });
     try self.entries.append(allocator, entry);
 }
 fn block(self: *Self, body: []const a.Instruction) anyerror!void {
@@ -98,6 +102,7 @@ fn block(self: *Self, body: []const a.Instruction) anyerror!void {
         },
         .require => {},
         .atomic => |instructions| try self.block(instructions),
+        .iteration => |loop| try self.block(loop.body),
         .conditional => |condition| {
             try self.block(condition.yes);
             try self.block(condition.no);

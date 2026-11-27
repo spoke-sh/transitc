@@ -1,0 +1,42 @@
+{
+  "completed": 4,
+  "refused": 1,
+  "rows": [
+    {
+      "request": "2",
+      "id": "2",
+      "note": null
+    },
+    {
+      "request": "3",
+      "id": "1",
+      "note": "same"
+    },
+    {
+      "request": "3",
+      "id": "3",
+      "note": "same"
+    },
+    {
+      "request": "4",
+      "id": "4",
+      "note": null
+    },
+    {
+      "request": "4",
+      "id": "5",
+      "note": "five"
+    },
+    {
+      "request": "4",
+      "id": "6",
+      "note": "six"
+    }
+  ],
+  "failures": [
+    {
+      "request": "5",
+      "reason": "refused"
+    }
+  ]
+}

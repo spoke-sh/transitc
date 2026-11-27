@@ -1,0 +1,17 @@
+CREATE QUEUE "corrected_requests" ( ID BIGINT NOT NULL , BATCH BIGINT NOT NULL , REJECT BIGINT NOT NULL ) WITH ( LEASE_DURATION = '120s' , MAX_LEASE_DURATION = '120s' );
+CREATE TABLE "corrected_items" ( ID BIGINT PRIMARY KEY , BATCH BIGINT NOT NULL , NOTE TEXT );
+CREATE STREAM "corrected_events" ( REQUEST BIGINT NOT NULL , ID BIGINT NOT NULL , NOTE TEXT );
+CREATE STREAM "corrected_failures" ( REQUEST BIGINT NOT NULL , REASON TEXT NOT NULL );
+INSERT INTO "corrected_items" VALUES ( 3 , 1 , 'same' );
+INSERT INTO "corrected_items" VALUES ( 1 , 1 , 'same' );
+INSERT INTO "corrected_items" VALUES ( 2 , 2 , NULL );
+INSERT INTO "corrected_items" VALUES ( 6 , 3 , 'six' );
+INSERT INTO "corrected_items" VALUES ( 4 , 3 , NULL );
+INSERT INTO "corrected_items" VALUES ( 5 , 3 , 'five' );
+INSERT INTO "corrected_items" VALUES ( 10 , 4 , 'ten' );
+INSERT INTO "corrected_items" VALUES ( 7 , 4 , 'seven' );
+INSERT INTO "corrected_items" VALUES ( 9 , 4 , 'nine' );
+INSERT INTO "corrected_items" VALUES ( 8 , 4 , 'eight' );
+CREATE DATAFLOW "corrected_route" FROM QUEUE "corrected_requests" AS "__t$1_request" AS BEGIN BEGIN ATOMIC LET "__t$2_selected" MANY ( 4 ) = SELECT ID , NOTE FROM "corrected_items" WHERE BATCH = "__t$1_request" . BATCH ORDER BY ID ; LET "__t$3_batch" = "__t$2_selected" ; FOR "__t$4_item" IN "__t$3_batch" DO LET "__t$5_entry" = "__t$4_item" ; LET "__t$6_entry" = "__t$5_entry" ; REQUIRE ( ( "__t$6_entry" ) . ID ) = "__t$6_entry" . ID ELSE 'InvalidItem' ; IF "__t$1_request" . REJECT = 1 THEN REQUIRE "__t$4_item" . ID <> 5 ELSE 'LateRefusal' ; END IF ; IF "__t$1_request" . REJECT = 2 THEN REQUIRE "__t$4_item" . ID <> 4 ELSE 'FirstKey' ; REQUIRE "__t$4_item" . ID <> 6 ELSE 'LastKey' ; END IF ; PRODUCE INTO "corrected_events" VALUES ( "__t$1_request" . ID , ( ( "__t$4_item" ) . ID ) , "__t$4_item" . NOTE ) ; END FOR ; END ; ON FAILURE "__t$7_failure" BEGIN ATOMIC PRODUCE INTO "corrected_failures" VALUES ( "__t$1_request" . ID , 'refused' ) ; END ; END;
+AUTHORIZE DATAFLOW "corrected_route" AS ROLE CURRENT_ROLE;
+ACTIVATE DATAFLOW "corrected_route";

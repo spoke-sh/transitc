@@ -1,0 +1,2 @@
+Application tests: offline isolation, typed rows, counts, refusals, child/remote targets and failure coverage passed
+PASS transitc test: complete native application schedule, offline cases, failures, limits, cleanup and runtime identity

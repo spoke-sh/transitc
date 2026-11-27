@@ -1,0 +1,22 @@
+{
+  "completed": 3,
+  "refused": 0,
+  "rows": [
+    {
+      "request": "2",
+      "id": "2",
+      "note": null
+    },
+    {
+      "request": "3",
+      "id": "1",
+      "note": "same"
+    },
+    {
+      "request": "3",
+      "id": "3",
+      "note": "same"
+    }
+  ],
+  "failures": []
+}

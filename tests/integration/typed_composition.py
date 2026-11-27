@@ -15,10 +15,6 @@ FIXTURES = ROOT / 'tests/fixtures'
 
 
 def native_probes(runtime, destination):
-    sys.path.insert(0, str(Path(os.environ['TRANSIT_TEST_SOURCE']) / 'tests'))
-    from harness import phases
-    recorder = phases.Recorder(ROOT)
-    phases.recorder = lambda: recorder
     from interfaces.installation.server import Fixture
     from interfaces.installation.server_managed_tables import await_head
     from interfaces.cli.table_console import records
@@ -151,6 +147,12 @@ def dynamic_journey(compiler, runtime, destination):
 
 
 def main():
+    # Every selected phase runs in its own interpreter. Dynamic execution must
+    # not depend on native_probes having initialized the pinned host harness.
+    sys.path.insert(0, str(Path(os.environ['TRANSIT_TEST_SOURCE']) / 'tests'))
+    from harness import phases
+    recorder = phases.Recorder(ROOT)
+    phases.recorder = lambda: recorder
     compiler = Path(sys.argv[1] if len(sys.argv) > 1 else 'zig-out/bin/transitc').resolve()
     runtime = Path(os.environ['TRANSIT_TEST_RUNTIME']).resolve()
     parent = ROOT / '.cache/checks/typed-composition'

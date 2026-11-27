@@ -164,6 +164,8 @@ pub const Report = struct {
                 else
                     self.setHeadline("nominal source domains do not match", .{}),
                 error.DuplicateDomainIdentity => self.setHeadline("duplicate nominal domain identity string", .{}),
+                error.InvalidProgramCollection => self.setHeadline("MANY needs a bound from 1 to 64 and ascending order by one BIGINT primary key", .{}),
+                error.UnsupportedProgramIteration => self.setHeadline("FOR requires one atomic loop level with no reads, effects or suspension in its expanded body", .{}),
                 error.OptionalRowRequiresPresence => self.setHeadline("optional row needs a whole-row presence check before projection or a helper call", .{}),
                 error.InvalidDomainIdentity => self.setHeadline("domain identity must be 1..128 valid UTF-8 bytes", .{}),
                 error.SourceTypeMismatch, error.ProgramTypeMismatch => if (context.expected != null and context.actual != null)
@@ -376,6 +378,8 @@ const families = std.StaticStringMap(Family).initComptime(.{
     .{ "InvalidSourceTypeOperand", .type },
     .{ "SourceTableBindingMismatch", .type },
     .{ "ProgramTypeMismatch", .type },
+    .{ "InvalidProgramCollection", .type },
+    .{ "UnsupportedProgramIteration", .capability },
     .{ "OptionalRowRequiresPresence", .type },
     .{ "ProgramNullabilityMismatch", .type },
     .{ "ProgramResourceKindMismatch", .type },

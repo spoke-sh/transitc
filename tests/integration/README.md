@@ -48,13 +48,19 @@ compares transitc with that exact binary across five fixture families and seven
 negative cases. SQL, source maps, provenance semantics and diagnostic envelopes
 must match exactly except for compiler revision, executable digest, input/cache
 identity and the dependency diagnostic's explicit `transit build --fetch` to
-`transitc build --fetch` correction. The scalar-analysis dependency update also
-requires an explicit native definition cutover: the frozen baseline must report
+`transitc build --fetch` correction. Reviewed native changes also require an
+explicit definition cutover: the frozen baseline must report
 `f311e893f8d2f4c21f426790172fadfebe7eb2364615eb1566c09f11d39bb0bb`,
 and transitc must report
-`7344b5ed271c41ea371aaa6e61867b1a4d1f670e9a9176f96793835d8ead20a5`.
-The upstream Transaction.Origin change accounts for this reviewed difference;
-foreign or missing definitions still fail. Human guidance for wrong target kinds and
+`dd6352c075f480dabbc2d1349cc79c9a5c85687ecafd33055d6a2d56f28251d0`.
+Transaction.Origin, committed Queue effects and bounded iteration account for
+this cutover. Adding `Select.many` also changes canonical program bytes for
+existing singleton reads. `ProgramCheck` hashes those bytes, and the AUTHORIZE
+and ACTIVATE plans include that program identity. The twelve exact old/new hash
+pairs in `parity-plan-digests.json` cover those three steps for both instances of
+the typed and modular Queue fixtures. Every other plan hash remains equal.
+Twenty-four artifact mutation controls reject changed source maps, unrelated or
+reviewed plan hashes, and foreign definitions. Human guidance for wrong target kinds and
 missing dependencies must name the current `transitc build` / `transitc test`
 commands. Repeated transitc builds must be byte-identical.
 

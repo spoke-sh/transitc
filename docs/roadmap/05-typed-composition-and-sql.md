@@ -44,18 +44,20 @@ dispatch remain outside these units; any extension needs a separate contract.
 ## Current implementation progress
 
 The first implementation increments add closed-record runtime MATCH, all-arm
-program specialization, ONE/OPTIONAL query results, bounded whole-row presence
+program specialization, ONE/OPTIONAL and bounded MANY query results, atomic FOR
+iteration, bounded whole-row presence
 refinement, ordered helper pre/postconditions, exact callable/effect signatures,
 DATE/NUMERIC/JSON/INTERVAL source values and native scalar qualification.
 Contracts, independent grammar/type comparisons, failure cases and guides ship
 with each increment. These additions do not close this milestone.
 
-| Plan unit | Delivered increment | Remaining gate |
+| Plan unit | Delivered increment | Acceptance and remaining scope |
 | --- | --- | --- |
-| A/B | Explicit tag/payload encoding, exhaustive runtime MATCH, nominal payload checks, hygienic lowering and all-arm program/control checking; whole-input ROW specialization with a separate bounded scalar environment | Whole-row unit, independent field/domain and candidate runtime checks pass; the pure upstream API merge and complete candidate runtime qualification remain open |
-| C | ONE and OPTIONAL SELECT results, ordered ONE assertion, guarded optional projection, preserved nominal fields and nullable cells | Installed ONE/OPTIONAL generated/oracle and restart checks pass; isolated completion, bounded many and state-carrying values remain open |
-| D | Direct immutable row-presence facts plus ordered non-nullness, same-type equality and constant BIGINT bounds in explicit REQUIRES/ENSURES contracts; installed refusal/rollback journey passes | Isolated runtime qualification; general implication solving and resource-derived facts remain outside the bounded profile |
-| E | Exact FUNCTION/GUARD/PROCEDURE OF module arguments and resource effects; nested inlining, explicit instances, installed oracle/rollback/restart/current-rights denial pass | Isolated runtime qualification; callable row/many returns and implicit signature subtyping remain unsupported |
+| A/B | Explicit tag/payload encoding, exhaustive runtime MATCH, nominal payload checks, hygienic lowering and all-arm program/control checking; whole-input ROW specialization with a separate bounded scalar environment; compiler and upstream API PRs merged | Current-profile runtime qualification passes at the bounded-result candidate pin; earlier failed local schedules remain recorded |
+| C | ONE and OPTIONAL SELECT results, ordered ONE assertion, guarded optional projection, preserved nominal fields and nullable cells | Installed and hosted isolated checks pass; failed local schedules remain recorded; state-carrying values remain open |
+| C1 | Bounded MANY(1..64) Table collections, explicit ascending BIGINT-key order, immutable aliases and present ROW iterators inside one atomic transaction; paired native implementation and compiler typing/lowering | Native clean/hosted lanes, final 22-case comparison, three hosted 49-case passes and signed four-platform archives succeed. Local deadline failures remain recorded; the admitted profile stays local to one atomic transaction |
+| D | Direct immutable row-presence facts plus ordered non-nullness, same-type equality and constant BIGINT bounds in explicit REQUIRES/ENSURES contracts; installed refusal/rollback journey passes | Hosted isolated qualification passes; general implication solving and resource-derived facts remain outside the bounded profile |
+| E | Exact FUNCTION/GUARD/PROCEDURE OF module arguments and resource effects; nested inlining, explicit instances, installed oracle/rollback/restart/current-rights denial pass | Hosted isolated qualification passes; query-result callable contracts remain required. Implicit signature subtyping stays outside the bounded profile |
 | F | DATE/NUMERIC/JSON/INTERVAL source values, exact Table cells, DECIMAL_ADD/DECIMAL_RESCALE and NULL/error checks; JSON runtime helper transport/extraction; creation/add-column descriptors | Native program-value, symbolic prepared-parameter, relational-profile and view gates; JSON helper installed and isolated checks pass |
 
 See the [runtime handoff](05-runtime-handoff.md) for exact upstream boundaries and
@@ -64,9 +66,32 @@ separately listed compiler work. The support matrix in
 literal/codec qualification from query operators and program values. Runtime
 reports that hit a deadline remain failures, even when compile-time checks pass.
 
-## Next slice: complete the existing composition profile
+## Active implementation slice
 
-**Status: Implementation in progress.** Basis: the merge of
+The [bounded many-row results plan](05-bounded-many-results.md) is implemented on
+the paired review branches; its [qualification record](../qualification/bounded-many.md)
+separates the merged baseline, passing hosted qualification and failed local
+schedules. This
+includes an owned native collection and bounded atomic consumption, source
+cardinality/nominal checking, independent SQL comparisons and guides. The plan also
+records the [remaining path to completion](05-bounded-many-results.md#distance-to-milestone-completion):
+state-carrying values, query-result contracts, scalar program/prepared/relational
+surfaces, ordinary views and integrated qualification. M5 remains In Progress.
+
+## Previous slice: complete the existing composition profile
+
+**Status: Implementation merged; current-profile runtime qualification passed.**
+[transitc #6](https://github.com/spoke-sh/transitc/pull/6) and
+[Transit #479](https://github.com/spoke-sh/transit/pull/479) are merged. The
+[completion record](../qualification/composition-completion.md#merge-and-ci-review-2026-11-23)
+retains the earlier dated results; the
+[bounded-result record](../qualification/bounded-many.md) records the completed
+baseline CLI gates and passing hosted qualification of the current profile.
+Failed local schedules remain failed. The plan
+below preserves the original scope and acceptance criteria; its initial baseline
+is historical, not the currently selected host.
+
+Original planning basis: the merge of
 [PR #5](https://github.com/spoke-sh/transitc/pull/5) at transitc
 `391ef54024aefe1eb23885962d920b57d6b07485`, inspected on 2026-11-21.
 This slice closes the isolated-execution and symbolic-input gaps in the delivered

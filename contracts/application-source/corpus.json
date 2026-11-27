@@ -28,10 +28,10 @@
   },
   {
     "name": "imports",
-    "source": "IMPORT rows FROM 'r\u00f6ws.transit'; IMPORT pkg FROM PACKAGE common FILE 'build.transit'; DEPENDENCY common FROM 'https://example.invalid/library.git' REVISION '0123456789012345678901234567890123456789' SUBDIRECTORY 'src';",
+    "source": "IMPORT rows FROM 'röws.transit'; IMPORT pkg FROM PACKAGE common FILE 'build.transit'; DEPENDENCY common FROM 'https://example.invalid/library.git' REVISION '0123456789012345678901234567890123456789' SUBDIRECTORY 'src';",
     "parse": true,
     "checks": {
-      "imports.0.path": "r\u00f6ws.transit",
+      "imports.0.path": "röws.transit",
       "imports.1.package": "common",
       "dependencies.0.subdirectory": "src"
     }
@@ -47,13 +47,13 @@
   },
   {
     "name": "table-build",
-    "source": "CREATE MODULE rows(t IDENTIFIER, v BIGINT, ty TYPE) AS BEGIN CREATE PUBLIC TABLE $t (id $ty PRIMARY KEY, note TEXT); INSERT INTO $t VALUES ($v, '\u96ea $inert;'); END; CREATE TARGET default AS BEGIN USE rows(NAME 'items', 7, TYPE BIGINT); UPDATE items SET note = 'it''s' WHERE id = 7; DELETE FROM items WHERE id = 9; SELECT id, note FROM items WHERE id <= 8 LIMIT 5; END;",
+    "source": "CREATE MODULE rows(t IDENTIFIER, v BIGINT, ty TYPE) AS BEGIN CREATE PUBLIC TABLE $t (id $ty PRIMARY KEY, note TEXT); INSERT INTO $t VALUES ($v, '雪 $inert;'); END; CREATE TARGET default AS BEGIN USE rows(NAME 'items', 7, TYPE BIGINT); UPDATE items SET note = 'it''s' WHERE id = 7; DELETE FROM items WHERE id = 9; SELECT id, note FROM items WHERE id <= 8 LIMIT 5; END;",
     "parse": true,
     "compile": "build",
     "steps": 5,
     "sql_expected": [
       "CREATE TABLE \"items\" ( ID BIGINT PRIMARY KEY , NOTE TEXT )",
-      "INSERT INTO \"items\" VALUES ( 7 , '\u96ea $inert;' )",
+      "INSERT INTO \"items\" VALUES ( 7 , '雪 $inert;' )",
       "UPDATE ITEMS SET NOTE = 'it''s' WHERE ID = 7",
       "DELETE FROM ITEMS WHERE ID = 9",
       "SELECT ID , NOTE FROM ITEMS WHERE ID <= 8 LIMIT 5"
@@ -137,7 +137,7 @@
   },
   {
     "name": "all-expressions",
-    "source": "CREATE MODULE m() AS BEGIN IF NOT FALSE THEN USE f(1 - 2 - 3, -(1), -(-1), (1 + 2) * 3, 1 <> 2, 1 < 2, 1 > 2, 1 >= 2, 1 <= 2, TRUE AND FALSE OR TRUE, 'it''s \u96ea', TYPE TEXT, NAME 'name'); ELSE USE f(); END IF; END;",
+    "source": "CREATE MODULE m() AS BEGIN IF NOT FALSE THEN USE f(1 - 2 - 3, -(1), -(-1), (1 + 2) * 3, 1 <> 2, 1 < 2, 1 > 2, 1 >= 2, 1 <= 2, TRUE AND FALSE OR TRUE, 'it''s 雪', TYPE TEXT, NAME 'name'); ELSE USE f(); END IF; END;",
     "parse": true
   },
   {
@@ -196,7 +196,7 @@
   },
   {
     "name": "unicode-crlf-location",
-    "source": "-- \u96ea\r\nCREATE MODULE m() AS BEGIN INSERT INTO t VALUES ('\u00e9',); END;",
+    "source": "-- 雪\r\nCREATE MODULE m() AS BEGIN INSERT INTO t VALUES ('é',); END;",
     "parse": false,
     "at": ");"
   },
@@ -341,7 +341,7 @@
     "parse": true,
     "compile": "build",
     "steps": 3,
-    "source": "/* \u96ea */ IMPORT lib FROM 'lib.transit'; CREATE TARGET default AS BEGIN USE lib.compose(lib.rows); SELECT * FROM items; END;",
+    "source": "/* 雪 */ IMPORT lib FROM 'lib.transit'; CREATE TARGET default AS BEGIN USE lib.compose(lib.rows); SELECT * FROM items; END;",
     "files": [
       {
         "path": "lib.transit",
@@ -383,7 +383,7 @@
     "parse": true,
     "compile": "test_suite",
     "cases": 2,
-    "source": "/* \u96ea */ IMPORT lib FROM 'lib.transit'; CREATE TEST TARGET tests AS BEGIN USE lib.cases(7); USE lib.cases(9); END;",
+    "source": "/* 雪 */ IMPORT lib FROM 'lib.transit'; CREATE TEST TARGET tests AS BEGIN USE lib.cases(7); USE lib.cases(9); END;",
     "files": [
       {
         "path": "lib.transit",
@@ -542,7 +542,7 @@
   },
   {
     "name": "domain-base-text",
-    "source": "CREATE DOMAIN Id AS TEXT IDENTITY 'example.TEXT'; CREATE MODULE Rows(name IDENTIFIER, element TYPE) AS BEGIN CREATE PUBLIC TABLE $name (id $element PRIMARY KEY); EXPORT TABLE $name AS rows; END; CREATE MODULE Put(rows TABLE(id Id PRIMARY KEY), id Id) AS BEGIN IF id = id THEN INSERT INTO $rows VALUES ($id); SELECT * FROM $rows WHERE id <> $id; END IF; END; CREATE TARGET default AS BEGIN USE Rows(NAME 'items', TYPE Id) AS items; USE Put(items.rows, Id('\u96ea''s')); END;",
+    "source": "CREATE DOMAIN Id AS TEXT IDENTITY 'example.TEXT'; CREATE MODULE Rows(name IDENTIFIER, element TYPE) AS BEGIN CREATE PUBLIC TABLE $name (id $element PRIMARY KEY); EXPORT TABLE $name AS rows; END; CREATE MODULE Put(rows TABLE(id Id PRIMARY KEY), id Id) AS BEGIN IF id = id THEN INSERT INTO $rows VALUES ($id); SELECT * FROM $rows WHERE id <> $id; END IF; END; CREATE TARGET default AS BEGIN USE Rows(NAME 'items', TYPE Id) AS items; USE Put(items.rows, Id('雪''s')); END;",
     "parse": true,
     "compile": "build",
     "steps": 3
@@ -1537,6 +1537,41 @@
   {
     "name": "numeric-operators-fixture",
     "source": "CREATE MODULE Setup() AS BEGIN\n  CREATE PUBLIC TABLE numbers(id BIGINT PRIMARY KEY, amount NUMERIC(20,3));\n  INSERT INTO numbers VALUES(1,9007199254740.125),(2,NULL);\nEND;\nCREATE TARGET default AS BEGIN\n  USE Setup();\n  SELECT DECIMAL_ADD(amount,amount,20,3,REJECT) AS doubled FROM numbers;\n  SELECT DECIMAL_RESCALE(amount,20,2,HALF_EVEN) AS rounded FROM numbers;\nEND;\nCREATE TEST TARGET tests AS BEGIN\n  TEST 'exact operations' USING MODULES(Setup()) AS BEGIN\n    ASSERT ROWS(SELECT DECIMAL_ADD(amount,amount,20,3,REJECT) AS doubled FROM numbers) EQUAL ((18014398509480.250),(NULL));\n    ASSERT ROWS(SELECT DECIMAL_RESCALE(amount,20,2,HALF_EVEN) AS rounded FROM numbers) EQUAL ((9007199254740.12),(NULL));\n  END;\nEND;\n",
+    "parse": true
+  },
+  {
+    "name": "many-zero",
+    "source": "CREATE MODULE Setup() AS BEGIN CREATE PUBLIC DATAFLOW route FROM QUEUE jobs AS request AS BEGIN BEGIN ATOMIC LET batch MANY(0) = SELECT id FROM items ORDER BY id; FOR item IN batch DO REQUIRE TRUE ELSE 'No'; END FOR; END; END; END;",
+    "parse": false
+  },
+  {
+    "name": "many-excess",
+    "source": "CREATE MODULE Setup() AS BEGIN CREATE PUBLIC DATAFLOW route FROM QUEUE jobs AS request AS BEGIN BEGIN ATOMIC LET batch MANY(65) = SELECT id FROM items ORDER BY id; FOR item IN batch DO REQUIRE TRUE ELSE 'No'; END FOR; END; END; END;",
+    "parse": false
+  },
+  {
+    "name": "many-fractional",
+    "source": "CREATE MODULE Setup() AS BEGIN CREATE PUBLIC DATAFLOW route FROM QUEUE jobs AS request AS BEGIN BEGIN ATOMIC LET batch MANY(1.5) = SELECT id FROM items ORDER BY id; FOR item IN batch DO REQUIRE TRUE ELSE 'No'; END FOR; END; END; END;",
+    "parse": false
+  },
+  {
+    "name": "many-missing-order",
+    "source": "CREATE MODULE Setup() AS BEGIN CREATE PUBLIC DATAFLOW route FROM QUEUE jobs AS request AS BEGIN BEGIN ATOMIC LET batch MANY(2) = SELECT id FROM items; FOR item IN batch DO REQUIRE TRUE ELSE 'No'; END FOR; END; END; END;",
+    "parse": false
+  },
+  {
+    "name": "many-nested",
+    "source": "CREATE MODULE Setup() AS BEGIN CREATE PUBLIC DATAFLOW route FROM QUEUE jobs AS request AS BEGIN BEGIN ATOMIC LET batch MANY(2) = SELECT id FROM items ORDER BY id; FOR item IN batch DO FOR other IN batch DO REQUIRE TRUE ELSE 'No'; END FOR; END FOR; END; END; END;",
+    "parse": false
+  },
+  {
+    "name": "many-hidden-read",
+    "source": "CREATE MODULE Setup() AS BEGIN CREATE PUBLIC DATAFLOW route FROM QUEUE jobs AS request AS BEGIN BEGIN ATOMIC LET batch MANY(2) = SELECT id FROM items ORDER BY id; FOR item IN batch DO LET other = SELECT id FROM items; END FOR; END; END; END;",
+    "parse": false
+  },
+  {
+    "name": "many-maximum-syntax",
+    "source": "CREATE MODULE Setup() AS BEGIN CREATE PUBLIC DATAFLOW route FROM QUEUE jobs AS request AS BEGIN BEGIN ATOMIC LET batch MANY(64) = SELECT id FROM items ORDER BY id; FOR item IN batch DO REQUIRE TRUE ELSE 'No'; END FOR; END; END; END;",
     "parse": true
   }
 ]

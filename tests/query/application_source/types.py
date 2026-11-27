@@ -11,7 +11,7 @@ import tempfile
 from runner import capture
 from runner.paths import ROOT
 from query.application_source.verify import execute, same
-from query.application_source import program_types, dynamic_types, scalar_types, numeric_types, lossless_types, cardinality_types, refinement_types, callable_types, symbolic_program_types
+from query.application_source import program_types, dynamic_types, scalar_types, numeric_types, lossless_types, cardinality_types, many_types, refinement_types, callable_types, symbolic_program_types
 
 SPEC = ROOT / 'contracts/application-source/TypedTarget.lean'
 THEOREMS = {
@@ -170,7 +170,7 @@ def main():
             'inputs': {path: capture.identity(ROOT / path) for path in (
                 'tests/query/application_source/types.py', 'tests/query/application_source/program_types.py', 'tests/query/application_source/driver.zig',
                 'tests/query/application_source/dynamic_types.py', 'tests/query/application_source/scalar_types.py', 'tests/query/application_source/numeric_types.py', 'tests/query/application_source/lossless_types.py',
-                'tests/query/application_source/cardinality_types.py', 'tests/query/application_source/refinement_types.py',
+                'tests/query/application_source/cardinality_types.py', 'tests/query/application_source/many_types.py', 'tests/query/application_source/refinement_types.py',
                 'tests/query/application_source/callable_types.py',
                 'tests/fixtures/application-callables/build.transit', 'tests/fixtures/application-callables/steps.transit', 'tests/fixtures/application-callables/pipeline.transit',
                 'packages/transitc-compiler/src/Effects.zig', 'tests/fixtures/application-refinements/build.transit', 'packages/transitc-compiler/src/Refinements.zig', 'tests/query/application_source/symbolic_program_types.py',
@@ -242,6 +242,9 @@ def main():
     meta["lossless_values_compared"] = lossless
     cardinalities, cardinality_controls = cardinality_types.run(driver, destination, must_fail)
     controls += cardinality_controls
+    many, many_controls = many_types.run(driver, destination, must_fail)
+    controls += many_controls
+    meta["bounded_many_compared"] = many
     refinements, refinement_controls = refinement_types.run(driver, destination, must_fail)
     controls += refinement_controls
     meta["refinement_programs_compared"] = refinements
@@ -258,7 +261,7 @@ def main():
     meta.update(programs_compared=programs, completed=True, named_laws=len(THEOREMS), finite_equalities=len(names) - len(THEOREMS),
                 compared=len(outputs), refused=len(refused), negative_controls=controls)
     capture.write_json(destination / 'evidence.json', meta)
-    print(f'PASS {len(THEOREMS)} Lean laws, {len(names) - len(THEOREMS)} finite equalities, {len(outputs)} typed/SQL and {programs} program and {dynamic} runtime MATCH and {scalars} DATE and {numerics} NUMERIC and {lossless} lossless and {cardinalities} cardinality and {symbolic} symbolic program and {refinements} refinement and {callables} callable comparisons, {len(refused)} refusals, {len(controls)} negative controls')
+    print(f'PASS {len(THEOREMS)} Lean laws, {len(names) - len(THEOREMS)} finite equalities, {len(outputs)} typed/SQL and {programs} program and {dynamic} runtime MATCH and {scalars} DATE and {numerics} NUMERIC and {lossless} lossless and {cardinalities} cardinality and {many} bounded many and {symbolic} symbolic program and {refinements} refinement and {callables} callable comparisons, {len(refused)} refusals, {len(controls)} negative controls')
 
 
 if __name__ == '__main__':

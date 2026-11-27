@@ -1,0 +1,23 @@
+{
+  "repository": "spoke-sh/transitc",
+  "revision": "b5807de09fddc0225ff152051852be26b0fd9715",
+  "run_id": 45338627390,
+  "job_id": 138256711230,
+  "job": "Native x86_64-macos",
+  "passed": [
+    "Native clean build, unit tests and public embedding API",
+    "Build and execute the installed portable archive",
+    "Check formatter on the native host"
+  ],
+  "failed_step": "Sign build provenance for archive bytes",
+  "error": "Failed to get ID token: connect ETIMEDOUT 20.85.130.105:443",
+  "retry_status": "Pending workflow completion; GitHub rejects job rerun while containing workflow is running.",
+  "log_lines": [
+    "2026-11-24T06:27:44.4494720Z ##[error]Failed to get ID token: Error message: Failed to get ID Token. ",
+    " ",
+    "        Error Code : undefined",
+    " ",
+    "        Error Message: connect ETIMEDOUT 20.85.130.105:443",
+    "2026-11-24T06:27:44.4751910Z ##[end-action id=provenance.generate-build-provenance-predicate;outcome=failure;conclusion=failure;duration_ms=75956]"
+  ]
+}

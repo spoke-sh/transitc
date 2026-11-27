@@ -1,0 +1,200 @@
+these 2 derivations will be built:
+  /nix/store/d3alvacj74f8b2l3wqfkzckizxqkfbix-transit-0.0.1.drv
+  /nix/store/n4v4av5b9aj9jfmfk0gc446l3zlp4h1z-transitc-0.0.0-dev.drv
+building '/nix/store/d3alvacj74f8b2l3wqfkzckizxqkfbix-transit-0.0.1.drv'...
+transit> Running phase: unpackPhase
+transit> unpacking source archive /nix/store/vmqw3kl1frp5iw41djf4sqqrn6lf7m4v-source
+transit> source root is source
+transit> Running phase: patchPhase
+transit> Running phase: updateAutotoolsGnuConfigScriptsPhase
+transit> Running phase: configurePhase
+transit> Running phase: buildPhase
+transit> buildPhase completed in 10 minutes 52 seconds
+transit> Running phase: fixupPhase
+transit> shrinking RPATHs of ELF executables and libraries in /nix/store/ab8y3wlv50aw1b9qr1pc0f1zhb0rjvp4-transit-0.0.1
+transit> shrinking /nix/store/ab8y3wlv50aw1b9qr1pc0f1zhb0rjvp4-transit-0.0.1/bin/transit-query-host
+transit> shrinking /nix/store/ab8y3wlv50aw1b9qr1pc0f1zhb0rjvp4-transit-0.0.1/bin/transit-board
+transit> shrinking /nix/store/ab8y3wlv50aw1b9qr1pc0f1zhb0rjvp4-transit-0.0.1/bin/transit
+transit> checking for references to /build/ in /nix/store/ab8y3wlv50aw1b9qr1pc0f1zhb0rjvp4-transit-0.0.1...
+transit> patching script interpreter paths in /nix/store/ab8y3wlv50aw1b9qr1pc0f1zhb0rjvp4-transit-0.0.1
+transit> stripping (with command strip and flags -S -p) in  /nix/store/ab8y3wlv50aw1b9qr1pc0f1zhb0rjvp4-transit-0.0.1/bin
+transit> automatically fixing dependencies for ELF files
+transit> {'add_existing': True,
+transit>  'append_rpaths': [],
+transit>  'extra_args': [],
+transit>  'ignore_missing': [],
+transit>  'keep_libc': False,
+transit>  'libs': [PosixPath('/nix/store/vg9zfak240607dw3clgvv2zzhpxmq4md-transit-zig-0.17.0-dev.2267+48abf1a34/lib'),
+transit>           PosixPath('/nix/store/pc08q4ikl78wsnr8xqb5hgyw2fxz2v2v-pkg-config-wrapper-0.29.2/lib'),
+transit>           PosixPath('/nix/store/gfcbbkyc4pkj3mg52p8nl5alfgcjsvzy-auto-patchelf-hook/lib'),
+transit>           PosixPath('/nix/store/q6gf9dllhr46nbqckhk7dbbh82cv92yv-auto-patchelf-0-unstable-2024-08-14/lib'),
+transit>           PosixPath('/nix/store/q06i9nw2qdml8s5lvnlv01h5wqp0lfhd-binutils-wrapper-2.46/lib'),
+transit>           PosixPath('/nix/store/p5arwmvs1s1l19rhdimv7hm1x1343rfg-patchelf-0.15.2/lib'),
+transit>           PosixPath('/nix/store/yykghzs1gpfhmxadfyc0r2d6d72nj44l-update-autotools-gnu-config-scripts-hook/lib'),
+transit>           PosixPath('/nix/store/0y5xmdb7qfvimjwbq7ibg1xdgkgjwqng-no-broken-symlinks.sh/lib'),
+transit>           PosixPath('/nix/store/cv1d7p48379km6a85h4zp6kr86brh32q-audit-tmpdir.sh/lib'),
+transit>           PosixPath('/nix/store/85clx3b0xkdf58jn161iy80y5223ilbi-compress-man-pages.sh/lib'),
+transit>           PosixPath('/nix/store/p3l1a5y7nllfyrjn2krlwgcc3z0cd3fq-make-symlinks-relative.sh/lib'),
+transit>           PosixPath('/nix/store/5yzw0vhkyszf2d179m0qfkgxmp5wjjx4-move-docs.sh/lib'),
+transit>           PosixPath('/nix/store/fyaryjvghbkpfnsyw97hb3lyb37s1pd6-move-lib64.sh/lib'),
+transit>           PosixPath('/nix/store/kd4xwxjpjxi71jkm6ka0np72if9rm3y0-move-sbin.sh/lib'),
+transit>           PosixPath('/nix/store/pag6l61paj1dc9sv15l7bm5c17xn5kyk-move-systemd-user-units.sh/lib'),
+transit>           PosixPath('/nix/store/cmzya9irvxzlkh7lfy6i82gbp0saxqj3-multiple-outputs.sh/lib'),
+transit>           PosixPath('/nix/store/x8c40nfigps493a07sdr2pm5s9j1cdc0-patch-shebangs.sh/lib'),
+transit>           PosixPath('/nix/store/cickvswrvann041nqxb0rxilc46svw1n-prune-libtool-files.sh/lib'),
+transit>           PosixPath('/nix/store/xyff06pkhki3qy1ls77w10s0v79c9il0-reproducible-builds.sh/lib'),
+transit>           PosixPath('/nix/store/z7k98578dfzi6l3hsvbivzm7hfqlk0zc-set-source-date-epoch-to-latest.sh/lib'),
+transit>           PosixPath('/nix/store/pilsssjjdxvdphlg2h19p0bfx5q0jzkn-strip.sh/lib'),
+transit>           PosixPath('/nix/store/79mr0jw3qccq7hhf1hh62knxd88dwazc-gcc-wrapper-15.3.0/lib'),
+transit>           PosixPath('/nix/store/lydiw6nfl7g2mz09wkacic38bzhqhr1v-binutils-wrapper-2.46/lib'),
+transit>           PosixPath('/nix/store/i2ahcmvfd1pzv0p4lz822x12lav0rnam-openssl-3.6.4-dev/lib'),
+transit>           PosixPath('/nix/store/rnbz3h9499a0bq33kkbars2mczqbfm4p-openssl-3.6.4-bin/lib'),
+transit>           PosixPath('/nix/store/7fr737xfi9qw3fzvdsqmnbqid56knndp-openssl-3.6.4/lib'),
+transit>           PosixPath('/nix/store/nl1lkxkfx6466dlbv0v1azh2dqa7j1k6-glibc-2.42-84-dev/lib'),
+transit>           PosixPath('/nix/store/chh967hh4lc8z39gvhsfc29l8if11gnz-glibc-2.42-84-bin/lib'),
+transit>           PosixPath('/nix/store/znb3q6g1ik34454j3vcjx824h1871asg-glibc-2.42-84/lib'),
+transit>           PosixPath('/nix/store/vg9zfak240607dw3clgvv2zzhpxmq4md-transit-zig-0.17.0-dev.2267+48abf1a34/lib'),
+transit>           PosixPath('/nix/store/pc08q4ikl78wsnr8xqb5hgyw2fxz2v2v-pkg-config-wrapper-0.29.2/lib'),
+transit>           PosixPath('/nix/store/gfcbbkyc4pkj3mg52p8nl5alfgcjsvzy-auto-patchelf-hook/lib'),
+transit>           PosixPath('/nix/store/q6gf9dllhr46nbqckhk7dbbh82cv92yv-auto-patchelf-0-unstable-2024-08-14/lib'),
+transit>           PosixPath('/nix/store/q06i9nw2qdml8s5lvnlv01h5wqp0lfhd-binutils-wrapper-2.46/lib'),
+transit>           PosixPath('/nix/store/p5arwmvs1s1l19rhdimv7hm1x1343rfg-patchelf-0.15.2/lib'),
+transit>           PosixPath('/nix/store/yykghzs1gpfhmxadfyc0r2d6d72nj44l-update-autotools-gnu-config-scripts-hook/lib'),
+transit>           PosixPath('/nix/store/0y5xmdb7qfvimjwbq7ibg1xdgkgjwqng-no-broken-symlinks.sh/lib'),
+transit>           PosixPath('/nix/store/cv1d7p48379km6a85h4zp6kr86brh32q-audit-tmpdir.sh/lib'),
+transit>           PosixPath('/nix/store/85clx3b0xkdf58jn161iy80y5223ilbi-compress-man-pages.sh/lib'),
+transit>           PosixPath('/nix/store/p3l1a5y7nllfyrjn2krlwgcc3z0cd3fq-make-symlinks-relative.sh/lib'),
+transit>           PosixPath('/nix/store/5yzw0vhkyszf2d179m0qfkgxmp5wjjx4-move-docs.sh/lib'),
+transit>           PosixPath('/nix/store/fyaryjvghbkpfnsyw97hb3lyb37s1pd6-move-lib64.sh/lib'),
+transit>           PosixPath('/nix/store/kd4xwxjpjxi71jkm6ka0np72if9rm3y0-move-sbin.sh/lib'),
+transit>           PosixPath('/nix/store/pag6l61paj1dc9sv15l7bm5c17xn5kyk-move-systemd-user-units.sh/lib'),
+transit>           PosixPath('/nix/store/cmzya9irvxzlkh7lfy6i82gbp0saxqj3-multiple-outputs.sh/lib'),
+transit>           PosixPath('/nix/store/x8c40nfigps493a07sdr2pm5s9j1cdc0-patch-shebangs.sh/lib'),
+transit>           PosixPath('/nix/store/cickvswrvann041nqxb0rxilc46svw1n-prune-libtool-files.sh/lib'),
+transit>           PosixPath('/nix/store/xyff06pkhki3qy1ls77w10s0v79c9il0-reproducible-builds.sh/lib'),
+transit>           PosixPath('/nix/store/z7k98578dfzi6l3hsvbivzm7hfqlk0zc-set-source-date-epoch-to-latest.sh/lib'),
+transit>           PosixPath('/nix/store/pilsssjjdxvdphlg2h19p0bfx5q0jzkn-strip.sh/lib'),
+transit>           PosixPath('/nix/store/79mr0jw3qccq7hhf1hh62knxd88dwazc-gcc-wrapper-15.3.0/lib'),
+transit>           PosixPath('/nix/store/lydiw6nfl7g2mz09wkacic38bzhqhr1v-binutils-wrapper-2.46/lib'),
+transit>           PosixPath('/nix/store/i2ahcmvfd1pzv0p4lz822x12lav0rnam-openssl-3.6.4-dev/lib'),
+transit>           PosixPath('/nix/store/rnbz3h9499a0bq33kkbars2mczqbfm4p-openssl-3.6.4-bin/lib'),
+transit>           PosixPath('/nix/store/7fr737xfi9qw3fzvdsqmnbqid56knndp-openssl-3.6.4/lib'),
+transit>           PosixPath('/nix/store/nl1lkxkfx6466dlbv0v1azh2dqa7j1k6-glibc-2.42-84-dev/lib'),
+transit>           PosixPath('/nix/store/chh967hh4lc8z39gvhsfc29l8if11gnz-glibc-2.42-84-bin/lib'),
+transit>           PosixPath('/nix/store/znb3q6g1ik34454j3vcjx824h1871asg-glibc-2.42-84/lib')],
+transit>  'paths': [PosixPath('/nix/store/ab8y3wlv50aw1b9qr1pc0f1zhb0rjvp4-transit-0.0.1')],
+transit>  'preserve_origin': False,
+transit>  'recursive': True,
+transit>  'runtime_dependencies': [],
+transit>  'structured_logs': False}
+transit> setting interpreter of /nix/store/ab8y3wlv50aw1b9qr1pc0f1zhb0rjvp4-transit-0.0.1/bin/transit-query-host
+transit> searching for dependencies of /nix/store/ab8y3wlv50aw1b9qr1pc0f1zhb0rjvp4-transit-0.0.1/bin/transit-query-host
+transit>     libcrypto.so.3 -> found: /nix/store/7fr737xfi9qw3fzvdsqmnbqid56knndp-openssl-3.6.4/lib
+transit>     libssl.so.3 -> found: /nix/store/7fr737xfi9qw3fzvdsqmnbqid56knndp-openssl-3.6.4/lib
+transit> setting RPATH to: /nix/store/7fr737xfi9qw3fzvdsqmnbqid56knndp-openssl-3.6.4/lib
+transit> setting interpreter of /nix/store/ab8y3wlv50aw1b9qr1pc0f1zhb0rjvp4-transit-0.0.1/bin/transit-board
+transit> searching for dependencies of /nix/store/ab8y3wlv50aw1b9qr1pc0f1zhb0rjvp4-transit-0.0.1/bin/transit-board
+transit>     libcrypto.so.3 -> found: /nix/store/7fr737xfi9qw3fzvdsqmnbqid56knndp-openssl-3.6.4/lib
+transit>     libssl.so.3 -> found: /nix/store/7fr737xfi9qw3fzvdsqmnbqid56knndp-openssl-3.6.4/lib
+transit> setting RPATH to: /nix/store/7fr737xfi9qw3fzvdsqmnbqid56knndp-openssl-3.6.4/lib
+transit> setting interpreter of /nix/store/ab8y3wlv50aw1b9qr1pc0f1zhb0rjvp4-transit-0.0.1/bin/transit
+transit> searching for dependencies of /nix/store/ab8y3wlv50aw1b9qr1pc0f1zhb0rjvp4-transit-0.0.1/bin/transit
+transit>     libcrypto.so.3 -> found: /nix/store/7fr737xfi9qw3fzvdsqmnbqid56knndp-openssl-3.6.4/lib
+transit>     libssl.so.3 -> found: /nix/store/7fr737xfi9qw3fzvdsqmnbqid56knndp-openssl-3.6.4/lib
+transit> setting RPATH to: /nix/store/7fr737xfi9qw3fzvdsqmnbqid56knndp-openssl-3.6.4/lib
+transit> auto-patchelf: 0 dependencies could not be satisfied
+transit> Running phase: installCheckPhase
+transit> Transit
+transit> 
+transit> Usage: transit COMMAND [OPTIONS]
+transit> 
+transit> Commands:
+transit>   server    Run a local server
+transit>   console   Open an SQL console
+transit>   migrate   Plan, apply and verify application schema migrations
+transit> 
+transit> Options:
+transit>   --help     Show this help
+transit>   --version  Show version
+transit> 
+transit> Run transit COMMAND --help for command options.
+transit> Run a local Transit server in the foreground.
+transit> 
+transit> Usage: transit server [--config PATH] [--no-ui]
+transit> 
+transit> Options:
+transit>   --config PATH  Server configuration file (overrides discovery)
+transit>   --no-ui        Run without Board for this invocation
+transit>   --help         Show this help
+transit> Open an SQL console.
+transit> 
+transit> Usage: transit console [OPTIONS] [-c SQL | -f FILE]
+transit> 
+transit> Options:
+transit>   -c SQL               Execute one SQL statement and exit
+transit>   --parameters FILE    Bind a JSON scalar array to a finite SELECT supplied by -c
+transit>   -f FILE              Execute a SQL script and exit
+transit>   --init FILE          Read this startup file instead of automatic rc files
+transit>   --no-rc              Skip automatic rc files
+transit>   --config PATH        Console connection YAML file
+transit>   --format table|json  Result display (overrides rc and connection settings)
+transit>   --help               Show this help
+building '/nix/store/n4v4av5b9aj9jfmfk0gc446l3zlp4h1z-transitc-0.0.0-dev.drv'...
+transitc> Running phase: unpackPhase
+transitc> unpacking source archive /nix/store/qh53p589zgznkyjqq3sbpk0wbpiv50k9-source
+transitc> source root is source
+transitc> Running phase: patchPhase
+transitc> Running phase: updateAutotoolsGnuConfigScriptsPhase
+transitc> Running phase: buildPhase
+transitc> buildPhase completed in 2 minutes 21 seconds
+transitc> Running phase: checkPhase
+transitc> CREATE TABLE ITEMS ( ID BIGINT );
+transitc> checkPhase completed in 54 seconds
+transitc> Running phase: fixupPhase
+transitc> shrinking RPATHs of ELF executables and libraries in /nix/store/hx0bpmdl0ydcg549advcjp4c6blzy7xl-transitc-0.0.0-dev
+transitc> shrinking /nix/store/hx0bpmdl0ydcg549advcjp4c6blzy7xl-transitc-0.0.0-dev/bin/transitc
+transitc> checking for references to /build/ in /nix/store/hx0bpmdl0ydcg549advcjp4c6blzy7xl-transitc-0.0.0-dev...
+transitc> patching script interpreter paths in /nix/store/hx0bpmdl0ydcg549advcjp4c6blzy7xl-transitc-0.0.0-dev
+transitc> stripping (with command strip and flags -S -p) in  /nix/store/hx0bpmdl0ydcg549advcjp4c6blzy7xl-transitc-0.0.0-dev/bin
+transitc> Running phase: installCheckPhase
+transitc> transitc
+transitc> 
+transitc> Usage: transitc COMMAND [OPTIONS]
+transitc> 
+transitc> Commands:
+transitc>   build  Compile Transit source to SQL
+transitc>   fmt    Format Transit source
+transitc>   test   Run application tests
+transitc> 
+transitc> Options:
+transitc>   --help     Show this help
+transitc>   --version  Show version
+transitc> 
+transitc> Run transitc COMMAND --help for command options.
+transitc> transitc 0.0.0-dev (69dc1f173bf5bb2d0ecc6685b0fb246bd744be96)
+transitc> Format Transit source in place.
+transitc> 
+transitc> Usage: transitc fmt [OPTIONS] [PATH...]
+transitc> 
+transitc> Paths default to the current directory. Directories are searched recursively.
+transitc> 
+transitc> Options:
+transitc>   --check  List unformatted files without writing them
+transitc>   --stdin  Format standard input to standard output
+transitc>   --help   Show this help
+transitc> fmt.transit
+transitc> {"ok":true,"action":"check","target":"default","input_digest":"f89c6900f8aceb244b86a6b8f51c6efde35e1e653d311984576e8b9089516388","sql_digest":"b174883f2e72c7ee599a9f09f54ec5fa2350e5be8f4ee94bab56a7e545a26933","statements":4}
+transitc> transitc: unsupported command; use transitc --help
+transitc> Run application tests in isolated databases.
+transitc> 
+transitc> Usage: transitc test [OPTIONS]
+transitc> 
+transitc> Options:
+transitc>   -f FILE              Entry file (default: build.transit)
+transitc>   --target NAME        Target (default: tests or sole test target)
+transitc>   --override NAME=DIR  Local dependency override (repeatable)
+transitc>   --runtime FILE       Transit test host executable
+transitc>   --format text|json   Output format (default: text)
+transitc>   --color auto|off|on  Diagnostic color (default: auto)
+transitc>   --help               Show this help
+transitc> {"format":"transit_test_v1","definition":"dd6352c075f480dabbc2d1349cc79c9a5c85687ecafd33055d6a2d56f28251d0","compiler_revision":"69dc1f173bf5bb2d0ecc6685b0fb246bd744be96","compiler_digest":"2803e7aecb7b81028a2d054b574e47b232cbbc1c8db2bcb24a4ea7529d5be132","runtime":{"revision":"d65f7c656c8e311806132ca894059b43b52051ee","executable_digest":[123,122,42,219,241,227,224,182,184,254,52,243,18,133,173,131,255,121,201,181,203,237,113,121,122,215,30,109,125,4,243,151]},"target":"tests","input_digest":"bb53ff8429153c4754ac82e6fbbfe392f9b1968bc19c4da0196588c5b6ff20fd","sql_digest":"4158dd27066f5c7611e34c1999ea0aa7df23d871fdb6904715c5837eea648fa4","complete":true,"ok":true,"compiler_peak_bytes":3278840,"cases":[{"name":"writes and refusals","identity":"7aab0a06fd8f31720c16b905433b394d21e88c58bb5f21e57ea9bd416ee85c13","sql_digest":"d30e2749c8d557a6258d86d9ec09462d08ade9a51dfc0ca4286dc641ed4c694d","location":{"source":"root/build.transit","source_encoding":"utf8","source_truncated":false,"statement":null,"offset":"139","length":"401","line":"6","byte_column":"3"},"status":"passed","error_code":null,"observation":{"actions":6,"rows":4,"bytes":66,"operation":null,"failure":null,"resources":{"memory_peak_bytes":33260377,"storage_reserved_bytes":1357615}},"action_location":{"source":"root/build.transit","source_encoding":"utf8","source_truncated":false,"statement":null,"offset":"465","length":"68","line":"10","byte_column":"5"}},{"name":"fresh state","identity":"7aa8cba8531ac9baa3112f3d982bc8fdcf54e95ad67ee87d1ebabc227846fc64","sql_digest":"4cfa14b01245db793bed76cf0700cc4c7861cb5028a59373131da58785b165b1","location":{"source":"root/build.transit","source_encoding":"utf8","source_truncated":false,"statement":null,"offset":"543","length":"190","line":"12","byte_column":"3"},"status":"passed","error_code":null,"observation":{"actions":4,"rows":1,"bytes":10,"operation":null,"failure":null,"resources":{"memory_peak_bytes":33259806,"storage_reserved_bytes":1214827}},"action_location":{"source":"root/build.transit","source_encoding":"utf8","source_truncated":false,"statement":null,"offset":"670","length":"56","line":"14","byte_column":"5"}}],"sources":[{"package":"root","path":"build.transit","digest":"094b444285898f660d4b4bd11b579a9804de4b85ea420b3c351854b3dc3fea79"},{"package":"root","path":"rows.transit","digest":"e78d563cec6e68c3dad76339dd440aae3886226be59b7fc5db6bd946a0805da5"}],"dependencies":[],"limits":{"cases":128,"actions":1024,"rows":10000,"result_bytes":16777216,"report_bytes":1048576,"case_ms":30000,"suite_ms":300000,"cleanup_ms":5000,"host_bytes":268435456,"storage_bytes":268435456}}

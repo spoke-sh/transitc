@@ -21,6 +21,7 @@ report: ?*SourceDiagnostic.Report = null,
 end: u32,
 i: usize = 0,
 depth: usize = 0,
+iteration_depth: usize = 0,
 allow_holes: bool = true,
 holes: std.ArrayList(Hole) = .empty,
 identifiers: std.ArrayList(Token) = .empty,
@@ -778,7 +779,18 @@ fn programBlock(self: *Self, atomic: bool, mode: BlockMode) anyerror!void {
         const start = self.at();
         if (self.take("LET")) {
             try self.programName();
-            const cardinality = self.take("ONE") or self.take("OPTIONAL");
+            const singleton = self.take("ONE") or self.take("OPTIONAL");
+            const many = !singleton and self.take("MANY");
+            const cardinality = singleton or many;
+            if (many) {
+                if (!atomic or self.iteration_depth != 0) return error.UnsupportedProgramIteration;
+                try self.require("(");
+                if (!self.tag(.number)) return error.InvalidProgramCollection;
+                const count = std.fmt.parseInt(u8, self.text[self.tokens[self.i].start..self.tokens[self.i].end], 10) catch return error.InvalidProgramCollection;
+                if (count == 0 or count > f.ApplicationProgram.max_collection_rows) return error.InvalidProgramCollection;
+                self.i += 1;
+                if (!self.take(")")) return error.InvalidProgramCollection;
+            }
             try self.require("=");
             if (cardinality and !self.is("SELECT")) {
                 self.failExpected("'SELECT' after result cardinality");
@@ -802,7 +814,14 @@ fn programBlock(self: *Self, atomic: bool, mode: BlockMode) anyerror!void {
                 }
                 try self.require("FROM");
                 try self.resourceName(.table);
+                if (self.iteration_depth != 0) return error.UnsupportedProgramIteration;
                 if (self.take("WHERE")) try self.programExpression(0);
+                if (many) {
+                    try self.require("ORDER");
+                    try self.require("BY");
+                    try self.programName();
+                    _ = self.take("ASC");
+                }
             } else try self.programExpression(0);
         } else if (self.take("REQUIRE")) {
             try self.programExpression(0);
@@ -835,6 +854,17 @@ fn programBlock(self: *Self, atomic: bool, mode: BlockMode) anyerror!void {
             try self.require("ATOMIC");
             try self.programBlock(true, mode);
             try self.require("END");
+        } else if (self.take("FOR")) {
+            if (!atomic or self.iteration_depth != 0) return error.UnsupportedProgramIteration;
+            try self.programName();
+            try self.require("IN");
+            try self.programName();
+            try self.require("DO");
+            self.iteration_depth += 1;
+            defer self.iteration_depth -= 1;
+            try self.programBlock(atomic, mode);
+            try self.require("END");
+            try self.require("FOR");
         } else if (self.take("MATCH")) {
             try self.programExpression(0);
             try self.require("AS");

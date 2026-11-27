@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/alex/workspace/spoke-sh/transitc/tests/integration/parity.py", line 100, in <module>
+    compare(Path(args.transit).resolve(), Path(args.transitc).resolve())
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/alex/workspace/spoke-sh/transitc/tests/integration/parity.py", line 54, in compare
+    assert {k: v for k, v in expected.items() if k not in IDENTITY_FIELDS} == {k: v for k, v in new.items() if k not in IDENTITY_FIELDS}, name
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: application-typed-queue

@@ -1,0 +1,1 @@
+PASS 12 upstream/transitc parity cases; exact reviewed native definitions and plan migrations, 24 negative controls, ['compiler_digest', 'compiler_revision', 'input_digest'] and dependency-command correction verified

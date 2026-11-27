@@ -1,0 +1,2 @@
+# Keep the retained Nix console log byte-for-byte, including prefixed blank lines.
+docs/qualification/results/bounded-many/candidate/runtime-gates/candidate-nix-package.log whitespace=-blank-at-eol
