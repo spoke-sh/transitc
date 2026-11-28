@@ -1,7 +1,19 @@
+CREATE PROCEDURE ReadOne(rows TABLE(id BIGINT PRIMARY KEY, lookup TEXT NOT NULL, note TEXT), key TEXT) RETURNS ONE ROW(note TEXT)
+EFFECTS (READ rows)
+AS BEGIN ATOMIC
+  LET matched ONE = SELECT note FROM rows WHERE lookup = key;
+  RETURN matched;
+END;
+CREATE PROCEDURE ReadOptional(rows TABLE(id BIGINT PRIMARY KEY, lookup TEXT NOT NULL, note TEXT), key TEXT) RETURNS OPTIONAL ROW(note TEXT)
+EFFECTS (READ rows)
+AS BEGIN ATOMIC
+  LET matched OPTIONAL = SELECT note FROM rows WHERE lookup = key;
+  RETURN matched;
+END;
 CREATE MODULE RouteOne() AS BEGIN
     CREATE PUBLIC DATAFLOW cardinality_route FROM QUEUE cardinality_requests AS request AS BEGIN
       BEGIN ATOMIC
-        LET found ONE = SELECT note FROM cardinality_rows WHERE lookup = request.lookup;
+        LET found = CALL ReadOne(cardinality_rows, request.lookup);
         PRODUCE INTO cardinality_events VALUES (request.id, 'present', found.note);
         REQUIRE NOT request.reject ELSE 'LateRefusal';
       END;
@@ -10,7 +22,7 @@ END;
 CREATE MODULE RouteOptional() AS BEGIN
     CREATE PUBLIC DATAFLOW cardinality_route FROM QUEUE cardinality_requests AS request AS BEGIN
       BEGIN ATOMIC
-        LET found OPTIONAL = SELECT note FROM cardinality_rows WHERE lookup = request.lookup;
+        LET found = CALL ReadOptional(cardinality_rows, request.lookup);
         IF found IS NULL THEN
           PRODUCE INTO cardinality_events VALUES (request.id, 'absent', NULL);
         ELSE

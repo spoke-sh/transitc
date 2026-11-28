@@ -5,3 +5,15 @@ END;
 CREATE PUBLIC GUARD Validate(entry ROW(id ItemId, note TEXT)) AS BEGIN
   REQUIRE identity(entry) = entry.id ELSE 'InvalidItem';
 END;
+
+CREATE PUBLIC PROCEDURE ReadBatch(items TABLE(id ItemId PRIMARY KEY, batch BIGINT NOT NULL, note TEXT), wanted BIGINT) RETURNS MANY(3) ROW(id ItemId NOT NULL, note TEXT) ORDER BY id
+EFFECTS (READ items)
+AS BEGIN ATOMIC
+  LET result_rows MANY(3) = SELECT id, note FROM items WHERE batch = wanted ORDER BY id;
+  RETURN result_rows;
+END;
+CREATE PUBLIC PROCEDURE ForwardBatch(items MANY(3) ROW(id ItemId NOT NULL, note TEXT) ORDER BY id) RETURNS MANY(3) ROW(id ItemId NOT NULL, note TEXT) ORDER BY id
+EFFECTS ()
+AS BEGIN ATOMIC
+  RETURN items;
+END;

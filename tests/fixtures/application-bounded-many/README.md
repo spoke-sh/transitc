@@ -4,8 +4,9 @@
 isolated cases at the existing 30-second case and 300-second suite budgets.
 They distinguish empty collections from present NULL fields, preserve duplicate
 non-key payloads in key order, check exact and excess cardinality, and verify
-rollback after an earlier staged append. Imported and nested ROW helpers retain
-the nominal ItemId domain. The `two` build target binds independent resources.
+rollback after an earlier staged append. An imported query procedure returns the batch through a callable parameter.
+A second procedure accepts and returns that same bounded collection. The row
+helpers retain the nominal ItemId domain. The `two` build target binds independent resources.
 
 `oracle.sql` is separately authored native SQL. The installed
 [`bounded_many.py`](../../integration/bounded_many.py) journey removes source
@@ -18,4 +19,4 @@ boundary; this fixture's corresponding case proves rollback only.
 
 The native contract owns row/work/byte/scan/request bounds, read-basis validation,
 current rights and replay. These tests do not establish missing/type-error/conflict
-values, collection returns, nested iteration or reads inside loop bodies.
+values, nested iteration or reads inside loop bodies.

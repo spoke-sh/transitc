@@ -31,8 +31,11 @@ def journey(compiler, runtime, destination):
         generated = build('artifact', 'two')
         entry = workspace / 'build.transit'
         original = entry.read_text()
-        assert original.count('MANY(3)') == 1, 'correction must change the authored bound'
-        entry.write_text(original.replace('MANY(3)', 'MANY(4)').replace('many_', 'corrected_'))
+        helpers = workspace / 'rows.transit'
+        contracts = helpers.read_text()
+        assert contracts.count('MANY(3)') == 4, 'correct the query, return and forwarding contracts together'
+        helpers.write_text(contracts.replace('MANY(3)', 'MANY(4)'))
+        entry.write_text(original.replace('many_', 'corrected_'))
         corrected = build('corrected', 'default')
         shutil.rmtree(workspace)
     oracle = (SOURCE / 'oracle.sql').read_text()
