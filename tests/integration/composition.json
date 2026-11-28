@@ -71,5 +71,9 @@
     "over bound",
     "late refusal rolls back earlier rows",
     "first error follows key order"
+  ],
+  "application-query-returns": [
+    "ordered returned rows and present NULL",
+    "absent returned row rolls back appends"
   ]
 }

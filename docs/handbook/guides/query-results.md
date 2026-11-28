@@ -89,5 +89,5 @@ comparison also executes separately authored SQL after removing the source.
 Missing, type-error and conflict cells cannot enter the current program value
 model. They retain native refusal behavior. Existing unannotated SELECT bindings
 retain their previous nullable-record behavior; ONE and OPTIONAL enable explicit
-presence checking. Callable collection returns and general query signatures are
-outside this bounded local profile.
+presence checking. Read-only procedures can return these results to their atomic caller.
+See [reusable behavior](reusable-behavior.md) for a callable MANY result.

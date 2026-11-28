@@ -1,0 +1,40 @@
+IMPORT reads FROM 'queries.transit';
+
+CREATE MODULE Journey(batch PROCEDURE OF reads.SelectBatch) AS BEGIN
+  CREATE PUBLIC TABLE items(id BIGINT PRIMARY KEY, note TEXT);
+  CREATE PUBLIC STREAM events(id BIGINT NOT NULL, note TEXT);
+  CREATE PUBLIC QUEUE jobs(id BIGINT NOT NULL);
+  CREATE PUBLIC DATAFLOW route FROM QUEUE jobs AS request AS BEGIN
+    BEGIN ATOMIC
+      LET rows = CALL batch(items);
+      FOR item IN rows DO
+        PRODUCE INTO events VALUES (item.id, item.note);
+      END FOR;
+      LET maybe = CALL reads.Lookup(items, request.id);
+      IF maybe IS NOT NULL THEN
+        LET required = CALL reads.Required(items, request.id);
+        REQUIRE required.id = maybe.id ELSE 'DifferentRow';
+      ELSE
+        REQUIRE FALSE ELSE 'AbsentRow';
+      END IF;
+    END;
+  END;
+  AUTHORIZE DATAFLOW route AS ROLE CURRENT_ROLE;
+  ACTIVATE DATAFLOW route;
+END;
+CREATE TARGET default AS BEGIN USE Journey(reads.SelectBatch); END;
+CREATE TEST TARGET tests AS BEGIN
+  TEST 'ordered returned rows and present NULL' USING MODULES (Journey(reads.SelectBatch)) AS BEGIN
+    INSERT INTO items VALUES (2, 'second');
+    INSERT INTO items VALUES (1, NULL);
+    ENQUEUE INTO jobs VALUES (1);
+    ASSERT WORKFLOW NAME 'route' COMPLETED 1 REFUSED 0 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME * FROM events) EQUAL ((1, NULL), (2, 'second'));
+  END;
+  TEST 'absent returned row rolls back appends' USING MODULES (Journey(reads.SelectBatch)) AS BEGIN
+    INSERT INTO items VALUES (1, NULL);
+    ENQUEUE INTO jobs VALUES (3);
+    ASSERT WORKFLOW NAME 'route' COMPLETED 0 REFUSED 1 WITHIN 1000 OBSERVATIONS;
+    ASSERT ROWS (CONSUME * FROM events) EQUAL ();
+  END;
+END;
