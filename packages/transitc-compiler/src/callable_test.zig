@@ -111,3 +111,63 @@ fn allocations(allocator: std.mem.Allocator) !void {
 test "callable specialization remains bounded across allocation failures" {
     try std.testing.checkAllAllocationFailures(std.testing.allocator, allocations, .{});
 }
+
+test "query procedure result contracts retain fields, order, cardinality and effects" {
+    const t = std.testing;
+    const query =
+        \\CREATE PUBLIC DOMAIN Id AS BIGINT IDENTITY 'items.id';
+        \\CREATE PUBLIC DOMAIN Other AS BIGINT IDENTITY 'archive.id';
+        \\CREATE PROCEDURE Fetch(t TABLE(id Id PRIMARY KEY, note TEXT))
+        \\RETURNS MANY(2) ROW(id Id NOT NULL, note TEXT) ORDER BY id EFFECTS (READ t)
+        \\AS BEGIN ATOMIC LET result MANY(2) = SELECT id, note FROM t ORDER BY id; RETURN result; END;
+    ;
+    // The definition is checked even when a target never calls it.
+    const source_text = try std.mem.concat(t.allocator, u8, &.{ query, " CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE simple(id BIGINT PRIMARY KEY); END;" });
+    defer t.allocator.free(source_text);
+    const good = try compile(t.allocator, source_text);
+    defer good.deinit();
+    const cases = .{
+        .{ "RETURNS MANY(2)", "RETURNS MANY(1)", error.ProgramTypeMismatch },
+        .{ "ROW(id Id NOT NULL, note TEXT)", "ROW(note TEXT, id Id NOT NULL)", error.ProgramTypeMismatch },
+        .{ "ROW(id Id NOT NULL, note TEXT)", "ROW(id Id NOT NULL)", error.ProgramTypeMismatch },
+        .{ "ROW(id Id NOT NULL", "ROW(id Id", error.ProgramTypeMismatch },
+        .{ "ROW(id Id NOT NULL", "ROW(id Other NOT NULL", error.SourceDomainMismatch },
+        .{ "ORDER BY id EFFECTS", "ORDER BY note EFFECTS", error.ProgramTypeMismatch },
+        .{ "MANY(2) ROW(id Id NOT NULL, note TEXT) ORDER BY id", "OPTIONAL ROW(id Id NOT NULL, note TEXT)", error.ProgramTypeMismatch },
+        .{ "RETURN result", "LET observed = NOW(); RETURN result", error.EffectContractMismatch },
+        .{ " EFFECTS (READ t)", "", error.MissingCallableContract },
+    };
+    inline for (cases) |case| {
+        const changed = try std.mem.replaceOwned(u8, t.allocator, source_text, case[0], case[1]);
+        defer t.allocator.free(changed);
+        try t.expectError(case[2], compile(t.allocator, changed));
+    }
+}
+
+test "query arguments preserve exact descriptors even when a procedure ignores the input" {
+    const t = std.testing;
+    const program =
+        \\CREATE PUBLIC DOMAIN Item AS BIGINT IDENTITY 'items.id';
+        \\CREATE PUBLIC DOMAIN Other AS BIGINT IDENTITY 'other.id';
+        \\CREATE PROCEDURE Ignore(batch MANY(2) ROW(id Item NOT NULL, note TEXT) ORDER BY id)
+        \\EFFECTS () AS BEGIN ATOMIC REQUIRE TRUE ELSE 'Bad'; END;
+        \\CREATE PROCEDURE UseBatch(t TABLE(id Item PRIMARY KEY, note TEXT)) EFFECTS (READ t)
+        \\AS BEGIN ATOMIC LET selected MANY(2) = SELECT id, note FROM t ORDER BY id; CALL Ignore(selected); END;
+        \\CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE items(id BIGINT PRIMARY KEY); END;
+    ;
+    const product = try compile(t.allocator, program);
+    defer product.deinit();
+    const changes = .{
+        .{ "batch MANY(2)", "batch MANY(3)", error.ProgramTypeMismatch },
+        .{ "ORDER BY id)", "ORDER BY other)", error.ProgramTypeMismatch },
+        .{ "ROW(id Item NOT NULL, note TEXT)", "ROW(note TEXT, id Item NOT NULL)", error.ProgramTypeMismatch },
+        .{ "ROW(id Item NOT NULL", "ROW(id Other NOT NULL", error.SourceDomainMismatch },
+        .{ "MANY(2) ROW(id Item NOT NULL, note TEXT) ORDER BY id)", "OPTIONAL ROW(id Item NOT NULL, note TEXT))", error.ProgramTypeMismatch },
+        .{ "CALL Ignore(selected)", "CALL Ignore(ROW(1, 'y'))", error.ProgramTypeMismatch },
+    };
+    inline for (changes) |change| {
+        const altered = try std.mem.replaceOwned(u8, t.allocator, program, change[0], change[1]);
+        defer t.allocator.free(altered);
+        try t.expectError(change[2], compile(t.allocator, altered));
+    }
+}

@@ -7,7 +7,7 @@ explicitly exported helper, as the argument. Helpers remain compile-time values;
 no runtime closure, indirect dispatch or authority token is emitted.
 
 The initial match is exact: helper kind, ordered parameter names/types, resource
-column descriptors and nominal identities, scalar return type, ordered
+column descriptors and nominal identities, declared return descriptor, ordered
 pre/postconditions and refusal codes must agree. Guard/procedure prototypes and
 arguments must declare `EFFECTS (...)`; pure functions have an empty effect set.
 Effect order is immaterial. Parameter renaming, predicate implication, result
@@ -21,7 +21,7 @@ helper body is rebound against distinct synthetic resource parameters; its exact
 set of resource operations, including every branch and nested call, must equal
 the declaration. Unused permissions and hidden/captured resource operations
 reject. Queries can use checked SELECT results in a guard or scalar-returning
-atomic procedure. Arbitrary row/many-result signatures are outside this profile.
+atomic procedure. Read-only procedures also support the query results specified below.
 
 Each invocation supplies concrete resource handles. An operation cannot migrate
 to another same-shaped resource through aliasing or a nested helper: checking
@@ -48,3 +48,23 @@ ordinary SQL, two instances, hidden effect and changed-signature controls. The
 installed fixture removes source, compares hand SQL, verifies Table/Stream
 rollback through a returning helper, restarts and denies access after credential
 revocation. A failed or timed-out isolated report is not a passing qualification.
+
+## Query results
+
+A procedure with explicit READ effects can return an ordinary query binding.
+Declare `RETURNS ONE ROW(...)`, `RETURNS OPTIONAL ROW(...)`, or
+`RETURNS MANY(n) ROW(...) ORDER BY key`. The result declaration lists the
+projected column names in order, with their source types, nullability and
+collations. A MANY result also carries its asserted bound and ordering key.
+The compiler checks each descriptor against the query in the helper body and
+again when matching a callable prototype. Calls inline once in the caller's
+atomic block. An OPTIONAL result requires a whole-row presence check before
+projection. A MANY result can feed the caller's bounded FOR directly.
+
+A procedure parameter accepts the same result declaration after its name, for
+example `batch MANY(2) ROW(note TEXT) ORDER BY id`. The ordering key may be
+outside the projection. At each call the compiler checks the exact result
+before entering the body, including unused parameters. A procedure may return
+a matching parameter with `EFFECTS ()`. Forwarding a result emits a lexical
+alias in the same transaction. Iterating over it charges the original bound.
+Effects inside a loop are part of its enclosing procedure's contract.

@@ -73,7 +73,8 @@ def cases():
     for prefix, directory in (('typed-queue', 'application-typed-queue'),
                               ('modular-programs', 'application-modular-programs'),
                               ('whole-row', 'application-whole-row'),
-                              ('bounded-many', 'application-bounded-many')):
+                              ('bounded-many', 'application-bounded-many'),
+                              ('query-returns', 'application-query-returns')):
         fixture = ROOT / 'tests/fixtures' / directory
         for mode in ('build', 'test_suite'):
             result.append({'name': f'{prefix}-{mode}', 'source': (fixture / 'build.transit').read_text(),

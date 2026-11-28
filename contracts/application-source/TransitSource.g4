@@ -16,13 +16,15 @@ definition
         | INTERFACE sourceName parameters
         | FUNCTION helperName parameters RETURNS sourceType effectClause? precondition* postcondition* AS BEGIN ATOMIC? functionBody END
         | GUARD helperName parameters effectClause? precondition* postcondition* AS (BEGIN ATOMIC? programBlock END | guardRequires)
-        | PROCEDURE helperName parameters (RETURNS sourceType)? effectClause? precondition* postcondition* AS BEGIN ATOMIC? procedureBody END
+        | PROCEDURE helperName parameters (RETURNS (sourceType | queryResult))? effectClause? precondition* postcondition* AS BEGIN ATOMIC? procedureBody END
         | MIGRATION TARGET sourceName migrationClause AS BEGIN body END
         | TEST? TARGET sourceName AS BEGIN body END) SEMI
     | EXPORT (MODULE sourceName parameters AS BEGIN body END
         | TEST SUITE sourceName FROM STRING
         | TARGET sourceName exportTargetBody) SEMI
     ;
+queryResult: (ONE | OPTIONAL) ROW resultColumns | MANY LPAREN INTEGER RPAREN ROW resultColumns ORDER BY sourceName;
+resultColumns: LPAREN signatureColumn (COMMA signatureColumn)* RPAREN;
 effectClause: EFFECTS LPAREN (effect (COMMA effect)*)? RPAREN;
 effect: (READ | INSERT | PRODUCE | ENQUEUE) sourceName;
 precondition: REQUIRES refinementTerm (AND refinementTerm)* ELSE STRING;
@@ -47,6 +49,7 @@ parameter: sourceName parameterKind;
 parameterKind: BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | JSON | INTERVAL | BINARY | numericSourceType | IDENTIFIER_KIND | TYPE | SCHEMA_BINDING
     | MODULE OF? sourceQualifiedName
     | callableParameter
+    | queryResult
     | ROW rowParameters
     | (TABLE | STREAM | QUEUE) LPAREN signatureColumn (COMMA signatureColumn)* RPAREN | sourceParameterName;
 callableParameter: (FUNCTION | GUARD | PROCEDURE) OF sourceQualifiedName;

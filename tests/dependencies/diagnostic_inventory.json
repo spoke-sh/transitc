@@ -91,7 +91,7 @@
         "BuildOutputLimit": 2,
         "BuildStatementLimit": 3,
         "BuildWorkLimit": 2,
-        "CallableSignatureMismatch": 7,
+        "CallableSignatureMismatch": 9,
         "ConflictingModuleInstance": 1,
         "DuplicateField": 1,
         "DuplicateSourceMatchArm": 1,
@@ -111,7 +111,7 @@
         "InvalidJson": 1,
         "InvalidMigrationBasisPath": 1,
         "InvalidModuleInterface": 1,
-        "InvalidParameterType": 1,
+        "InvalidParameterType": 3,
         "InvalidSourceName": 1,
         "InvalidSourceOperand": 7,
         "InvalidSourceSyntax": 1,
@@ -218,7 +218,7 @@
       },
       "open_error_set_uses": 11,
       "propagation": {
-        "try": 266,
+        "try": 268,
         "catch": 35
       },
       "imports": [
@@ -259,7 +259,7 @@
       },
       "open_error_set_uses": 1,
       "propagation": {
-        "try": 9,
+        "try": 10,
         "catch": 0
       },
       "imports": [
@@ -288,7 +288,9 @@
         "migrationClause()": "<inferred>",
         "name()": "<inferred>",
         "numericType()": "<inferred>",
+        "queryResult()": "<inferred>",
         "refinements()": "<inferred>",
+        "signatureColumns()": "<inferred>",
         "statement()": "anyerror",
         "string()": "<inferred>",
         "template()": "<inferred>",
@@ -296,7 +298,7 @@
       },
       "open_error_set_uses": 5,
       "propagation": {
-        "try": 273,
+        "try": 284,
         "catch": 0
       },
       "imports": [
@@ -379,18 +381,13 @@
         "InvalidSourceOperand": 3,
         "OptionalRowRequiresPresence": 1,
         "ProgramTooDeep": 1,
-        "ProgramTypeMismatch": 14,
+        "ProgramTypeMismatch": 18,
         "SourceDomainMismatch": 5,
         "SourceTypeMismatch": 1,
         "UnknownProgramVariable": 1,
         "UnsupportedNominalOperation": 1
       },
       "outcomes": {
-        "Cardinality": [
-          "one",
-          "optional",
-          "many"
-        ],
         "Event.kind": [
           "acquire",
           "let",
@@ -412,7 +409,8 @@
           "scalar",
           "row",
           "variant",
-          "result"
+          "result",
+          "query"
         ],
         "Obligation.target": [
           "binding",
@@ -444,13 +442,14 @@
       },
       "open_error_set_uses": 5,
       "propagation": {
-        "try": 103,
+        "try": 106,
         "catch": 0
       },
       "imports": [
         "Graph.zig",
         "SourceDiagnostic.zig",
         "SourceTypes.zig",
+        "Syntax.zig",
         "TypedOperands.zig",
         "WorkingCatalog.zig",
         "std",
@@ -492,10 +491,12 @@
     },
     "packages/transitc-compiler/src/ProgramLowering.zig": {
       "errors": {
+        "BuildEmissionMismatch": 2,
         "BuildStatementLimit": 1,
         "DuplicateProgramVariable": 5,
         "DuplicateSourceMatchArm": 1,
         "DuplicateSourceName": 4,
+        "EffectContractMismatch": 2,
         "ImpureSourceFunction": 4,
         "InvalidParameterType": 13,
         "InvalidQueuePredicate": 1,
@@ -505,6 +506,7 @@
         "InvalidSourceSyntax": 12,
         "InvalidSourceTemplate": 1,
         "InvalidVariantConstructor": 1,
+        "MissingCallableContract": 1,
         "MutationOutsideAtomic": 1,
         "NonExhaustiveSourceMatch": 1,
         "OutOfMemory": 1,
@@ -584,6 +586,7 @@
         "parameterExpected()": "<inferred>",
         "parameterScalar()": "<inferred>",
         "parseCalleeRef()": "<inferred>",
+        "queryParameterTable()": "<inferred>",
         "refinementName()": "<inferred>",
         "refinements()": "<inferred>",
         "requireEmitSymbol()": "<inferred>",
@@ -607,7 +610,7 @@
       },
       "open_error_set_uses": 11,
       "propagation": {
-        "try": 548,
+        "try": 571,
         "catch": 26
       },
       "imports": [
@@ -987,8 +990,9 @@
         "ImpureSourceFunction": 1,
         "InvalidDomainIdentity": 1,
         "InvalidMigrationVersion": 1,
+        "InvalidProgramCollection": 1,
         "InvalidSourceName": 2,
-        "InvalidSourceSyntax": 36,
+        "InvalidSourceSyntax": 37,
         "InvalidTestCount": 3,
         "InvalidTestName": 2,
         "InvalidTestStatement": 1,
@@ -1027,6 +1031,11 @@
           "greater_equal",
           "and_",
           "or_"
+        ],
+        "Cardinality": [
+          "one",
+          "optional",
+          "many"
         ],
         "CaseModule": [
           "call",
@@ -1105,6 +1114,7 @@
           "module_of",
           "callable",
           "row",
+          "query",
           "named",
           "table",
           "stream",
@@ -1205,6 +1215,7 @@
         "parseRowFields()": "<inferred>",
         "parseStatement()": "anyerror",
         "parseTwoPartName()": "<inferred>",
+        "queryResult()": "<inferred>",
         "refinements()": "<inferred>",
         "require()": "<inferred>",
         "requireArrow()": "<inferred>",
@@ -1216,7 +1227,7 @@
       },
       "open_error_set_uses": 4,
       "propagation": {
-        "try": 336,
+        "try": 345,
         "catch": 13
       },
       "imports": [
@@ -1879,7 +1890,9 @@
       "defaultTarget": "EXPORT DEFAULT TARGET sourceName SEMI",
       "migrationClause": "FROM ( EMPTY | STRING ) FOR DATABASE STRING SCHEMA STRING VERSION STRING NAME STRING",
       "exportMigrationClause": "FROM ( EMPTY | STRING ) ( FOR DATABASE STRING ( SCHEMA STRING ) ? ) ? VERSION STRING ( NAME STRING ) ?",
-      "definition": "CREATE PUBLIC ? ( MODULE sourceName parameters AS BEGIN body END | DOMAIN sourceName AS sourceBaseType IDENTITY STRING | VARIANT sourceName AS LPAREN variantConstructor ( COMMA variantConstructor ) * RPAREN | INTERFACE sourceName parameters | FUNCTION helperName parameters RETURNS sourceType effectClause ? precondition * postcondition * AS BEGIN ATOMIC ? functionBody END | GUARD helperName parameters effectClause ? precondition * postcondition * AS ( BEGIN ATOMIC ? programBlock END | guardRequires ) | PROCEDURE helperName parameters ( RETURNS sourceType ) ? effectClause ? precondition * postcondition * AS BEGIN ATOMIC ? procedureBody END | MIGRATION TARGET sourceName migrationClause AS BEGIN body END | TEST ? TARGET sourceName AS BEGIN body END ) SEMI | EXPORT ( MODULE sourceName parameters AS BEGIN body END | TEST SUITE sourceName FROM STRING | TARGET sourceName exportTargetBody ) SEMI",
+      "definition": "CREATE PUBLIC ? ( MODULE sourceName parameters AS BEGIN body END | DOMAIN sourceName AS sourceBaseType IDENTITY STRING | VARIANT sourceName AS LPAREN variantConstructor ( COMMA variantConstructor ) * RPAREN | INTERFACE sourceName parameters | FUNCTION helperName parameters RETURNS sourceType effectClause ? precondition * postcondition * AS BEGIN ATOMIC ? functionBody END | GUARD helperName parameters effectClause ? precondition * postcondition * AS ( BEGIN ATOMIC ? programBlock END | guardRequires ) | PROCEDURE helperName parameters ( RETURNS ( sourceType | queryResult ) ) ? effectClause ? precondition * postcondition * AS BEGIN ATOMIC ? procedureBody END | MIGRATION TARGET sourceName migrationClause AS BEGIN body END | TEST ? TARGET sourceName AS BEGIN body END ) SEMI | EXPORT ( MODULE sourceName parameters AS BEGIN body END | TEST SUITE sourceName FROM STRING | TARGET sourceName exportTargetBody ) SEMI",
+      "queryResult": "( ONE | OPTIONAL ) ROW resultColumns | MANY LPAREN INTEGER RPAREN ROW resultColumns ORDER BY sourceName",
+      "resultColumns": "LPAREN signatureColumn ( COMMA signatureColumn ) * RPAREN",
       "effectClause": "EFFECTS LPAREN ( effect ( COMMA effect ) * ) ? RPAREN",
       "effect": "( READ | INSERT | PRODUCE | ENQUEUE ) sourceName",
       "precondition": "REQUIRES refinementTerm ( AND refinementTerm ) * ELSE STRING",
@@ -1895,7 +1908,7 @@
       "parameters": "LPAREN ( parameter ( COMMA parameter ) * ) ? RPAREN",
       "rowParameters": "LPAREN parameter ( COMMA parameter ) * RPAREN",
       "parameter": "sourceName parameterKind",
-      "parameterKind": "BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | JSON | INTERVAL | BINARY | numericSourceType | IDENTIFIER_KIND | TYPE | SCHEMA_BINDING | MODULE OF ? sourceQualifiedName | callableParameter | ROW rowParameters | ( TABLE | STREAM | QUEUE ) LPAREN signatureColumn ( COMMA signatureColumn ) * RPAREN | sourceParameterName",
+      "parameterKind": "BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | JSON | INTERVAL | BINARY | numericSourceType | IDENTIFIER_KIND | TYPE | SCHEMA_BINDING | MODULE OF ? sourceQualifiedName | callableParameter | queryResult | ROW rowParameters | ( TABLE | STREAM | QUEUE ) LPAREN signatureColumn ( COMMA signatureColumn ) * RPAREN | sourceParameterName",
       "callableParameter": "( FUNCTION | GUARD | PROCEDURE ) OF sourceQualifiedName",
       "numericSourceType": "NUMERIC LPAREN INTEGER COMMA INTEGER RPAREN",
       "sourceInterval": "INTERVAL LPAREN sourceIntervalPart COMMA sourceIntervalPart COMMA sourceIntervalPart RPAREN",

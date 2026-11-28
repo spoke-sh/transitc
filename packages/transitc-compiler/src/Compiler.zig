@@ -573,7 +573,7 @@ fn validateParameterKind(self: *Self, file: usize, kind: s.Kind, depth: usize) a
             if (self.graph.getDefinition(ctor).kind != .module) return error.NotModuleConstructor;
         },
         .row => |fields| for (fields) |f_item| {
-            if (f_item.kind == .callable) return error.InvalidCallableSignature;
+            if (f_item.kind == .callable or f_item.kind == .query) return error.InvalidCallableSignature;
             try self.validateParameterKind(file, f_item.kind, depth + 1);
         },
         .numeric => |d| _ = try types.numericScalar(d),
@@ -584,7 +584,10 @@ fn validateInterfaces(self: *Self) !void {
     for (self.graph.files, 0..) |file, i| for (file.definitions) |definition| {
         self.file = i;
         self.offset = definition.span.start;
-        for (definition.parameters) |parameter| try self.validateParameterKind(i, parameter.kind, 0);
+        for (definition.parameters) |parameter| {
+            if (parameter.kind == .query and definition.kind != .procedure) return error.InvalidParameterType;
+            try self.validateParameterKind(i, parameter.kind, 0);
+        }
     };
 }
 fn resolve(self: *Self, file: usize, name: s.Name, bindings: []const Binding) !Graph.Ref {
@@ -618,6 +621,11 @@ fn sameParameterKind(self: *Self, left_file: usize, left: s.Kind, right_file: us
         .module => |m| try self.signature(try self.graph.resolve(left_file, m), try self.graph.resolve(right_file, right.module), depth),
         .module_of => |m| if (!std.meta.eql(try self.graph.resolve(left_file, m), try self.graph.resolve(right_file, right.module_of))) return error.ModuleInterfaceMismatch,
         .named => |n| if (!std.meta.eql(try self.graph.resolve(left_file, n), try self.graph.resolve(right_file, right.named))) return error.ModuleInterfaceMismatch,
+        .query => |l| {
+            const r = right.query;
+            if (l.cardinality != r.cardinality or l.bound != r.bound or !std.mem.eql(u8, l.order orelse "", r.order orelse "")) return error.CallableSignatureMismatch;
+            try self.sameParameterKind(left_file, .{ .table = l.columns }, right_file, .{ .table = r.columns }, depth + 1);
+        },
         .row => |fields| {
             if (fields.len != right.row.len) return error.ModuleInterfaceMismatch;
             for (fields, right.row) |lf, rf| {
@@ -644,6 +652,7 @@ fn argumentDepth(self: *Self, file: usize, kind: s.Kind, value: Value, depth: us
     self.context.expected = @tagName(kind);
     self.context.actual = if (value.scalar()) |ty| ty.label(self.graph) else @tagName(value);
     switch (kind) {
+        .query => return error.InvalidParameterType,
         .named => |name| {
             const ref = try self.graph.resolve(file, name);
             const definition = self.graph.getDefinition(ref);
@@ -2032,6 +2041,8 @@ fn callableSignature(self: *Self, expected: Graph.Ref, actual: Graph.Ref, depth:
         if (!std.mem.eql(u8, left.name, right.name)) return error.CallableSignatureMismatch;
         try self.sameParameterKind(expected.file, left.kind, actual.file, right.kind, depth + 1);
     }
+    if ((want.query_result == null) != (got.query_result == null)) return error.CallableSignatureMismatch;
+    if (want.query_result) |left| try self.sameParameterKind(expected.file, .{ .query = left }, actual.file, .{ .query = got.query_result.? }, depth + 1);
     if ((want.return_type == null) != (got.return_type == null)) return error.CallableSignatureMismatch;
     if (want.return_type) |ret| if (!types.Scalar.eql(try types.resolve(self.graph, expected.file, ret), try types.resolve(self.graph, actual.file, got.return_type.?))) return error.CallableSignatureMismatch;
     if (!@import("Effects.zig").same(want.effects orelse &.{}, got.effects orelse &.{}) or

@@ -388,6 +388,29 @@ def parse(source):
             result.append({'terms': terms, 'refusal': refusal, 'span': span(clause)})
         return result
 
+    def signature_columns(kind):
+        columns = []
+        for col in kind.signatureColumn():
+            raw_type = col.sourceType()
+            ty = source_type(raw_type)
+            nullable = not col.PRIMARY() and (not col.nullability() or not col.nullability().NOT())
+            if col.PRIMARY() and col.nullability() and not col.nullability().NOT():
+                raise Refusal(span(col)['start'], 'nullable primary key')
+            columns.append({'name': col.sourceName(0).getText().lower(), 'type': ty, 'nullable': nullable,
+                            'primary': bool(col.PRIMARY()), 'collation': col.sourceName(1).getText().lower() if col.COLLATE() else 'none'})
+        names = [col['name'] for col in columns]
+        if len(columns) > 128 or len(set(names)) != len(names):
+            raise Refusal(span(kind)['start'], 'column bound/duplicate')
+        return columns
+
+    def result_descriptor(qr):
+        columns = signature_columns(qr.resultColumns())
+        bound = int(qr.INTEGER().getText()) if qr.MANY() else 0
+        if (qr.MANY() and not 1 <= bound <= 64) or any(c['primary'] for c in columns):
+            raise Refusal(span(qr)['start'], 'invalid result descriptor')
+        return {'columns': columns, 'bound': bound, 'order': qr.sourceName().getText().lower() if qr.MANY() else None,
+                'cardinality': 'many' if qr.MANY() else 'one' if qr.ONE() else 'optional'}
+
     def parameters(ctx):
         result = []
         for param in ctx.parameter() if ctx else []:
@@ -401,21 +424,12 @@ def parse(source):
                 value = {'schema_binding': None}
             elif kind.MODULE():
                 value = {'module_of' if kind.OF() else 'module': name(kind.sourceQualifiedName())}
+            elif kind.queryResult():
+                value = {'query': result_descriptor(kind.queryResult())}
             elif kind.rowParameters():
                 value = {'row': parameters(kind.rowParameters())}
             elif kind.TABLE() or kind.STREAM() or kind.QUEUE():
-                columns = []
-                for col in kind.signatureColumn():
-                    raw_type = col.sourceType()
-                    ty = source_type(raw_type)
-                    nullable = not col.PRIMARY() and (not col.nullability() or not col.nullability().NOT())
-                    if col.PRIMARY() and col.nullability() and not col.nullability().NOT():
-                        raise Refusal(span(col)['start'], 'nullable primary key')
-                    columns.append({'name': col.sourceName(0).getText().lower(), 'type': ty, 'nullable': nullable,
-                                    'primary': bool(col.PRIMARY()), 'collation': col.sourceName(1).getText().lower() if col.COLLATE() else 'none'})
-                names = [col['name'] for col in columns]
-                if len(columns) > 128 or len(set(names)) != len(names):
-                    raise Refusal(span(kind)['start'], 'column bound/duplicate')
+                columns = signature_columns(kind)
                 value = {'table' if kind.TABLE() else 'stream' if kind.STREAM() else 'queue': columns}
             elif kind.sourceParameterName():
                 value = {'named': name(kind.sourceParameterName())}
@@ -452,6 +466,7 @@ def parse(source):
     for definition in root.definition():
         domain = None
         constructors = []
+        query_result = None
         return_type = None
         program = None
         mig = None
@@ -513,6 +528,8 @@ def parse(source):
                 names = [ctor['name'] for ctor in constructors]
                 if len(constructors) > 64 or len(set(names)) != len(names):
                     raise Refusal(span(definition)['start'], 'constructor bound/duplicate')
+            if definition.queryResult():
+                query_result = result_descriptor(definition.queryResult())
             if definition.sourceType():
                 raw_ret = definition.sourceType()
                 return_type = source_type(raw_ret)
@@ -530,7 +547,7 @@ def parse(source):
         definitions.append({'name': def_name, 'public': bool(definition.PUBLIC() or definition.EXPORT()),
                             'kind': def_kind, 'parameters': params, 'body': def_body,
                             'span': span(definition), 'domain': domain, 'constructors': constructors,
-                            'return_type': return_type, 'effects': ([{'operation': e.children[0].getText().lower(), 'resource': e.sourceName().getText().lower()} for e in definition.effectClause().effect()] if definition.effectClause() else None), 'preconditions': refinements(definition.precondition()),
+                            'return_type': return_type, 'query_result': query_result, 'effects': ([{'operation': e.children[0].getText().lower(), 'resource': e.sourceName().getText().lower()} for e in definition.effectClause().effect()] if definition.effectClause() else None), 'preconditions': refinements(definition.precondition()),
                             'postconditions': refinements(definition.postcondition()), 'program': program, 'migration': mig,
                             'target_of': target_of, 'target_ref': target_ref, 'output_path': output_path,
                             'suite_path': suite_path, 'suites': suites, 'target_options': target_options,

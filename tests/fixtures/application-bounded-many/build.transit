@@ -19,11 +19,11 @@ CREATE MODULE Seed(items TABLE(id rows.ItemId PRIMARY KEY, batch BIGINT NOT NULL
     INSERT INTO $items VALUES ($id, $batch, $note);
   END IF;
 END;
-CREATE MODULE Workflow(input QUEUE(id BIGINT NOT NULL, batch BIGINT NOT NULL, reject BIGINT NOT NULL), items TABLE(id rows.ItemId PRIMARY KEY, batch BIGINT NOT NULL, note TEXT), events STREAM(request BIGINT NOT NULL, id rows.ItemId NOT NULL, note TEXT), failures STREAM(request BIGINT NOT NULL, reason TEXT NOT NULL), route IDENTIFIER, late rows.ItemId, first rows.ItemId, last rows.ItemId) AS BEGIN
+CREATE MODULE Workflow(read_batch PROCEDURE OF rows.ReadBatch, input QUEUE(id BIGINT NOT NULL, batch BIGINT NOT NULL, reject BIGINT NOT NULL), items TABLE(id rows.ItemId PRIMARY KEY, batch BIGINT NOT NULL, note TEXT), events STREAM(request BIGINT NOT NULL, id rows.ItemId NOT NULL, note TEXT), failures STREAM(request BIGINT NOT NULL, reason TEXT NOT NULL), route IDENTIFIER, late rows.ItemId, first rows.ItemId, last rows.ItemId) AS BEGIN
   CREATE PUBLIC DATAFLOW $route FROM QUEUE $input AS request AS BEGIN
     BEGIN ATOMIC
-      LET selected MANY(3) = SELECT id, note FROM $items WHERE batch = request.batch ORDER BY id;
-      LET batch = selected;
+      LET selected = CALL read_batch($items, request.batch);
+      LET batch = CALL rows.ForwardBatch(selected);
       FOR item IN batch DO
         CHECK GUARD Validate(item);
         IF request.reject = 1 THEN
@@ -56,7 +56,7 @@ CREATE MODULE Pipeline(input IDENTIFIER, items IDENTIFIER, events IDENTIFIER, fa
   USE Seed(data.items, rows.ItemId(7), 4, 'seven', FALSE);
   USE Seed(data.items, rows.ItemId(9), 4, 'nine', FALSE);
   USE Seed(data.items, rows.ItemId(8), 4, 'eight', FALSE);
-  USE Workflow(data.input, data.items, data.events, data.failures, route, rows.ItemId(5), rows.ItemId(4), rows.ItemId(6));
+  USE Workflow(rows.ReadBatch, data.input, data.items, data.events, data.failures, route, rows.ItemId(5), rows.ItemId(4), rows.ItemId(6));
 END;
 CREATE MODULE Scenario(lease TEXT) AS BEGIN
   USE Pipeline(NAME 'many_requests', NAME 'many_items', NAME 'many_events', NAME 'many_failures', NAME 'many_route', lease);

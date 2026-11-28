@@ -74,6 +74,7 @@ const Checker = struct {
             },
             .require => {},
             .atomic => |body| try self.block(body),
+            .iteration => |loop| try self.block(loop.body),
             .conditional => |branch| {
                 try self.block(branch.yes);
                 try self.block(branch.no);

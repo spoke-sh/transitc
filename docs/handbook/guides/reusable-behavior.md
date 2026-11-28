@@ -59,8 +59,43 @@ append:
 transitc test -f tests/fixtures/application-callables/build.transit
 ```
 
-Callables are compile-time module arguments. Runtime closures, callable ROW
-members, callable helper parameters, arbitrary row/many-result signatures and
-implicit signature widening are outside this profile. Scalar queries can use
-ONE/OPTIONAL reads inside a checked guard or atomic procedure. Returning from a
-procedure preserves the caller's transaction and its rollback behavior.
+A read-only procedure can return a typed query result. The caller retains the
+row names, domains and nullability and can iterate a bounded result directly.
+
+```sql
+CREATE PROCEDURE SelectBatch(t TABLE(id BIGINT PRIMARY KEY, note TEXT))
+RETURNS MANY(2) ROW(id BIGINT NOT NULL, note TEXT) ORDER BY id
+EFFECTS (READ t)
+AS BEGIN ATOMIC
+  LET batch MANY(2) = SELECT id, note FROM t ORDER BY id;
+  RETURN batch;
+END;
+```
+
+Declaring `note TEXT NOT NULL` here fails because the Table permits NULL. Use
+`note TEXT` to describe the rows the query actually returns. The same signature
+can serve as a `PROCEDURE OF SelectBatch` module parameter. A caller receives
+the bound result in its own atomic transaction, so a later refusal rolls back
+any appends made while iterating it.
+
+```sh
+transitc test -f tests/fixtures/application-query-returns/build.transit
+```
+
+A procedure can consume the result from another query. Declare the bound and
+ordering key on the input, then iterate over the supplied rows.
+
+```sql
+CREATE PROCEDURE Emit(batch MANY(2) ROW(id BIGINT NOT NULL, note TEXT) ORDER BY id,
+                      events STREAM(id BIGINT NOT NULL, note TEXT))
+EFFECTS (PRODUCE events)
+AS BEGIN ATOMIC
+  FOR item IN batch DO
+    PRODUCE INTO events VALUES (item.id, item.note);
+  END FOR;
+END;
+```
+
+Pass the local result from `SelectBatch` to `Emit`. Declaring the parameter as
+`MANY(3)` rejects a `MANY(2)` argument. Use the same bound in both declarations.
+The call reuses the rows already read in the caller's transaction.
