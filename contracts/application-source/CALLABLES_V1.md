@@ -60,3 +60,11 @@ The compiler checks each descriptor against the query in the helper body and
 again when matching a callable prototype. Calls inline once in the caller's
 atomic block. An OPTIONAL result requires a whole-row presence check before
 projection. A MANY result can feed the caller's bounded FOR directly.
+
+A procedure parameter accepts the same result declaration after its name, for
+example `batch MANY(2) ROW(note TEXT) ORDER BY id`. The ordering key may be
+outside the projection. At each call the compiler checks the exact result
+before entering the body, including unused parameters. A procedure may return
+a matching parameter with `EFFECTS ()`. Forwarding a result emits a lexical
+alias in the same transaction. Iterating over it charges the original bound.
+Effects inside a loop are part of its enclosing procedure's contract.

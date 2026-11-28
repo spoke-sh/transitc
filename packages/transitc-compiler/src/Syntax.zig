@@ -24,6 +24,7 @@ pub const Kind = union(enum) {
     module_of: Name,
     callable: struct { kind: HelperKind, signature: Name },
     row: []const Parameter,
+    query: QueryResult,
     named: Name,
     table: []const Column,
     stream: []const Column,
@@ -829,7 +830,7 @@ fn parseParameters(self: *Self, require_non_empty: bool) anyerror![]const Parame
             }
             return error.DuplicateSourceName;
         };
-        const kind: Kind = if (self.take("BIGINT")) .integer else if (self.take("TEXT")) .text else if (self.take("BOOLEAN")) .boolean else if (self.take("UUID")) .uuid else if (self.take("TIMESTAMPTZ")) .timestamptz else if (self.take("DATE")) .date else if (self.take("JSON")) .json else if (self.take("INTERVAL")) .interval else if (self.numericSignature()) .{ .numeric = try self.numericType() } else if (self.take("BINARY")) .binary else if (self.take("IDENTIFIER")) .identifier else if (self.take("TYPE")) .type else if (self.take("SCHEMA_BINDING")) .schema_binding else if (self.callableKind()) |callable| .{ .callable = .{ .kind = callable, .signature = try self.parseName() } } else if (self.take("MODULE")) (if (self.takeKeywordBeforeName("OF")) .{ .module_of = try self.parseName() } else .{ .module = try self.parseName() }) else if (self.takeSignature("ROW")) .{ .row = try self.parseParameters(true) } else if (self.take("TABLE")) .{ .table = try self.tableSignature() } else if (self.takeSignature("STREAM")) .{ .stream = try self.tableSignature() } else if (self.takeSignature("QUEUE")) .{ .queue = try self.tableSignature() } else .{ .named = try self.parseName() };
+        const kind: Kind = if (try self.queryResult()) |signature| .{ .query = signature } else if (self.take("BIGINT")) .integer else if (self.take("TEXT")) .text else if (self.take("BOOLEAN")) .boolean else if (self.take("UUID")) .uuid else if (self.take("TIMESTAMPTZ")) .timestamptz else if (self.take("DATE")) .date else if (self.take("JSON")) .json else if (self.take("INTERVAL")) .interval else if (self.numericSignature()) .{ .numeric = try self.numericType() } else if (self.take("BINARY")) .binary else if (self.take("IDENTIFIER")) .identifier else if (self.take("TYPE")) .type else if (self.take("SCHEMA_BINDING")) .schema_binding else if (self.callableKind()) |callable| .{ .callable = .{ .kind = callable, .signature = try self.parseName() } } else if (self.take("MODULE")) (if (self.takeKeywordBeforeName("OF")) .{ .module_of = try self.parseName() } else .{ .module = try self.parseName() }) else if (self.takeSignature("ROW")) .{ .row = try self.parseParameters(true) } else if (self.take("TABLE")) .{ .table = try self.tableSignature() } else if (self.takeSignature("STREAM")) .{ .stream = try self.tableSignature() } else if (self.takeSignature("QUEUE")) .{ .queue = try self.tableSignature() } else .{ .named = try self.parseName() };
         try result.append(self.a, .{ .name = parameter_name, .kind = kind });
         if (self.take(")")) break;
         try self.require(",");

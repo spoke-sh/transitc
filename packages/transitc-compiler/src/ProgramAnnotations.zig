@@ -180,7 +180,8 @@ fn checkExpected(self: *Self, expected: Expected, name: []const u8, actual: Valu
     switch (expected) {
         .query => |contract| {
             const sig = contract.signature;
-            if (!actual.query or actual.cardinality != sig.cardinality or physical_.bound != sig.bound or
+            const kind: a.Types.Kind = if (sig.cardinality == .many) .rows else .record;
+            if (!actual.query or actual.cardinality != sig.cardinality or physical_.kind != kind or physical_.bound != sig.bound or
                 !std.mem.eql(u8, actual.order orelse "", sig.order orelse "") or physical_.fields.len != sig.columns.len)
                 return error.ProgramTypeMismatch;
             for (sig.columns, physical_.fields) |want, got| {

@@ -111,7 +111,7 @@
         "InvalidJson": 1,
         "InvalidMigrationBasisPath": 1,
         "InvalidModuleInterface": 1,
-        "InvalidParameterType": 1,
+        "InvalidParameterType": 3,
         "InvalidSourceName": 1,
         "InvalidSourceOperand": 7,
         "InvalidSourceSyntax": 1,
@@ -218,7 +218,7 @@
       },
       "open_error_set_uses": 11,
       "propagation": {
-        "try": 267,
+        "try": 268,
         "catch": 35
       },
       "imports": [
@@ -259,7 +259,7 @@
       },
       "open_error_set_uses": 1,
       "propagation": {
-        "try": 9,
+        "try": 10,
         "catch": 0
       },
       "imports": [
@@ -288,6 +288,7 @@
         "migrationClause()": "<inferred>",
         "name()": "<inferred>",
         "numericType()": "<inferred>",
+        "queryResult()": "<inferred>",
         "refinements()": "<inferred>",
         "signatureColumns()": "<inferred>",
         "statement()": "anyerror",
@@ -297,7 +298,7 @@
       },
       "open_error_set_uses": 5,
       "propagation": {
-        "try": 282,
+        "try": 284,
         "catch": 0
       },
       "imports": [
@@ -490,6 +491,7 @@
     },
     "packages/transitc-compiler/src/ProgramLowering.zig": {
       "errors": {
+        "BuildEmissionMismatch": 2,
         "BuildStatementLimit": 1,
         "DuplicateProgramVariable": 5,
         "DuplicateSourceMatchArm": 1,
@@ -584,6 +586,7 @@
         "parameterExpected()": "<inferred>",
         "parameterScalar()": "<inferred>",
         "parseCalleeRef()": "<inferred>",
+        "queryParameterTable()": "<inferred>",
         "refinementName()": "<inferred>",
         "refinements()": "<inferred>",
         "requireEmitSymbol()": "<inferred>",
@@ -607,7 +610,7 @@
       },
       "open_error_set_uses": 11,
       "propagation": {
-        "try": 549,
+        "try": 571,
         "catch": 26
       },
       "imports": [
@@ -1111,6 +1114,7 @@
           "module_of",
           "callable",
           "row",
+          "query",
           "named",
           "table",
           "stream",
@@ -1223,7 +1227,7 @@
       },
       "open_error_set_uses": 4,
       "propagation": {
-        "try": 344,
+        "try": 345,
         "catch": 13
       },
       "imports": [
@@ -1904,7 +1908,7 @@
       "parameters": "LPAREN ( parameter ( COMMA parameter ) * ) ? RPAREN",
       "rowParameters": "LPAREN parameter ( COMMA parameter ) * RPAREN",
       "parameter": "sourceName parameterKind",
-      "parameterKind": "BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | JSON | INTERVAL | BINARY | numericSourceType | IDENTIFIER_KIND | TYPE | SCHEMA_BINDING | MODULE OF ? sourceQualifiedName | callableParameter | ROW rowParameters | ( TABLE | STREAM | QUEUE ) LPAREN signatureColumn ( COMMA signatureColumn ) * RPAREN | sourceParameterName",
+      "parameterKind": "BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | JSON | INTERVAL | BINARY | numericSourceType | IDENTIFIER_KIND | TYPE | SCHEMA_BINDING | MODULE OF ? sourceQualifiedName | callableParameter | queryResult | ROW rowParameters | ( TABLE | STREAM | QUEUE ) LPAREN signatureColumn ( COMMA signatureColumn ) * RPAREN | sourceParameterName",
       "callableParameter": "( FUNCTION | GUARD | PROCEDURE ) OF sourceQualifiedName",
       "numericSourceType": "NUMERIC LPAREN INTEGER COMMA INTEGER RPAREN",
       "sourceInterval": "INTERVAL LPAREN sourceIntervalPart COMMA sourceIntervalPart COMMA sourceIntervalPart RPAREN",

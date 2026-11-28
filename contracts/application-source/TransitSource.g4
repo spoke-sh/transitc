@@ -49,6 +49,7 @@ parameter: sourceName parameterKind;
 parameterKind: BIGINT | TEXT | BOOLEAN | UUID | TIMESTAMPTZ | DATE | JSON | INTERVAL | BINARY | numericSourceType | IDENTIFIER_KIND | TYPE | SCHEMA_BINDING
     | MODULE OF? sourceQualifiedName
     | callableParameter
+    | queryResult
     | ROW rowParameters
     | (TABLE | STREAM | QUEUE) LPAREN signatureColumn (COMMA signatureColumn)* RPAREN | sourceParameterName;
 callableParameter: (FUNCTION | GUARD | PROCEDURE) OF sourceQualifiedName;

@@ -150,15 +150,7 @@ fn definition(self: Self, def: s.Definition) !void {
     if (def.migration) |migration| try self.migrationClause(migration);
     if (def.query_result) |result| {
         try writer.writeAll(" RETURNS ");
-        switch (result.cardinality) {
-            .one => try writer.writeAll("ONE"),
-            .optional => try writer.writeAll("OPTIONAL"),
-            .many => try writer.print("MANY({d})", .{result.bound}),
-        }
-        try writer.writeAll(" ROW(");
-        try self.signatureColumns(result.columns);
-        try writer.writeByte(')');
-        if (result.order) |order| try writer.print(" ORDER BY {s}", .{order});
+        try self.queryResult(result);
     }
     if (def.return_type) |ret| {
         try writer.writeAll(" RETURNS ");
@@ -521,8 +513,20 @@ fn scalarName(value: s.ScalarType) []const u8 {
         .binary => "BINARY",
     };
 }
+fn queryResult(self: Self, result: s.QueryResult) !void {
+    switch (result.cardinality) {
+        .one => try self.w.writeAll("ONE"),
+        .optional => try self.w.writeAll("OPTIONAL"),
+        .many => try self.w.print("MANY({d})", .{result.bound}),
+    }
+    try self.w.writeAll(" ROW(");
+    try self.signatureColumns(result.columns);
+    try self.w.writeByte(')');
+    if (result.order) |order| try self.w.print(" ORDER BY {s}", .{order});
+}
 fn kind(self: Self, value: s.Kind) anyerror!void {
     switch (value) {
+        .query => |result| try self.queryResult(result),
         .integer => try self.w.writeAll("BIGINT"),
         .text => try self.w.writeAll("TEXT"),
         .boolean => try self.w.writeAll("BOOLEAN"),

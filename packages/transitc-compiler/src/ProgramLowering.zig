@@ -97,6 +97,7 @@ pub fn validateAll(compiler: *Compiler) !void {
                     const ref = try graph.resolve(file_idx, name);
                     if (graph.getDefinition(ref).kind != .domain) return error.InvalidParameterType;
                 },
+                .query => |signature| try validateSignatureColumns(graph, file_idx, signature.columns, .table),
                 .row => |fields| try validateHelperRowFields(graph, file_idx, fields, 0),
                 .table => |cols| {
                     if (def.kind == .function) return error.InvalidParameterType;
@@ -389,6 +390,22 @@ fn visitCallGraph(compiler: *Compiler, base_offsets: []const usize, visited: []u
     return height;
 }
 
+// These declarations exist only in the helper-body checking catalog. A native
+// SELECT supplies the complete record/collection type to the shared binder
+// without constructing sample rows. Actual calls only alias a checked result.
+fn queryParameterTable(allocator: std.mem.Allocator, graph: Graph, file: usize, object: u64, name: []const u8, signature: s.QueryResult) !*const types.Table {
+    var columns: std.ArrayList(s.Column) = .empty;
+    try columns.appendSlice(allocator, signature.columns);
+    if (signature.order) |order| {
+        for (columns.items) |*column| {
+            if (!std.mem.eql(u8, column.name, order)) continue;
+            column.primary = true;
+            break;
+        } else try columns.append(allocator, .{ .name = order, .type = .{ .scalar = .bigint }, .primary = true, .nullable = false });
+    }
+    return buildSyntheticTable(allocator, graph, file, object, name, columns.items, .table);
+}
+
 fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const types.Binding) !void {
     if (!compiler.scratch.reset(.retain_capacity)) return error.OutOfMemory;
     const scratch = compiler.scratch.allocator();
@@ -405,6 +422,7 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
     var in_cols: std.ArrayList(f.TableSchema.Column) = .empty;
     var in_domains: std.ArrayList(?Graph.Ref) = .empty;
     var in_nested: std.ArrayList([]const types.FieldDomain) = .empty;
+    var param_sources: std.ArrayList(ResourceBinding) = .empty;
     var res_bindings: std.ArrayList(ResourceBinding) = .empty;
     var object_id: u64 = compiler.catalog.entries.items.len + 2;
 
@@ -420,6 +438,13 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
                 });
                 try in_domains.append(scratch, scalar_ty.domain);
                 try in_nested.append(scratch, &.{});
+            },
+            .query => |signature| {
+                const name = try std.fmt.allocPrint(scratch, "__transit$query_{s}", .{param.name});
+                const table = try queryParameterTable(scratch, graph, ref.file, object_id, name, signature);
+                object_id += 1;
+                try temp_catalog.entries.append(scratch, table);
+                try param_sources.append(scratch, .{ .name = param.name, .table = table });
             },
             .row => |fields| {
                 const row_param = try buildHelperRowParam(scratch, scratch, graph, ref.file, fields, 0);
@@ -549,6 +574,30 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
         .procedure => {
             if (def.returnsValue()) env.return_binding = try lowerer.freshHygienic("ret");
             try lowerer.emitFixed("BEGIN ATOMIC", origin_base);
+            var source_index: usize = 0;
+            for (def.parameters) |param| {
+                if (param.kind != .query) continue;
+                const signature = param.kind.query;
+                const local = try lowerer.freshHygienic(param.name);
+                try env.symbols.append(scratch, .{ .original = param.name, .emitted = local });
+                try lowerer.emitFixed("LET", origin_base);
+                try lowerer.emitQuotedRaw(local, origin_base);
+                if (signature.cardinality == .many) try lowerer.emitFixed(try std.fmt.allocPrint(scratch, "MANY({d})", .{signature.bound}), origin_base);
+                try lowerer.emitFixed("= SELECT", origin_base);
+                for (signature.columns, 0..) |column, index| {
+                    if (index > 0) try lowerer.emitFixed(",", origin_base);
+                    try lowerer.emitQuotedIdentifier(column.name, origin_base);
+                }
+                try lowerer.emitFixed("FROM", origin_base);
+                try lowerer.emitQuotedRaw(param_sources.items[source_index].table.name, origin_base);
+                source_index += 1;
+                if (signature.order) |order| {
+                    try lowerer.emitFixed("ORDER BY", origin_base);
+                    try lowerer.emitQuotedIdentifier(order, origin_base);
+                }
+                try lowerer.emitFixed(";", origin_base);
+                try obligations.append(scratch, .{ .target = .{ .binding = local }, .name = param.name, .expected = .{ .result = signature.cardinality } });
+            }
             try lowerer.refinements(&env, def.preconditions);
             var idx: usize = 0;
             try lowerer.lowerBlock(&env, body_tokens, &idx, true, 0);
@@ -562,7 +611,7 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
     const sql = lowerer.writer.bytes.items;
     var at: f.Sql.Location = .{ .offset = std.math.maxInt(usize) };
     const check_fn = struct {
-        fn run(comp: *Compiler, cat: *Catalog, raw_sql: []const u8, loc: *f.Sql.Location, sc: std.mem.Allocator, definition: s.Definition, resources: []const ResourceBinding, st: []const Operands.Site, org: []const Operands.Origin, obs: []const Annotations.Obligation) !void {
+        fn run(comp: *Compiler, cat: *Catalog, raw_sql: []const u8, loc: *f.Sql.Location, sc: std.mem.Allocator, definition: s.Definition, resources: []const ResourceBinding, query_parameters: usize, st: []const Operands.Site, org: []const Operands.Origin, obs: []const Annotations.Obligation) !void {
             var analysis = try ProgramCheck.analyze(cat, raw_sql, loc);
             defer analysis.deinit();
             if (definition.query_result != null) {
@@ -571,12 +620,21 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
                     if (builtinPurity(@tagName(function)) != .pure) return error.EffectContractMismatch;
                 }
             }
-            try @import("Effects.zig").check(sc, cat, definition.effects, resources, analysis.parsed.program.body.instructions, &comp.context);
+            var body = analysis.parsed.program.body.instructions;
+            if (query_parameters > 0) {
+                // The generated parameter reads precede every user instruction
+                // inside this analysis-only atomic block. They convey no rights.
+                if (body.len == 0 or body[body.len - 1].value != .atomic) return error.BuildEmissionMismatch;
+                const atomic = body[body.len - 1].value.atomic;
+                if (query_parameters > atomic.len) return error.BuildEmissionMismatch;
+                body = atomic[query_parameters..];
+            }
+            try @import("Effects.zig").check(sc, cat, definition.effects, resources, body, &comp.context);
             _ = try Annotations.check(sc, sc, comp.graph, cat, analysis.parsed.program, &analysis.bound, raw_sql, st, org, obs, &comp.context, &comp.work, comp.limits.work);
         }
     }.run;
     var check_catalog = try Symbolic.catalog(scratch, temp_catalog, symbolic_parameters.items);
-    check_fn(compiler, &check_catalog, sql, &at, scratch, def, res_bindings.items, sites.items, origins.items, obligations.items) catch |err| {
+    check_fn(compiler, &check_catalog, sql, &at, scratch, def, res_bindings.items, param_sources.items.len, sites.items, origins.items, obligations.items) catch |err| {
         const err_offset = compiler.context.offset orelse at.offset;
         for (origins.items) |origin| if (err_offset >= origin.start and err_offset < origin.end) {
             if (origin.file) |origin_file| compiler.file = origin_file;
@@ -736,6 +794,7 @@ fn parameterScalar(graph: Graph, file: usize, kind: s.Kind) !types.Scalar {
 
 fn parameterExpected(scratch: std.mem.Allocator, out_alloc: std.mem.Allocator, graph: Graph, file: usize, kind: s.Kind) !Annotations.Expected {
     return switch (kind) {
+        .query => |signature| .{ .query = .{ .file = file, .signature = signature } },
         .row => |fields| (try buildHelperRowParam(scratch, out_alloc, graph, file, fields, 0)).expected,
         else => .{ .scalar = try parameterScalar(graph, file, kind) },
     };
@@ -1865,8 +1924,8 @@ fn inlineHelperCall(self: *Self, caller_env: *Env, tokens: []const s.Token, i: *
                     try callee_env.symbols.append(self.scratch, .{ .original = param.name, .emitted = hygienic });
                 }
             },
-            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary, .named => {
-                const expected_scalar = try parameterScalar(self.compiler.graph, callee_ref.file, param.kind);
+            .integer, .text, .boolean, .uuid, .timestamptz, .date, .numeric, .json, .interval, .binary, .named, .query => {
+                const expected = try parameterExpected(self.scratch, self.output, self.compiler.graph, callee_ref.file, param.kind);
                 const hygienic = try self.freshHygienic(param.name);
                 const mark = self.beginHoistScope();
                 var hoisted: Hoisted = .{ .writer = .{ .allocator = self.scratch, .limit = self.writer.limit } };
@@ -1882,7 +1941,7 @@ fn inlineHelperCall(self: *Self, caller_env: *Env, tokens: []const s.Token, i: *
                 try self.applyHoist(mark, &hoisted);
                 try self.obligations.append(self.output, .{
                     .target = .{ .binding = hygienic },
-                    .expected = .{ .scalar = expected_scalar },
+                    .expected = expected,
                     .name = param.name,
                 });
                 try callee_env.symbols.append(self.scratch, .{ .original = param.name, .emitted = hygienic });

@@ -143,3 +143,31 @@ test "query procedure result contracts retain fields, order, cardinality and eff
         try t.expectError(case[2], compile(t.allocator, changed));
     }
 }
+
+test "query arguments preserve exact descriptors even when a procedure ignores the input" {
+    const t = std.testing;
+    const program =
+        \\CREATE PUBLIC DOMAIN Item AS BIGINT IDENTITY 'items.id';
+        \\CREATE PUBLIC DOMAIN Other AS BIGINT IDENTITY 'other.id';
+        \\CREATE PROCEDURE Ignore(batch MANY(2) ROW(id Item NOT NULL, note TEXT) ORDER BY id)
+        \\EFFECTS () AS BEGIN ATOMIC REQUIRE TRUE ELSE 'Bad'; END;
+        \\CREATE PROCEDURE UseBatch(t TABLE(id Item PRIMARY KEY, note TEXT)) EFFECTS (READ t)
+        \\AS BEGIN ATOMIC LET selected MANY(2) = SELECT id, note FROM t ORDER BY id; CALL Ignore(selected); END;
+        \\CREATE TARGET default AS BEGIN CREATE PUBLIC TABLE items(id BIGINT PRIMARY KEY); END;
+    ;
+    const product = try compile(t.allocator, program);
+    defer product.deinit();
+    const changes = .{
+        .{ "batch MANY(2)", "batch MANY(3)", error.ProgramTypeMismatch },
+        .{ "ORDER BY id)", "ORDER BY other)", error.ProgramTypeMismatch },
+        .{ "ROW(id Item NOT NULL, note TEXT)", "ROW(note TEXT, id Item NOT NULL)", error.ProgramTypeMismatch },
+        .{ "ROW(id Item NOT NULL", "ROW(id Other NOT NULL", error.SourceDomainMismatch },
+        .{ "MANY(2) ROW(id Item NOT NULL, note TEXT) ORDER BY id)", "OPTIONAL ROW(id Item NOT NULL, note TEXT))", error.ProgramTypeMismatch },
+        .{ "CALL Ignore(selected)", "CALL Ignore(ROW(1, 'y'))", error.ProgramTypeMismatch },
+    };
+    inline for (changes) |change| {
+        const altered = try std.mem.replaceOwned(u8, t.allocator, program, change[0], change[1]);
+        defer t.allocator.free(altered);
+        try t.expectError(change[2], compile(t.allocator, altered));
+    }
+}

@@ -403,6 +403,14 @@ def parse(source):
             raise Refusal(span(kind)['start'], 'column bound/duplicate')
         return columns
 
+    def result_descriptor(qr):
+        columns = signature_columns(qr.resultColumns())
+        bound = int(qr.INTEGER().getText()) if qr.MANY() else 0
+        if (qr.MANY() and not 1 <= bound <= 64) or any(c['primary'] for c in columns):
+            raise Refusal(span(qr)['start'], 'invalid result descriptor')
+        return {'columns': columns, 'bound': bound, 'order': qr.sourceName().getText().lower() if qr.MANY() else None,
+                'cardinality': 'many' if qr.MANY() else 'one' if qr.ONE() else 'optional'}
+
     def parameters(ctx):
         result = []
         for param in ctx.parameter() if ctx else []:
@@ -416,6 +424,8 @@ def parse(source):
                 value = {'schema_binding': None}
             elif kind.MODULE():
                 value = {'module_of' if kind.OF() else 'module': name(kind.sourceQualifiedName())}
+            elif kind.queryResult():
+                value = {'query': result_descriptor(kind.queryResult())}
             elif kind.rowParameters():
                 value = {'row': parameters(kind.rowParameters())}
             elif kind.TABLE() or kind.STREAM() or kind.QUEUE():
@@ -519,13 +529,7 @@ def parse(source):
                 if len(constructors) > 64 or len(set(names)) != len(names):
                     raise Refusal(span(definition)['start'], 'constructor bound/duplicate')
             if definition.queryResult():
-                qr = definition.queryResult()
-                columns = signature_columns(qr.resultColumns())
-                bound = int(qr.INTEGER().getText()) if qr.MANY() else 0
-                if (qr.MANY() and not 1 <= bound <= 64) or any(c['primary'] for c in columns):
-                    raise Refusal(span(qr)['start'], 'invalid result descriptor')
-                query_result = {'columns': columns, 'bound': bound, 'order': qr.sourceName().getText().lower() if qr.MANY() else None,
-                                'cardinality': 'many' if qr.MANY() else 'one' if qr.ONE() else 'optional'}
+                query_result = result_descriptor(definition.queryResult())
             if definition.sourceType():
                 raw_ret = definition.sourceType()
                 return_type = source_type(raw_ret)
