@@ -7,13 +7,13 @@ CREATE MODULE Journey(batch PROCEDURE OF reads.SelectBatch) AS BEGIN
   CREATE PUBLIC DATAFLOW route FROM QUEUE jobs AS request AS BEGIN
     BEGIN ATOMIC
       LET rows = CALL batch(items);
-      FOR item IN rows DO
-        PRODUCE INTO events VALUES (item.id, item.note);
-      END FOR;
+      LET forwarded = CALL reads.RelayBatch(rows);
+      CALL reads.Emit(forwarded, events);
       LET maybe = CALL reads.Lookup(items, request.id);
+      LET other = maybe;
       IF maybe IS NOT NULL THEN
         LET required = CALL reads.Required(items, request.id);
-        REQUIRE required.id = maybe.id ELSE 'DifferentRow';
+        CALL reads.Compare(required, other);
       ELSE
         REQUIRE FALSE ELSE 'AbsentRow';
       END IF;

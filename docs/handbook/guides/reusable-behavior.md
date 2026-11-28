@@ -81,3 +81,21 @@ any appends made while iterating it.
 ```sh
 transitc test -f tests/fixtures/application-query-returns/build.transit
 ```
+
+A procedure can consume the result from another query. Declare the bound and
+ordering key on the input, then iterate over the supplied rows.
+
+```sql
+CREATE PROCEDURE Emit(batch MANY(2) ROW(id BIGINT NOT NULL, note TEXT) ORDER BY id,
+                      events STREAM(id BIGINT NOT NULL, note TEXT))
+EFFECTS (PRODUCE events)
+AS BEGIN ATOMIC
+  FOR item IN batch DO
+    PRODUCE INTO events VALUES (item.id, item.note);
+  END FOR;
+END;
+```
+
+Pass the local result from `SelectBatch` to `Emit`. Declaring the parameter as
+`MANY(3)` rejects a `MANY(2)` argument. Use the same bound in both declarations.
+The call reuses the rows already read in the caller's transaction.

@@ -18,3 +18,24 @@ AS BEGIN ATOMIC
   LET found ONE = SELECT id, note FROM t WHERE id = key;
   RETURN found;
 END;
+
+CREATE PUBLIC PROCEDURE RelayBatch(batch MANY(2) ROW(id BIGINT NOT NULL, note TEXT) ORDER BY id) RETURNS MANY(2) ROW(id BIGINT NOT NULL, note TEXT) ORDER BY id
+EFFECTS ()
+AS BEGIN ATOMIC
+  RETURN batch;
+END;
+
+CREATE PUBLIC PROCEDURE Emit(batch MANY(2) ROW(id BIGINT NOT NULL, note TEXT) ORDER BY id, events STREAM(id BIGINT NOT NULL, note TEXT))
+EFFECTS (PRODUCE events)
+AS BEGIN ATOMIC
+  FOR item IN batch DO
+    PRODUCE INTO events VALUES (item.id, item.note);
+  END FOR;
+END;
+
+CREATE PUBLIC PROCEDURE Compare(found ONE ROW(id BIGINT NOT NULL, note TEXT), candidate OPTIONAL ROW(id BIGINT NOT NULL, note TEXT))
+EFFECTS ()
+AS BEGIN ATOMIC
+  REQUIRE candidate IS NOT NULL ELSE 'AbsentRow';
+  REQUIRE found.id = candidate.id ELSE 'DifferentRow';
+END;
