@@ -29,6 +29,13 @@ pub const Kind = union(enum) {
     stream: []const Column,
     queue: []const Column,
 };
+pub const Cardinality = enum { one, optional, many };
+pub const QueryResult = struct {
+    cardinality: Cardinality,
+    columns: []const Column,
+    bound: u8 = 0,
+    order: ?[]const u8 = null,
+};
 pub const Parameter = struct { name: []const u8, kind: Kind };
 pub const NumericType = f.Types.Decimal;
 pub const Interval = f.Types.Semantics.Interval;
@@ -118,6 +125,8 @@ pub const Definition = struct {
     domain: ?Domain = null,
     constructors: []const Constructor = &.{},
     return_type: ?TypeRef = null,
+    query_result: ?QueryResult = null,
+
     effects: ?[]const Effect = null,
     preconditions: []const Refinement = &.{},
     postconditions: []const Refinement = &.{},
@@ -130,6 +139,10 @@ pub const Definition = struct {
     suites: []const SuiteRef = &.{},
     target_options: []const TargetOption = &.{},
     schema: ?[]const u8 = null,
+
+    pub fn returnsValue(self: Definition) bool {
+        return self.return_type != null or self.query_result != null;
+    }
 };
 pub const Import = struct { alias: []const u8, package: ?[]const u8, path: []const u8, span: Span };
 pub const Dependency = struct { name: []const u8, repository: []const u8, revision: []const u8, subdirectory: []const u8, span: Span };
@@ -434,9 +447,11 @@ fn parseCreateDefinition(self: *Self, start: u32) !Definition {
         break :blk qn.member;
     } else try self.identifier();
     const parameters = if (kind == .module or kind == .interface or kind == .function or kind == .guard or kind == .procedure) try self.parseParameters(false) else &.{};
+    var query_result: ?QueryResult = null;
     const return_type: ?TypeRef = if (kind == .function or (kind == .procedure and self.is("RETURNS"))) blk: {
         try self.require("RETURNS");
-        break :blk try self.typeRef();
+        if (kind == .procedure) query_result = try self.queryResult();
+        break :blk if (query_result == null) try self.typeRef() else null;
     } else null;
     const effects = if (kind == .function or kind == .guard or kind == .procedure) try self.parseEffects() else null;
     const preconditions = if (kind == .function or kind == .guard or kind == .procedure) try self.refinements("REQUIRES") else &.{};
@@ -523,7 +538,7 @@ fn parseCreateDefinition(self: *Self, start: u32) !Definition {
                 .guard => .guard,
                 .procedure => .procedure,
                 else => unreachable,
-            }, return_type != null, self.location, self.report);
+            }, return_type != null or query_result != null, self.location, self.report);
         }
     }
     const body: []const Statement = if (kind == .interface or kind == .domain or kind == .variant or kind == .function or kind == .guard or kind == .procedure) &.{} else blk: {
@@ -540,7 +555,7 @@ fn parseCreateDefinition(self: *Self, start: u32) !Definition {
         break :blk result;
     };
     try self.require(";");
-    return .{ .name = name, .public = public, .kind = kind, .parameters = parameters, .body = body, .span = self.span(start), .domain = domain, .constructors = try constructors.toOwnedSlice(self.a), .return_type = return_type, .effects = effects, .preconditions = preconditions, .postconditions = postconditions, .program = program, .migration = migration, .schema = def_schema };
+    return .{ .name = name, .public = public, .kind = kind, .parameters = parameters, .body = body, .span = self.span(start), .domain = domain, .constructors = try constructors.toOwnedSlice(self.a), .return_type = return_type, .query_result = query_result, .effects = effects, .preconditions = preconditions, .postconditions = postconditions, .program = program, .migration = migration, .schema = def_schema };
 }
 fn currentSpan(self: *const Self) SourceDiagnostic.Span {
     const end_pos: u32 = @intCast(self.text.len);
@@ -702,6 +717,28 @@ fn typeRef(self: *Self) !TypeRef {
     if (self.numericSignature()) return .{ .numeric = try self.numericType() };
     if (self.is("BIGINT") or self.is("TEXT") or self.is("BOOLEAN") or self.is("UUID") or self.is("TIMESTAMPTZ") or self.is("DATE") or self.is("JSON") or self.is("INTERVAL") or self.is("BINARY")) return .{ .scalar = try self.scalarType() };
     return .{ .named = try self.parseName() };
+}
+fn queryResult(self: *Self) !?QueryResult {
+    const start = self.index;
+    const cardinality: Cardinality = if (self.take("ONE")) .one else if (self.take("OPTIONAL")) .optional else if (self.take("MANY")) .many else return null;
+    var bound: u8 = 0;
+    if (cardinality == .many and self.take("(")) {
+        bound = try self.numericPart();
+        try self.require(")");
+        if (bound == 0 or bound > f.ApplicationProgram.max_collection_rows) return error.InvalidProgramCollection;
+    } else if (cardinality == .many or !self.is("ROW")) {
+        self.index = start;
+        return null;
+    }
+    try self.require("ROW");
+    const columns = try self.tableSignature();
+    for (columns) |column| if (column.primary) return error.InvalidSourceSyntax;
+    const order = if (cardinality == .many) blk: {
+        try self.require("ORDER");
+        try self.require("BY");
+        break :blk try self.identifier();
+    } else null;
+    return .{ .cardinality = cardinality, .columns = columns, .bound = bound, .order = order };
 }
 fn tableSignature(self: *Self) ![]const Column {
     try self.require("(");

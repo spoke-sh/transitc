@@ -113,6 +113,11 @@ pub fn validateAll(compiler: *Compiler) !void {
                 .identifier, .type, .schema_binding, .module, .module_of, .callable => return error.InvalidParameterType,
             }
         }
+        if (def.query_result) |result| {
+            const effects = def.effects orelse return error.MissingCallableContract;
+            for (effects) |effect| if (effect.operation != .read) return error.EffectContractMismatch;
+            for (result.columns) |column| _ = try types.resolve(graph, file_idx, column.type);
+        }
         if (def.return_type) |return_type| {
             compiler.context = .{ .name = def.name };
             _ = try types.resolve(graph, file_idx, return_type);
@@ -542,7 +547,7 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
             try lowerer.refinements(&env, def.postconditions);
         },
         .procedure => {
-            if (def.return_type != null) env.return_binding = try lowerer.freshHygienic("ret");
+            if (def.returnsValue()) env.return_binding = try lowerer.freshHygienic("ret");
             try lowerer.emitFixed("BEGIN ATOMIC", origin_base);
             try lowerer.refinements(&env, def.preconditions);
             var idx: usize = 0;
@@ -560,6 +565,12 @@ fn validateHelperBody(compiler: *Compiler, ref: Graph.Ref, bindings: []const typ
         fn run(comp: *Compiler, cat: *Catalog, raw_sql: []const u8, loc: *f.Sql.Location, sc: std.mem.Allocator, definition: s.Definition, resources: []const ResourceBinding, st: []const Operands.Site, org: []const Operands.Origin, obs: []const Annotations.Obligation) !void {
             var analysis = try ProgramCheck.analyze(cat, raw_sql, loc);
             defer analysis.deinit();
+            if (definition.query_result != null) {
+                var functions = analysis.bound.requirements.functions.iterator();
+                while (functions.next()) |function| {
+                    if (builtinPurity(@tagName(function)) != .pure) return error.EffectContractMismatch;
+                }
+            }
             try @import("Effects.zig").check(sc, cat, definition.effects, resources, analysis.parsed.program.body.instructions, &comp.context);
             _ = try Annotations.check(sc, sc, comp.graph, cat, analysis.parsed.program, &analysis.bound, raw_sql, st, org, obs, &comp.context, &comp.work, comp.limits.work);
         }
@@ -1109,7 +1120,7 @@ fn lowerBlock(self: *Self, env: *Env, tokens: []const s.Token, i: *usize, atomic
             if (i.* != tokens.len) return error.UnexpectedProcedureReturn;
             try self.obligations.append(self.output, .{
                 .target = .{ .binding = binding },
-                .expected = .{ .scalar = try types.resolve(self.compiler.graph, env.file, helper.return_type.?) },
+                .expected = if (helper.query_result) |result| .{ .query = .{ .signature = result, .file = env.file } } else .{ .scalar = try types.resolve(self.compiler.graph, env.file, helper.return_type.?) },
                 .name = helper.name,
             });
             continue;
@@ -1721,7 +1732,7 @@ fn inlineHelperCall(self: *Self, caller_env: *Env, tokens: []const s.Token, i: *
     };
     const callee_ref = resolved_callee.ref;
     const callee = self.compiler.graph.getDefinition(callee_ref);
-    if (result_binding != null and callee.return_type == null) {
+    if (result_binding != null and !callee.returnsValue()) {
         self.setError(caller_env, call_offset);
         return error.ProcedureHasNoResult;
     }
@@ -1744,7 +1755,7 @@ fn inlineHelperCall(self: *Self, caller_env: *Env, tokens: []const s.Token, i: *
         .schemas = resolved_callee.schemas,
         .bindings = resolved_callee.bindings,
         .call = outer_call,
-        .return_binding = if (callee.return_type != null) result_binding orelse try self.freshHygienic("ret") else null,
+        .return_binding = if (callee.returnsValue()) result_binding orelse try self.freshHygienic("ret") else null,
     };
 
     for (callee.parameters, arg_slices) |param, arg_tokens| {

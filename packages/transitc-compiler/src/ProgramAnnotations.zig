@@ -22,7 +22,8 @@ pub const Type = struct {
         return json.write(.{ .kind = self.kind, .nullable = self.nullable, .domain = self.domain, .fields = self.fields }, out);
     }
 };
-pub const Cardinality = enum { one, optional, many };
+const syntax = @import("Syntax.zig");
+pub const Cardinality = syntax.Cardinality;
 pub const Node = struct { id: a.Id, source_offset: usize, kind: []const u8, type: Type, cardinality: ?Cardinality = null };
 pub const Association = struct { column: []const u8, domain: ?[]const u8, value: ?a.Id };
 pub const Event = struct {
@@ -46,6 +47,7 @@ pub const Expected = union(enum) {
     variant: Graph.Ref,
     /// Result presence is separate from field nullability and cell states.
     result: Cardinality,
+    query: struct { signature: syntax.QueryResult, file: usize },
 };
 pub const Obligation = struct {
     target: union(enum) {
@@ -55,7 +57,7 @@ pub const Obligation = struct {
     expected: Expected,
     name: []const u8,
 };
-const Value = struct { domain: ?Graph.Ref = null, fields: []const Named = &.{}, cardinality: ?Cardinality = null, require_presence: bool = false, order: ?[]const u8 = null };
+const Value = struct { query: bool = false, column: ?*const @import("transit_sql_frontend").TableSchema.Column = null, domain: ?Graph.Ref = null, fields: []const Named = &.{}, cardinality: ?Cardinality = null, require_presence: bool = false, order: ?[]const u8 = null };
 const Named = struct { name: []const u8, value: Value };
 const Self = @This();
 scratch: std.mem.Allocator,
@@ -128,9 +130,9 @@ fn convertNested(scratch: std.mem.Allocator, items: []const types.FieldDomain) a
 }
 fn record(self: *Self, resource: *const types.Table) !Value {
     const fields = try self.scratch.alloc(Named, resource.domains.len);
-    for (resource.schema.columns, resource.domains, fields, 0..) |column, annotation, *item, idx| {
+    for (resource.schema.columns, resource.domains, fields, 0..) |*column, annotation, *item, idx| {
         const nested = if (idx < resource.nested_domains.len) try convertNested(self.scratch, resource.nested_domains[idx]) else &.{};
-        item.* = .{ .name = column.name, .value = .{ .domain = annotation, .fields = nested } };
+        item.* = .{ .name = column.name, .value = .{ .column = column, .domain = annotation, .fields = nested } };
     }
     return .{ .fields = fields };
 }
@@ -176,6 +178,21 @@ fn project(self: *Self, value: Value, physical_: a.Types.Value, depth: usize) an
 }
 fn checkExpected(self: *Self, expected: Expected, name: []const u8, actual: Value, physical_: a.Types.Value, offset: usize) anyerror!void {
     switch (expected) {
+        .query => |contract| {
+            const sig = contract.signature;
+            if (!actual.query or actual.cardinality != sig.cardinality or physical_.bound != sig.bound or
+                !std.mem.eql(u8, actual.order orelse "", sig.order orelse "") or physical_.fields.len != sig.columns.len)
+                return error.ProgramTypeMismatch;
+            for (sig.columns, physical_.fields) |want, got| {
+                if (!std.mem.eql(u8, want.name, got.name)) return error.ProgramTypeMismatch;
+                const value = field(actual, got.name);
+                const column = value.column orelse return error.ProgramTypeMismatch;
+                const scalar = try types.resolve(self.graph, contract.file, want.type);
+                if (want.nullable != column.nullable or !std.mem.eql(u8, want.collation, @tagName(column.collation)) or
+                    !try scalar.physical().eql(column.type)) return error.ProgramTypeMismatch;
+                try self.checkExpected(.{ .scalar = scalar }, want.name, value, got.value, offset);
+            }
+        },
         .result => |cardinality| if (physical_.kind != (if (cardinality == .many) a.Types.Kind.rows else a.Types.Kind.record) or actual.cardinality == null) return error.ProgramTypeMismatch,
         .variant => |ref| _ = try self.variantRecord(ref, actual, physical_, offset),
         .scalar => |want_scalar| {
@@ -303,6 +320,7 @@ fn expression(self: *Self, input: *const a.Expression) anyerror!Value {
             if ((try self.physical(item.no.id)).kind == .null) break :blk optional(yes);
             try self.agree(yes, no, input.span.start);
             var joined = yes;
+            joined.query = false;
             if (yes.cardinality != no.cardinality) joined = optional(joined);
             joined.require_presence = yes.require_presence or no.require_presence;
             break :blk joined;
@@ -344,6 +362,7 @@ fn condition(self: *Self, input: *const a.Expression) !void {
 }
 fn optional(value: Value) Value {
     var result = value;
+    result.query = false;
     if (result.cardinality != null) result.cardinality = .optional;
     return result;
 }
@@ -375,9 +394,9 @@ fn select(self: *Self, input: a.Select) !Value {
     if (input.columns) |names| {
         const fields = try self.scratch.alloc(Named, names.len);
         for (names, fields) |name, *out| out.* = .{ .name = name, .value = field(record_, name) };
-        return .{ .fields = fields, .cardinality = if (input.many != null) .many else .optional, .order = if (input.many) |many| many.order else null };
+        return .{ .query = true, .fields = fields, .cardinality = if (input.many != null) .many else .optional, .order = if (input.many) |many| many.order else null };
     }
-    return .{ .fields = record_.fields, .cardinality = if (input.many != null) .many else .optional, .order = if (input.many) |many| many.order else null };
+    return .{ .query = true, .fields = record_.fields, .cardinality = if (input.many != null) .many else .optional, .order = if (input.many) |many| many.order else null };
 }
 fn event(self: *Self, kind: @FieldType(Event, "kind"), id: ?a.Id, offset: usize, resource: ?*const types.Table, expressions: []const *a.Expression) !void {
     const columns = try self.output.alloc(Association, if (resource) |value| value.domains.len else 0);
@@ -421,6 +440,7 @@ fn block(self: *Self, instructions: []const a.Instruction) anyerror!void {
                         value = try self.variantRecord(ob.expected.variant, value, phys, err_offset);
                     } else {
                         try self.checkObligation(ob, value, phys, err_offset);
+                        if (ob.expected == .query) value.require_presence = ob.expected.query.signature.cardinality == .optional;
                         if (ob.expected == .result) {
                             value.cardinality = ob.expected.result;
                             value.require_presence = ob.expected.result != .many;

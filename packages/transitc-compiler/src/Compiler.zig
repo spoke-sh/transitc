@@ -2032,6 +2032,12 @@ fn callableSignature(self: *Self, expected: Graph.Ref, actual: Graph.Ref, depth:
         if (!std.mem.eql(u8, left.name, right.name)) return error.CallableSignatureMismatch;
         try self.sameParameterKind(expected.file, left.kind, actual.file, right.kind, depth + 1);
     }
+    if ((want.query_result == null) != (got.query_result == null)) return error.CallableSignatureMismatch;
+    if (want.query_result) |left| {
+        const right = got.query_result.?;
+        if (left.cardinality != right.cardinality or left.bound != right.bound or !std.mem.eql(u8, left.order orelse "", right.order orelse "")) return error.CallableSignatureMismatch;
+        try self.sameParameterKind(expected.file, .{ .table = left.columns }, actual.file, .{ .table = right.columns }, depth + 1);
+    }
     if ((want.return_type == null) != (got.return_type == null)) return error.CallableSignatureMismatch;
     if (want.return_type) |ret| if (!types.Scalar.eql(try types.resolve(self.graph, expected.file, ret), try types.resolve(self.graph, actual.file, got.return_type.?))) return error.CallableSignatureMismatch;
     if (!@import("Effects.zig").same(want.effects orelse &.{}, got.effects orelse &.{}) or

@@ -148,6 +148,18 @@ fn definition(self: Self, def: s.Definition) !void {
         try writer.writeByte(')');
     }
     if (def.migration) |migration| try self.migrationClause(migration);
+    if (def.query_result) |result| {
+        try writer.writeAll(" RETURNS ");
+        switch (result.cardinality) {
+            .one => try writer.writeAll("ONE"),
+            .optional => try writer.writeAll("OPTIONAL"),
+            .many => try writer.print("MANY({d})", .{result.bound}),
+        }
+        try writer.writeAll(" ROW(");
+        try self.signatureColumns(result.columns);
+        try writer.writeByte(')');
+        if (result.order) |order| try writer.print(" ORDER BY {s}", .{order});
+    }
     if (def.return_type) |ret| {
         try writer.writeAll(" RETURNS ");
         switch (ret) {
@@ -557,19 +569,23 @@ fn kind(self: Self, value: s.Kind) anyerror!void {
                 .queue => "QUEUE(",
                 else => unreachable,
             });
-            for (columns, 0..) |column, i| {
-                if (i != 0) try self.w.writeAll(", ");
-                try self.w.print("{s} ", .{column.name});
-                switch (column.type) {
-                    .scalar => |v| try self.w.writeAll(scalarName(v)),
-                    .numeric => |v| try self.numericType(v),
-                    .named => |v| try self.name(v),
-                }
-                if (column.primary) try self.w.writeAll(" PRIMARY KEY") else if (!column.nullable) try self.w.writeAll(" NOT NULL");
-                if (!std.mem.eql(u8, column.collation, "none")) try self.w.print(" COLLATE {s}", .{column.collation});
-            }
+            try self.signatureColumns(columns);
             try self.w.writeByte(')');
         },
+    }
+}
+
+fn signatureColumns(self: Self, columns: []const s.Column) !void {
+    for (columns, 0..) |column, i| {
+        if (i != 0) try self.w.writeAll(", ");
+        try self.w.print("{s} ", .{column.name});
+        switch (column.type) {
+            .scalar => |v| try self.w.writeAll(scalarName(v)),
+            .numeric => |v| try self.numericType(v),
+            .named => |v| try self.name(v),
+        }
+        if (column.primary) try self.w.writeAll(" PRIMARY KEY") else if (!column.nullable) try self.w.writeAll(" NOT NULL");
+        if (!std.mem.eql(u8, column.collation, "none")) try self.w.print(" COLLATE {s}", .{column.collation});
     }
 }
 
