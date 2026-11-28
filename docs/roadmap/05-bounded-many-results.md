@@ -1,6 +1,6 @@
 # Milestone 5: bounded many-row results
 
-Status: Implemented and qualified; paired PRs open
+Status: Completed
 
 The [qualification record](../qualification/bounded-many.md) retains the completed
 baseline schedules and records candidate gates separately. Native clean/hosted
@@ -9,9 +9,10 @@ The three local isolated schedules retain deadline failures. Three hosted
 49-case passes succeed with unchanged limits, and all four signed native archive
 jobs pass, including the macOS retry after an identity-token timeout. The paired changes are
 [Transit #480](https://github.com/spoke-sh/transit/pull/480) and
-[transitc #7](https://github.com/spoke-sh/transitc/pull/7); the native owner merges
-first. The approved plan below preserves the original proposal and acceptance
-inventory. The [query-results guide](../handbook/guides/query-results.md) describes
+[transitc #7](https://github.com/spoke-sh/transitc/pull/7), both merged on 2026-11-27,
+native owner first. The [M5 completion plan](05-completion-plan.md) now sequences
+all remaining milestone work. The approved plan below preserves the original
+proposal and acceptance inventory. The [query-results guide](../handbook/guides/query-results.md) describes
 the implemented syntax and profile.
 
 Implementation plan for review, 2026-11-23. This slice advances
@@ -254,6 +255,10 @@ reviewable upstream PRs if continuation compatibility warrants it; no dependent
 source admission ships before its runtime owner.
 
 ## Distance to milestone completion
+
+This section preserves the estimate made before implementing bounded results.
+The [current completion plan](05-completion-plan.md#delivery-order-commits-and-validation)
+starts from the merged slice and breaks down all remaining work.
 
 Milestone 5 has a substantial implemented foundation, but it is still in feature
 delivery. The previous merge resolves the symbolic whole-ROW implementation gap;

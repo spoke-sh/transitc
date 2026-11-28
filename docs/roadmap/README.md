@@ -34,7 +34,8 @@ and qualifies native bounds, atomic consumption and compiler typing. Its
 [qualification record](../qualification/bounded-many.md) retains the completed
 merged-profile CI and local schedules alongside passing hosted candidate results
 and retained local deadline failures.
-The plan also records the remaining feature slices required to finish milestone 5.
+The [M5 completion plan](05-completion-plan.md) sequences all remaining state,
+query-contract, scalar and ordinary-view work, with explicit closeout gates.
 
 ## Source and ownership
 
@@ -80,9 +81,10 @@ actual independent code/dependencies, not by a planning topic alone.
    [extraction record](../qualification/extraction.md) as the baseline. Keep its
    clean-cache, native archive, compatibility and handbook gates passing as the
    later milestones extend the supported profile.
-2. Land the paired [bounded many-row PRs](05-bounded-many-results.md), native owner
-   first. Continue with state-carrying values and conversions, followed by the
-   required query-signature, scalar and view work in 5.2–5.4. Extend
+2. Follow the [M5 completion plan](05-completion-plan.md) from the merged
+   [bounded many-row slice](05-bounded-many-results.md): state-carrying values and
+   conversions, query-result callable contracts, scalar program/prepared/relational
+   surfaces and ordinary views, then integrated qualification. Extend
    recursive-package/formatter/diagnostic evidence in 6
    independently; 8.1 owns the separate runtime privilege contract.
 3. Extend 7.1 per available runtime kind and measure 7.4 capacity without changing
@@ -184,8 +186,8 @@ protocol, memory and compiled-case test types, plus native database execution.
 Transit contains no compiler snapshot or dependency on transitc.
 
 Standalone manifests pin the deterministic five-package pure source archive at
-Transit `b58715bf4ef4e5236748547ce15e37a602c4b471`, with both Zig content hash and
-Nix SHA256. The [composition completion record](../qualification/composition-completion.md)
+Transit `d65f7c656c8e311806132ca894059b43b52051ee`, with both Zig content hash and
+Nix SHA256. The [bounded-result record](../qualification/bounded-many.md)
 tracks qualification of this refreshed pin. The comparison binary remains frozen at
 `e7434306334e3692c6f3e123cba0d278fa412196`; the compatible compiled-case host is
 selected separately by the `transit` flake input. The

@@ -66,17 +66,22 @@ separately listed compiler work. The support matrix in
 literal/codec qualification from query operators and program values. Runtime
 reports that hit a deadline remain failures, even when compile-time checks pass.
 
-## Active implementation slice
+## Active completion plan
 
-The [bounded many-row results plan](05-bounded-many-results.md) is implemented on
-the paired review branches; its [qualification record](../qualification/bounded-many.md)
-separates the merged baseline, passing hosted qualification and failed local
-schedules. This
-includes an owned native collection and bounded atomic consumption, source
-cardinality/nominal checking, independent SQL comparisons and guides. The plan also
-records the [remaining path to completion](05-bounded-many-results.md#distance-to-milestone-completion):
-state-carrying values, query-result contracts, scalar program/prepared/relational
-surfaces, ordinary views and integrated qualification. M5 remains In Progress.
+The [completion plan](05-completion-plan.md) covers all remaining M5 work:
+state-carrying values and conversions, query-result callable contracts, four
+scalar program increments, prepared/relational scalar transport, ordinary views
+and integrated qualification. It specifies the bounded completion profile,
+native/compiler ownership, review order and evidence required to close each unit.
+Its status is Planned for review; M5 remains In Progress.
+
+The [bounded many-row results slice](05-bounded-many-results.md) is merged in
+[Transit #480](https://github.com/spoke-sh/transit/pull/480) and
+[transitc #7](https://github.com/spoke-sh/transitc/pull/7). Its
+[qualification record](../qualification/bounded-many.md) separates the merged
+baseline, passing hosted qualification and failed local schedules. Native
+collections, bounded atomic consumption, source cardinality/nominal checking,
+independent SQL comparisons and guides are delivered foundations for the new plan.
 
 ## Previous slice: complete the existing composition profile
 
